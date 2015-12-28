@@ -30,7 +30,6 @@
             <includes>
                 <include>com.datastax.cassandra:cassandra-driver-dse</include>
             </includes>
-            <useProjectAttachments>false</useProjectAttachments>
         </dependencySet>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
@@ -39,11 +38,13 @@
             <scope>runtime</scope>
             <excludes>
                 <exclude>com.datastax.cassandra:*:*:sources:*</exclude>
-                <exclude>io.netty:netty-transport-native-epoll:*</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>src</outputDirectory>
+            <outputFileNameMapping>
+                ${artifact.artifactId}-${artifact.version}-src.zip
+            </outputFileNameMapping>
             <useProjectAttachments>true</useProjectAttachments>
             <unpack>false</unpack>
             <includes>
