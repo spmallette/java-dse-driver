@@ -14,7 +14,7 @@ build:
       com.datastax.driver.TEST_BASE_NODE_WAIT=120
       com.datastax.driver.NEW_NODE_DELAY_SECONDS=100
       cassandra.version=5.0.0
-      cassandra.directory=/home/jenkins/bdp
+      cassandra.directory=/home/jenkins/bdp-master
       dse=true
       ccm.java.home=$CCM_JAVA_HOME
       ccm.path=$CCM_JAVA_HOME/bin
