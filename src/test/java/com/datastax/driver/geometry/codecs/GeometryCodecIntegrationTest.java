@@ -62,7 +62,7 @@ public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends C
 
     @Override
     public Cluster.Builder createClusterBuilder() {
-        return createClusterBuilderNoDebouncing().withCodecRegistry(new CodecRegistry().register(GeometryCodecs.ALL));
+        return createClusterBuilderNoDebouncing();
     }
 
     @Override

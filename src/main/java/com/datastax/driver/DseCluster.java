@@ -20,6 +20,10 @@ import com.datastax.driver.core.exceptions.AuthenticationException;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.policies.*;
+import com.datastax.driver.geometry.codecs.CircleCodec;
+import com.datastax.driver.geometry.codecs.LineStringCodec;
+import com.datastax.driver.geometry.codecs.PointCodec;
+import com.datastax.driver.geometry.codecs.PolygonCodec;
 import com.datastax.driver.graph.GraphOptions;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
@@ -46,8 +50,26 @@ public class DseCluster extends DelegatingCluster {
 
         private GraphOptions graphOptions;
 
+        private boolean geospatialCodecs = true;
+
         public DseCluster.Builder withGraphOptions(GraphOptions graphOptions) {
             this.graphOptions = graphOptions;
+            return this;
+        }
+
+        /**
+         * Prevents the registration of {@link com.datastax.driver.geometry.Geometry geospatial type} codecs with the
+         * new cluster.
+         * <p/>
+         * If this method is not called, those codecs will be registered by default.
+         *
+         * @return this builder (for method chaining).
+         *
+         * @see CodecRegistry
+         * @see TypeCodec
+         */
+        public DseCluster.Builder withoutGeospatialCodecs() {
+            this.geospatialCodecs = false;
             return this;
         }
 
@@ -193,12 +215,23 @@ public class DseCluster extends DelegatingCluster {
 
         @Override
         public DseCluster build() {
-            return new DseCluster(super.build());
+            DseCluster dseCluster = new DseCluster(super.build());
+            if (geospatialCodecs)
+                registerGeospatialCodecs(dseCluster);
+            return dseCluster;
         }
 
         @Override
         public DseConfiguration getConfiguration() {
             return new DseConfiguration(super.getConfiguration(), graphOptions != null ? graphOptions : new GraphOptions());
+        }
+
+        private static void registerGeospatialCodecs(DseCluster dseCluster) {
+            dseCluster.getConfiguration().getCodecRegistry().register(
+                    CircleCodec.INSTANCE,
+                    LineStringCodec.INSTANCE,
+                    PointCodec.INSTANCE,
+                    PolygonCodec.INSTANCE);
         }
     }
 
