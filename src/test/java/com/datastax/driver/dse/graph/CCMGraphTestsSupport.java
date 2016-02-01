@@ -35,12 +35,11 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
 
-    private final String graphName = TestUtils.generateIdentifier("graph_");
-
     @Override
     public void onTestContextInitialized() {
         // TODO only create the graph schema if told to via annotation config
         // Create the graph schema and set the namespace in the graph configuration to it.
+        String graphName = TestUtils.generateIdentifier("graph_");
         session().executeGraph("system.createGraph(name).ifNotExist().build()",
                 ImmutableMap.<String, Object>of("name", graphName));
         cluster().getConfiguration().getGraphOptions().setGraphName(graphName);

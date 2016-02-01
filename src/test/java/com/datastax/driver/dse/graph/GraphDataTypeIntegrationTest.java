@@ -16,8 +16,13 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.utils.DseVersion;
+import com.datastax.driver.dse.geometry.Circle;
+import com.datastax.driver.dse.geometry.LineString;
+import com.datastax.driver.dse.geometry.Point;
+import com.datastax.driver.dse.geometry.Polygon;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.assertj.core.api.iterable.Extractor;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -27,10 +32,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.datastax.driver.dse.geometry.Utils.p;
 import static com.datastax.driver.dse.graph.Assertions.assertThat;
 
 @DseVersion(major = 5.0)
-public class SimpleGraphStatementIntegrationTest extends CCMGraphTestsSupport {
+public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
 
     AtomicInteger schemaCounter = new AtomicInteger(0);
 
@@ -42,47 +48,59 @@ public class SimpleGraphStatementIntegrationTest extends CCMGraphTestsSupport {
 
     @DataProvider
     public Object[][] dataTypeSamples() {
+        // property class, input values, expected output (if null, assume input data matches output).
         return new Object[][]{
                 // Types that DSE supports.
-                // TODO: Should we add custom serializers for the types don't natively work with the JSON Mapper?
-                // TODO: Most types work natively, but some like Geospatial, Inet Addresses and Dates don't.
-                // TODO: This is out of happenstance, so we only test with types we know will work natively with
-                // TODO: json until we implement explicit serializer/deserializers.
-                // TODO: BigDecimal loses precision (Math.PI as an example), look into that.
-                // TODO: Add temporal types (Date, Instant, Duration)
-                {"java.math.BigDecimal", new String[]{"8675309.9998"}, String.class},
-                {"java.math.BigInteger", new String[]{"8675309"}, String.class},
-                {"String", new String[]{"", "75", "Lorem Ipsum"}, String.class},
-                {"Long", new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, Long.class},
-                {"Integer", new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, Integer.class},
-                {"Short", new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, (short) 0, 42}, Short.class},
-                {"Double", new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, Double.class},
-                {"Boolean", new Boolean[]{true, false}, Boolean.class},
-                // TODO: Uncomment when DSP-8087 implemented.
-                //{"org.apache.cassandra.db.marshal.geometry.Point", new Point[]{p(0, 1), p(-5, 20)}, Point.class},
-                //{"org.apache.cassandra.db.marshal.geometry.LineString", new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, LineString.class},
-                //{"org.apache.cassandra.db.marshal.geometry.Polygon",
-                //        new Polygon[]{
-                //                Polygon.builder()
-                //                        .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
-                //                        .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
-                //                        .build()},
-                //        Polygon.class},
-                // {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, Circle.class},
-                {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, String.class},
-                {"java.net.Inet4Address", new String[]{"127.0.0.1"}, String.class},
-                {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, String.class},
-                {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, String.class}
+                // TODO: This test is currently a bit awkward since not all types supported by DSE Server are supported
+                // TODO: by the driver.  All unsupported types are written as String parameters and read back as String
+                // TODO: parameters, with exception of Geometric types which can be serialized as parameters but not
+                // TODO: deserialized using GraphResult.
+                {"java.math.BigDecimal", new String[]{"8675309.9998"}, null},
+                {"java.math.BigInteger", new String[]{"8675309"}, null},
+                {"String", new String[]{"", "75", "Lorem Ipsum"}, null},
+                {"Long", new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null},
+                {"Integer", new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null},
+                {"Short", new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, (short) 0, 42}, null},
+                {"Double", new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null},
+                {"Boolean", new Boolean[]{true, false}, null},
+                {"org.apache.cassandra.db.marshal.geometry.Point", new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}},
+                {"org.apache.cassandra.db.marshal.geometry.LineString", new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, new String[]{"LINESTRING (30 10, 10 30, 40 40)"}},
+                {"org.apache.cassandra.db.marshal.geometry.Polygon",
+                        new Polygon[]{
+                                Polygon.builder()
+                                        .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
+                                        .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
+                                        .build()},
+                        new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}},
+                {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, new String[]{"CIRCLE((1.0 2.0) 3.0)"}},
+                {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null},
+                {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null},
+                {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null},
+                {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, null},
+                // TODO: While Instant is supported, it returns back a JSON object,
+                // TODO: i.e.: {prop1:{"nano":657000000,"epochSecond":1454552791}} instead of a parsable data string.
+                // {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null}
+                // TODO: DSE Graph seems to support Map type properties, but this doesn't currently work.  Add when functional.
         };
     }
 
-    private <T> void validateVertexResult(GraphResultSet resultSet, T data, Class<T> clazz, String vertexLabel, String propertyName) {
+    private void validateVertexResult(GraphResultSet resultSet, Object expectedResult, String vertexLabel, String propertyName) {
         // Ensure the created vertex is returned and the property value matches what was provided.
         assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
-        assertThat(resultSet.one())
-                .asVertex()
-                .hasLabel(vertexLabel)
-                .hasProperty(propertyName, data, clazz);
+        Vertex v = resultSet.one().asVertex();
+        VertexAssert a = assertThat(v).hasLabel(vertexLabel);
+
+        if (expectedResult instanceof String) {
+            a.hasProperty(propertyName, (String) expectedResult);
+        } else if (expectedResult instanceof Integer) {
+            a.hasProperty(propertyName, (Integer) expectedResult);
+        } else if (expectedResult instanceof Boolean) {
+            a.hasProperty(propertyName, (Boolean) expectedResult);
+        } else if (expectedResult instanceof Long) {
+            a.hasProperty(propertyName, (Long) expectedResult);
+        } else if (expectedResult instanceof Double) {
+            a.hasProperty(propertyName, (Double) expectedResult);
+        }
     }
 
     /**
@@ -95,14 +113,13 @@ public class SimpleGraphStatementIntegrationTest extends CCMGraphTestsSupport {
      * <li>For completeness, queries the vertex and ensures the property value matches that which was inserted.</li>
      * </ol>
      *
-     * @param clazz     The class that the property key's should should be.
-     * @param data      The sample data to add as property values and use as parameters.
-     * @param dataClazz The class implementation of the data sample.
-     * @param <T>       The type of the data sample.
+     * @param clazz      The class that the property key's should should be.
+     * @param data       The sample data to add as property values and use as parameters.
+     * @param resultData The expected data returned from querying.
      * @test_category dse:graph
      */
     @Test(groups = "short", dataProvider = "dataTypeSamples")
-    public <T> void should_create_and_retrieve_vertex_property(String clazz, T[] data, Class<T> dataClazz) {
+    public void should_create_and_retrieve_vertex_property(String clazz, Object[] data, Object[] resultData) {
         int id = schemaCounter.incrementAndGet();
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
@@ -115,21 +132,23 @@ public class SimpleGraphStatementIntegrationTest extends CCMGraphTestsSupport {
                 .set("property", propertyName);
         session().executeGraph(addVertexLabelAndProperty);
 
-        for (T value : data) {
+        for (int i = 0; i < data.length; i++) {
+            Object input = data[i];
+            Object expectedResult = resultData != null ? resultData[i] : input;
             GraphStatement addV = new SimpleGraphStatement("g.addV(label, vertexLabel, propertyName, val)")
                     .set("vertexLabel", vertexLabel)
                     .set("propertyName", propertyName)
-                    .set("val", value);
+                    .set("val", input);
             GraphResultSet resultSet = session().executeGraph(addV);
-            validateVertexResult(resultSet, value, dataClazz, vertexLabel, propertyName);
+            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName);
 
             // For completeness, retrieve the vertex and ensure the property value was maintained.
             GraphStatement getV = new SimpleGraphStatement("g.V().hasLabel(vertexLabel).has(propertyName, val).next()")
                     .set("vertexLabel", vertexLabel)
                     .set("propertyName", propertyName)
-                    .set("val", value);
+                    .set("val", input);
             resultSet = session().executeGraph(getV);
-            validateVertexResult(resultSet, value, dataClazz, vertexLabel, propertyName);
+            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName);
         }
     }
 
@@ -266,5 +285,75 @@ public class SimpleGraphStatementIntegrationTest extends CCMGraphTestsSupport {
 
         List<GraphResult> results = resultSet.all();
         assertThat(results).extractingResultOf("asString").containsOnlyElementsOf(citizenship);
+    }
+
+    /**
+     * Ensures that a traversal that returns an object with labels can be properly represented as graph result.
+     * <p/>
+     * Executes a vertex traversal that binds label 'a' and 'b' to vertex properties and label 'c' to vertices that
+     * have edges from that vertex.
+     */
+    @Test(groups = "short")
+    public void should_handle_result_object_of_mixed_types() {
+        // find all software vertices and select name, language, and find all vertices that created such software.
+        GraphResultSet rs = session().executeGraph("g.V().hasLabel('software').as('a', 'b', 'c')." +
+                "select('a','b','c')." +
+                "by('name')." +
+                "by('lang')." +
+                "by(__.in('created').fold())");
+
+
+        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        List<GraphResult> results = rs.all();
+
+        // Ensure that we got 'lop' and 'ripple' for property a.
+        assertThat(results).extracting(new Extractor<GraphResult, String>() {
+            @Override
+            public String extract(GraphResult input) {
+                return input.get("a").asString();
+            }
+        }).containsOnly("lop", "ripple");
+
+        for (GraphResult result : results) {
+            // The row should represent a map with a, b, and c keys.
+            assertThat(result.isMap()).isTrue();
+            assertThat(result.keys()).containsOnlyOnce("a", "b", "c");
+            // 'e' should not exist, thus it should be null.
+            assertThat(result.get("e").isNull()).isTrue();
+            // both software are written in java.
+            assertThat(result.get("b").isNull()).isFalse();
+            assertThat(result.get("b").asString()).isEqualTo("java");
+            GraphResult c = result.get("c");
+            assertThat(c.isArray()).isTrue();
+            if (result.get("a").asString().equals("lop")) {
+                // 'c' should contain marko, josh, peter.
+                // Ensure we have three vertices.
+                assertThat(c.size()).isEqualTo(3);
+                List<Vertex> vertices = Lists.newArrayList(c.get(0).asVertex(), c.get(1).asVertex(), c.get(2).asVertex());
+                assertThat(vertices).extracting(new Extractor<Vertex, String>() {
+                    @Override
+                    public String extract(Vertex input) {
+                        return input.getProperties().get("name").asString();
+                    }
+                }).containsOnly("marko", "josh", "peter");
+            } else {
+                // ripple, 'c' should contain josh.
+                // Ensure we have 1 vertex.
+                assertThat(c.size()).isEqualTo(1);
+                Vertex vertex = c.get(0).asVertex();
+                assertThat(vertex).hasProperty("name", "josh");
+            }
+        }
+    }
+
+    /**
+     * Ensures an traversal that yields no results is properly parsed and returned.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_return_zero_results() {
+        GraphResultSet rs = session().executeGraph("g.V().hasLabel('notALabel')");
+        assertThat(rs.getAvailableWithoutFetching()).isZero();
     }
 }
