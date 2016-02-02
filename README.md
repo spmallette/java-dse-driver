@@ -187,13 +187,12 @@ graphOptions.setGraphName("demo2");
 ```
 
 If an option is set manually on a `GraphStatement`, it always takes precedence; otherwise the default option is used.
-This might be a problem if a default is set, but you explicitly want to execute a statement with no value. For example,
-system statements require that no graph name is set, but you might already have a default name set via `GraphOptions`.
-In that situation, use `GraphOptions.NONE`:
+This might be a problem if a default graph name is set, but you explicitly want to execute a statement targeting
+`system`, for which no graph name must be set. In that situation, use `GraphStatement#setSystemQuery()`:
 
 ```java
 GraphStatement s = new SimpleGraphStatement("system.createGraph('demo').ifNotExist().build()")
-        .setGraphName(GraphOptions.NONE);
+        .setSystemQuery();
 dseSession.executeGraph(s);
 ```
 

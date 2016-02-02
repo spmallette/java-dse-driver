@@ -18,7 +18,6 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.dse.DseSession;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -26,13 +25,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class GraphStatement {
 
-    private String graphLanguage;
+    private volatile String graphLanguage;
 
-    private String graphSource;
+    private volatile String graphSource;
 
-    private String graphName;
+    private volatile String graphName;
 
-    private String graphAlias;
+    private volatile boolean systemQuery;
+
+    private volatile String graphAlias;
 
     /**
      * Returns the graph language to use with this statement.
@@ -55,7 +56,6 @@ public abstract class GraphStatement {
      */
     public GraphStatement setGraphLanguage(String graphLanguage) {
         checkNotNull(graphLanguage, "graphLanguage cannot be null");
-        checkArgument(graphLanguage != GraphOptions.NONE, "graphLanguage must be set");
         this.graphLanguage = graphLanguage;
         return this;
     }
@@ -81,7 +81,6 @@ public abstract class GraphStatement {
      */
     public GraphStatement setGraphSource(String graphSource) {
         checkNotNull(graphSource, "graphSource cannot be null");
-        checkArgument(graphLanguage != GraphOptions.NONE, "graphSource must be set");
         this.graphSource = graphSource;
         return this;
     }
@@ -102,16 +101,43 @@ public abstract class GraphStatement {
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphName()} (which may
      * itself be unset) will be used when executing the statement.
      * <p/>
-     * If the default is set on the global options, but you explicitly want to force this statement to execute with no
-     * graph name, pass {@link GraphOptions#NONE} to this method.
+     * If a default name is set on the global options, but this statement is a system query that you explicitly want to
+     * run without a graph name, use {@link #setSystemQuery()}.
+     * <p/>
+     * If {@link #setSystemQuery()} was called on this statement previously, setting a graph name forces the statement
+     * to be a non-system query again.
      *
-     * @param graphName the Graph name to use with this statement.
+     * @param graphName the graph name to use with this statement.
      * @return this {@link GraphStatement} instance (for method chaining).
      */
     public GraphStatement setGraphName(String graphName) {
         checkNotNull(graphName, "graphName cannot be null");
         this.graphName = graphName;
+        this.systemQuery = false;
         return this;
+    }
+
+    /**
+     * Forces this statement to use no graph name, even if a default graph name was defined with
+     * {@link GraphOptions#setGraphName(String)}.
+     * <p/>
+     * If a graph name was previously defined on this statement, it will be reset.
+     *
+     * @return this {@link GraphStatement} instance (for method chaining).
+     */
+    public GraphStatement setSystemQuery() {
+        this.systemQuery = true;
+        this.graphName = null;
+        return this;
+    }
+
+    /**
+     * Returns whether this statement is marked as a system query.
+     *
+     * @return whether this statement is marked as a system query.
+     */
+    public boolean isSystemQuery() {
+        return this.systemQuery;
     }
 
     /**
@@ -129,9 +155,6 @@ public abstract class GraphStatement {
      * <p/>
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphAlias()} (which may
      * itself be unset) will be used when executing the statement.
-     * <p/>
-     * If the default is set on the global options, but you explicitly want to force this statement to execute with no
-     * graph alias, pass {@link GraphOptions#NONE} to this method.
      *
      * @param graphAlias the graph alias to use with this statement.
      * @return this {@link GraphStatement} instance (for method chaining).

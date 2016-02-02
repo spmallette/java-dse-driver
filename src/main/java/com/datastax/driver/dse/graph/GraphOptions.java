@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -35,19 +34,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class GraphOptions {
 
-    /**
-     * A special constant to force an option off from a {@link GraphStatement}.
-     * <p/>
-     * Not setting an option at the statement level means "use whatever default is defined in {@link GraphOptions}".
-     * If instead you want to force the option to "no value" for this specific statement, pass this constant.
-     */
-    public static final String NONE = new String("NONE");
-
     // Static keys for the custom payload maps
-    private static final String GRAPH_SOURCE_KEY = "graph-source";
-    private static final String GRAPH_NAME_KEY = "graph-name";
-    private static final String GRAPH_LANGUAGE_KEY = "graph-language";
-    private static final String GRAPH_ALIAS_KEY = "graph-alias";
+    static final String GRAPH_SOURCE_KEY = "graph-source";
+    static final String GRAPH_NAME_KEY = "graph-name";
+    static final String GRAPH_LANGUAGE_KEY = "graph-language";
+    static final String GRAPH_ALIAS_KEY = "graph-alias";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -90,7 +81,6 @@ public class GraphOptions {
      */
     public GraphOptions setGraphLanguage(String graphLanguage) {
         checkNotNull(graphLanguage, "graphLanguage cannot be null");
-        checkArgument(graphLanguage != NONE, "graphLanguage must be set");
         this.graphLanguage = graphLanguage;
         rebuildDefaultPayload();
         return this;
@@ -116,7 +106,6 @@ public class GraphOptions {
      */
     public GraphOptions setGraphSource(String graphSource) {
         checkNotNull(graphSource, "graphSource cannot be null");
-        checkArgument(graphLanguage != NONE, "graphSource must be set");
         this.graphSource = graphSource;
         rebuildDefaultPayload();
         return this;
@@ -182,6 +171,7 @@ public class GraphOptions {
         if (statement.getGraphLanguage() == null
                 && statement.getGraphSource() == null
                 && statement.getGraphName() == null
+                && !statement.isSystemQuery()
                 && statement.getGraphAlias() == null) {
             return defaultPayload;
         } else {
@@ -189,7 +179,8 @@ public class GraphOptions {
 
             setOrDefault(builder, GRAPH_LANGUAGE_KEY, statement.getGraphLanguage());
             setOrDefault(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
-            setOrDefault(builder, GRAPH_NAME_KEY, statement.getGraphName());
+            if (!statement.isSystemQuery())
+                setOrDefault(builder, GRAPH_NAME_KEY, statement.getGraphName());
             setOrDefault(builder, GRAPH_ALIAS_KEY, statement.getGraphAlias());
 
             return builder.build();
@@ -197,26 +188,20 @@ public class GraphOptions {
     }
 
     private void setOrDefault(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
-        ByteBuffer bytes;
-        if (value == null)
-            bytes = defaultPayload.get(key);
-        else if (value == NONE)
-            bytes = null;
-        else
-            bytes = PayloadHelper.asBytes(value);
+        ByteBuffer bytes = (value == null) ? defaultPayload.get(key) : PayloadHelper.asBytes(value);
 
         if (bytes != null)
             builder.put(key, bytes);
     }
 
-    private void rebuildDefaultPayload() {
+    void rebuildDefaultPayload() {
         ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
 
         builder.put(GRAPH_LANGUAGE_KEY, PayloadHelper.asBytes(this.graphLanguage));
         builder.put(GRAPH_SOURCE_KEY, PayloadHelper.asBytes(this.graphSource));
-        if (this.graphName != null && this.graphName != NONE)
+        if (this.graphName != null)
             builder.put(GRAPH_NAME_KEY, PayloadHelper.asBytes(this.graphName));
-        if (this.graphAlias != null && this.graphAlias != NONE)
+        if (this.graphAlias != null)
             builder.put(GRAPH_ALIAS_KEY, PayloadHelper.asBytes(this.graphAlias));
 
         this.defaultPayload = builder.build();
