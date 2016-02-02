@@ -281,7 +281,7 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>com.fasterxml.jackson.core</pattern>
+                                    <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>com.datastax.shaded.jackson</shadedPattern>
                                 </relocation>
                             </relocations>
@@ -310,6 +310,12 @@
                                         </resource>
                                         <resource>
                                             META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.xml
+                                        </resource>
+                                        <resource>
+                                            META-INF/maven/com.fasterxml.jackson.core/jackson-databind/pom.properties
+                                        </resource>
+                                        <resource>
+                                            META-INF/maven/com.fasterxml.jackson.core/jackson-databind/pom.xml
                                         </resource>
                                     </resources>
                                 </transformer>
