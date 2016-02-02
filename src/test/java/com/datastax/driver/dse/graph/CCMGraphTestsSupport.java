@@ -16,9 +16,8 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMConfig;
-import com.datastax.driver.core.CCMTestsSupport;
-import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.TestUtils;
+import com.datastax.driver.dse.CCMDseTestsSupport;
 import com.datastax.driver.dse.DseCluster;
 import com.datastax.driver.dse.DseSession;
 import com.google.common.base.Throwables;
@@ -32,16 +31,11 @@ import java.util.Collection;
 import static com.datastax.driver.core.CCMAccess.Workload.graph;
 
 @CCMConfig(createKeyspace = false, dse = true, workloads = graph)
-public class CCMGraphTestsSupport extends CCMTestsSupport {
+public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
 
     private final String graphName = TestUtils.generateIdentifier("graph_");
-
-    @Override
-    public Cluster.Builder createClusterBuilder() {
-        return DseCluster.builder().withQueryOptions(TestUtils.nonDebouncingQueryOptions());
-    }
 
     @Override
     public void onTestContextInitialized() {

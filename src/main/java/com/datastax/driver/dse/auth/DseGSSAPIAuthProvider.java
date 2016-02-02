@@ -22,6 +22,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 
 import javax.security.auth.Subject;
+import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.security.sasl.Sasl;
@@ -33,29 +34,37 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Map;
 
+
 /**
- * AuthProvider that provides GSSAPI authenticator instances for clients to connect
- * to DSE clusters secured with the DseAuthenticator.
+ * {@link AuthProvider} that provides GSSAPI authenticator instances for clients to connect
+ * to DSE clusters secured with {@code DseAuthenticator}.
  * <p/>
- * <h1>Kerberos Authentication</h1>
- * The SASL protocol name defaults to "dse"; should you need to change that
- * it can be overridden using the <code>dse.sasl.protocol</code> system property.
- * <p/>
+ * To create a cluster using this auth provider, declare the following:
+ * <pre>{@code
+ * Cluster cluster = Cluster.builder()
+ *                          .addContactPoint(hostname)
+ *                          .withAuthProvider(new DseGSSAPIAuthProvider())
+ *                          .build();
+ * }</pre>
+ * <h2>Kerberos Authentication</h2>
  * Keytab and ticket cache settings are specified using a standard JAAS
  * configuration file. The location of the file can be set using the
  * <code>java.security.auth.login.config</code> system property or by adding a
  * <code>login.config.url.n</code> entry in the <code>java.security</code> properties
  * file.
  * <p/>
- * See the following documents for further details on the
- * <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/jgss/tutorials/LoginConfigFile.html">JAAS Login Configuration File</a> and the
- * <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/security/jaas/tutorials/GeneralAcnOnly.html">JAAS Authentication Tutorial</a>
- * for more on JAAS in general.
+ * Alternatively a {@link Configuration} object can be provided using {@link #DseGSSAPIAuthProvider(Configuration)} to
+ * set the JAAS configuration programmatically.
  * <p/>
- * <h1>Authentication using ticket cache</h1>
+ * See the following documents for further details:
+ * <ol>
+ * <li><a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/jgss/tutorials/LoginConfigFile.html">JAAS Login Configuration File</a>;</li>
+ * <li><a href="http://docs.oracle.com/javase/6/docs/technotes/guides/security/jaas/tutorials/GeneralAcnOnly.html">JAAS Authentication Tutorial</a>
+ * for more on JAAS in general.</li>
+ * </ol>
+ * <h3>Authentication using ticket cache</h3>
  * Run <code>kinit</code> to obtain a ticket and populate the cache before
  * connecting. JAAS config:
- * <p/>
  * <pre>
  * DseClient {
  *   com.sun.security.auth.module.Krb5LoginModule required
@@ -63,13 +72,10 @@ import java.util.Map;
  *     renewTGT=true;
  * };
  * </pre>
- * <p/>
- * <p/>
- * <h1>Authentication using a keytab file</h1>
+ * <h3>Authentication using a keytab file</h3>
  * To enable authentication using a keytab file, specify its location on disk.
  * If your keytab contains more than one principal key, you should also specify
  * which one to select.
- * <p/>
  * <pre>
  * DseClient {
  *     com.sun.security.auth.module.Krb5LoginModule required
@@ -78,24 +84,102 @@ import java.util.Map;
  *       principal="user@MYDOMAIN.COM";
  * };
  * </pre>
- * To create a cluster using this auth provider:
- * <pre>
- * Cluster cluster = Cluster.builder()
- *                          .addContactPoint(hostname)
- *                          .withAuthProvider(new DseGSSAPIAuthProvider())
- *                          .build();
- * </pre>
+ * <h2>Specifying SASL protocol name</h2>
+ * The SASL protocol name used by this auth provider defaults to "<code>{@value #DEFAULT_SASL_PROTOCOL_NAME}</code>".
+ * <p/>
+ * <strong>Important</strong>: the SASL protocol name should match the username of the
+ * Kerberos service principal used by the DSE server.
+ * This information is specified in the dse.yaml file by the {@code service_principal} option under the
+ * <a href="https://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/config/configDseYaml.html?scroll=configDseYaml__refKerbSupport">kerberos_options</a>
+ * section, and <em>may vary from one DSE installation to another</em> – especially if you
+ * installed DSE with an automated package installer.
+ * <p/>
+ * For example, if your dse.yaml file contains the following:
+ * <pre>{@code
+ * kerberos_options:
+ *     ...
+ *     service_principal: cassandra/my.host.com@MY.REALM.COM
+ * }</pre>
+ * The correct SASL protocol name to use when authenticating against this DSE server is "{@code cassandra}".
+ * <p/>
+ * Should you need to change the SASL protocol name, use one of the methods below:
+ * <ol>
+ * <li>Specify the protocol name via one of the following constructors:
+ * {@link #DseGSSAPIAuthProvider(String)} or {@link #DseGSSAPIAuthProvider(Configuration, String)};</li>
+ * <li>Specify the protocol name with the {@code dse.sasl.protocol} system property when starting your application,
+ * e.g. {@code -Ddse.sasl.protocol=cassandra}.</li>
+ * </ol>
+ * If a non-null SASL protocol name is provided to the aforementioned constructors, that name takes precedence over
+ * the contents of the {@code dse.sasl.protocol} system property.
+ *
+ * @see <a href="https://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/sec/secUsingKerberos.html">Authenticating a DSE cluster with Kerberos</a>
  */
 public class DseGSSAPIAuthProvider implements AuthProvider {
+
+    /**
+     * The default SASL protocol name used by this auth provider.
+     */
+    public static final String DEFAULT_SASL_PROTOCOL_NAME = "dse";
+
+    /**
+     * The name of the system property to use to specify the SASL protocol name.
+     */
+    public static final String SASL_PROTOCOL_NAME_PROPERTY = "dse.sasl.protocol";
+
+    private final Configuration loginConfiguration;
+
+    private final String saslProtocol;
+
+    /**
+     * Creates an instance of {@code DseGSSAPIAuthProvider} with default login configuration options and default
+     * SASL protocol name ({@value #DEFAULT_SASL_PROTOCOL_NAME}).
+     */
+    public DseGSSAPIAuthProvider() {
+        this(null, null);
+    }
+
+    /**
+     * Creates an instance of {@code DseGSSAPIAuthProvider} with the given login configuration and default
+     * SASL protocol name ({@value #DEFAULT_SASL_PROTOCOL_NAME}).
+     *
+     * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
+     */
+    public DseGSSAPIAuthProvider(Configuration loginConfiguration) {
+        this(loginConfiguration, null);
+    }
+
+    /**
+     * Creates an instance of {@code DseGSSAPIAuthProvider} with default login configuration and the given
+     * SASL protocol name.
+     *
+     * @param saslProtocol The SASL protocol name to use; should match the username of the
+     *                     Kerberos service principal used by the DSE server.
+     */
+    public DseGSSAPIAuthProvider(String saslProtocol) {
+        this(null, saslProtocol);
+    }
+
+    /**
+     * Creates an instance of {@code DseGSSAPIAuthProvider} with the given login configuration and the given
+     * SASL protocol name.
+     *
+     * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
+     * @param saslProtocol       The SASL protocol name to use; should match the username of the
+     *                           Kerberos service principal used by the DSE server.
+     */
+    public DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol) {
+        this.loginConfiguration = loginConfiguration;
+        this.saslProtocol = saslProtocol;
+    }
+
+    @Override
     public Authenticator newAuthenticator(InetSocketAddress host, String authenticator) throws AuthenticationException {
-        return new GSSAPIAuthenticator(authenticator, host);
+        return new GSSAPIAuthenticator(authenticator, host, loginConfiguration, saslProtocol);
     }
 
     private static class GSSAPIAuthenticator extends BaseDseAuthenticator {
         private static final String JAAS_CONFIG_ENTRY = "DseClient";
         private static final String[] SUPPORTED_MECHANISMS = new String[]{"GSSAPI"};
-        private static final String SASL_PROTOCOL_NAME = "dse";
-        private static final String SASL_PROTOCOL_NAME_PROPERTY = "dse.sasl.protocol";
         private static final Map<String, String> DEFAULT_PROPERTIES =
                 ImmutableMap.<String, String>builder().put(Sasl.SERVER_AUTH, "true")
                         .put(Sasl.QOP, "auth")
@@ -107,15 +191,19 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
         private final Subject subject;
         private final SaslClient saslClient;
 
-        public GSSAPIAuthenticator(String authenticator, InetSocketAddress host) {
+        private GSSAPIAuthenticator(String authenticator, InetSocketAddress host, Configuration loginConfiguration, String saslProtocol) {
             super(authenticator);
             try {
-                LoginContext login = new LoginContext(JAAS_CONFIG_ENTRY);
+                String protocol = saslProtocol;
+                if (protocol == null) {
+                    protocol = System.getProperty(SASL_PROTOCOL_NAME_PROPERTY, DEFAULT_SASL_PROTOCOL_NAME);
+                }
+                LoginContext login = new LoginContext(JAAS_CONFIG_ENTRY, null, null, loginConfiguration);
                 login.login();
                 subject = login.getSubject();
                 saslClient = Sasl.createSaslClient(SUPPORTED_MECHANISMS,
                         null,
-                        System.getProperty(SASL_PROTOCOL_NAME_PROPERTY, SASL_PROTOCOL_NAME),
+                        protocol,
                         host.getAddress().getCanonicalHostName(),
                         DEFAULT_PROPERTIES,
                         null);
