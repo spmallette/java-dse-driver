@@ -24,7 +24,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Graph-specific options.
+ * The default graph options to use for a DSE cluster.
+ * <p/>
+ * These options will be used for all graph statements sent to the cluster, unless they have been explicitly overridden
+ * at the statement level (by using methods such as {@link GraphStatement#setGraphName(String)}).
+ * <p/>
+ * Graph options are specified at cluster initialization with
+ * {@link com.datastax.driver.dse.DseCluster.Builder#withGraphOptions(GraphOptions)}, and can be retrieved at runtime
+ * with {@code dseCluster.getConfiguration().getGraphOptions()}.
  */
 public class GraphOptions {
 
@@ -42,8 +49,15 @@ public class GraphOptions {
     private static final String GRAPH_LANGUAGE_KEY = "graph-language";
     private static final String GRAPH_ALIAS_KEY = "graph-alias";
 
-    private static final String DEFAULT_GRAPH_LANGUAGE = "gremlin-groovy";
-    private static final String DEFAULT_GRAPH_SOURCE = "default";
+    /**
+     * The default value for {@link #getGraphLanguage()} ({@value}).
+     */
+    public static final String DEFAULT_GRAPH_LANGUAGE = "gremlin-groovy";
+
+    /**
+     * The default value for {@link #getGraphSource()} ({@value}).
+     */
+    public static final String DEFAULT_GRAPH_SOURCE = "default";
 
     private volatile String graphLanguage = DEFAULT_GRAPH_LANGUAGE;
     private volatile String graphSource = DEFAULT_GRAPH_SOURCE;
@@ -57,23 +71,22 @@ public class GraphOptions {
     }
 
     /**
-     * Returns the Graph language to use in graph queries.
-     * <p/>
-     * This property is required and its default value is {@code gremlin-groovy}.
+     * Returns the graph language to use in graph queries.
      *
-     * @return The Graph language to use in graph queries.
+     * @return the graph language to use in graph queries.
+     * @see #setGraphLanguage(String)
      */
     public String getGraphLanguage() {
         return graphLanguage;
     }
 
     /**
-     * Sets the Graph language to use in graph queries.
+     * Sets the graph language to use in graph queries.
      * <p/>
-     * This property is required and its default value is {@code gremlin-groovy}.
+     * This property is required. If you don't call this method, it defaults to {@value #DEFAULT_GRAPH_LANGUAGE}.
      *
-     * @param graphLanguage The Graph language to use in graph queries.
-     * @return This {@link GraphOptions} instance (for method chaining).
+     * @param graphLanguage the graph language to use in graph queries.
+     * @return this {@code GraphOptions} instance (for method chaining).
      */
     public GraphOptions setGraphLanguage(String graphLanguage) {
         checkNotNull(graphLanguage, "graphLanguage cannot be null");
@@ -84,23 +97,22 @@ public class GraphOptions {
     }
 
     /**
-     * Returns the Graph traversal source name to use in graph queries.
-     * <p/>
-     * This property is required and its default value is {@code default}.
+     * Returns the graph traversal source name to use in graph queries.
      *
      * @return The graph traversal source name to use in graph queries.
+     * @see #setGraphSource(String)
      */
     public String getGraphSource() {
         return graphSource;
     }
 
     /**
-     * Sets the Graph traversal source name to use in graph queries.
+     * Sets the graph traversal source name to use in graph queries.
      * <p/>
-     * This property is required and its default value is {@code default}.
+     * This property is required. If you don't call this method, it defaults to {@value #DEFAULT_GRAPH_SOURCE}.
      *
-     * @param graphSource The graph traversal source name to use in graph queries.
-     * @return This {@link GraphOptions} instance (for method chaining).
+     * @param graphSource the graph traversal source name to use in graph queries.
+     * @return this {@code GraphOptions} instance (for method chaining).
      */
     public GraphOptions setGraphSource(String graphSource) {
         checkNotNull(graphSource, "graphSource cannot be null");
@@ -111,25 +123,22 @@ public class GraphOptions {
     }
 
     /**
-     * Returns the Graph name to use in graph queries.
-     * <p/>
-     * This property is required but there is no default value for it;
-     * users are required to set it either at cluster level, or
-     * on a per-statement basis.
+     * Returns the graph name to use in graph queries.
      *
-     * @return The Graph name to use in graph queries.
+     * @return The graph name to use in graph queries.
+     * @see #setGraphName(String)
      */
     public String getGraphName() {
         return graphName;
     }
 
     /**
-     * Sets the Graph name to use in graph queries.
+     * Sets the graph name to use in graph queries.
      * <p/>
-     * This property is optional and there is no default value for it.
+     * This property is optional. If you don't call this method, it is left unset.
      *
      * @param graphName The Graph name to use in graph queries.
-     * @return This {@link GraphOptions} instance (for method chaining).
+     * @return this {@code GraphOptions} instance (for method chaining).
      */
     public GraphOptions setGraphName(String graphName) {
         this.graphName = graphName;
@@ -138,23 +147,22 @@ public class GraphOptions {
     }
 
     /**
-     * Returns the Graph alias to use in graph queries.
-     * <p/>
-     * This property is optional and there is no default value for it.
+     * Returns the graph alias to use in graph queries.
      *
      * @return The graph alias to use in graph queries.
+     * @see #setGraphAlias(String)
      */
     public String getGraphAlias() {
         return graphAlias;
     }
 
     /**
-     * Sets the Graph alias to use in graph queries.
+     * Sets the graph alias to use in graph queries.
      * <p/>
-     * This property is optional and there is no default value for it.
+     * This property is optional. If you don't call this method, it is left unset.
      *
-     * @param graphAlias The graph alias to use in graph queries.
-     * @return This {@link GraphOptions} instance (for method chaining).
+     * @param graphAlias the graph alias to use in graph queries.
+     * @return this {@code GraphOptions} instance (for method chaining).
      */
     public GraphOptions setGraphAlias(String graphAlias) {
         this.graphAlias = graphAlias;
@@ -163,8 +171,7 @@ public class GraphOptions {
     }
 
     /**
-     * Builds the custom payload for the given statement, providing defaults from these
-     * graph options if necessary.
+     * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
      * <p/>
      * This method is intended for internal use only.
      *

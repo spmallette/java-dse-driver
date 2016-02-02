@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import java.util.Map;
 
 /**
- * A default representation of an Edge in DSE Graph.
+ * A default representation of an edge in DSE Graph.
  */
 public class Edge extends Element {
 
@@ -33,6 +33,18 @@ public class Edge extends Element {
 
     private String outVLabel;
 
+    /**
+     * Builds a new instance.
+     *
+     * @param id         the identifier.
+     * @param label      the label.
+     * @param type       the type.
+     * @param properties the edge properties.
+     * @param inV        the incoming/head vertex.
+     * @param inVLabel   the label of the incoming/head vertex.
+     * @param outV       the outgoing/tail vertex.
+     * @param outVLabel  the label of the outgoing/tail vertex.
+     */
     public Edge(GraphResult id, String label, String type, Map<String, GraphResult> properties, GraphResult inV, String inVLabel, GraphResult outV, String outVLabel) {
         super(id, label, type, properties);
         this.inV = inV;
@@ -41,34 +53,74 @@ public class Edge extends Element {
         this.outVLabel = outVLabel;
     }
 
+    /**
+     * Returns the incoming/head vertex.
+     *
+     * @return the vertex.
+     */
     public GraphResult getInV() {
         return inV;
     }
 
+    /**
+     * Sets the incoming/head vertex.
+     *
+     * @param inV the new value.
+     */
     public void setInV(GraphResult inV) {
         this.inV = inV;
     }
 
+    /**
+     * Returns the label of the incoming/head vertex.
+     *
+     * @return the label.
+     */
     public String getInVLabel() {
         return inVLabel;
     }
 
+    /**
+     * Sets the label of the incoming/head vertex.
+     *
+     * @param inVLabel the new value.
+     */
     public void setInVLabel(String inVLabel) {
         this.inVLabel = inVLabel;
     }
 
+    /**
+     * Returns the outgoing/tail vertex.
+     *
+     * @return the vertex.
+     */
     public GraphResult getOutV() {
         return outV;
     }
 
+    /**
+     * Sets the outgoing/tail vertex.
+     *
+     * @param outV the new value.
+     */
     public void setOutV(GraphResult outV) {
         this.outV = outV;
     }
 
+    /**
+     * Returns the label of the outgoing/tail vertex.
+     *
+     * @return the label.
+     */
     public String getOutVLabel() {
         return outVLabel;
     }
 
+    /**
+     * Sets the label of the outgoing/tail vertex.
+     *
+     * @param outVLabel the new value.
+     */
     public void setOutVLabel(String outVLabel) {
         this.outVLabel = outVLabel;
     }

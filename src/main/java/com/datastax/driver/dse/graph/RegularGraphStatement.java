@@ -16,31 +16,23 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.RegularStatement;
-import com.datastax.driver.core.Statement;
 
 /**
- * A regular (non-prepared and non batched) Graph statement.
+ * A regular (non-prepared and non batched) graph statement.
  * <p/>
- * This class represents a Graph query string along with Graph query options (and optionally
- * Graph values). It can be extended, but {@link SimpleGraphStatement}
- * is provided as a simple implementation to build a {@code RegularGraphStatement} directly
+ * This class represents a graph query string along with query options (and optionally values). It can be extended, but
+ * {@link SimpleGraphStatement} is provided as a simple implementation to build a {@code RegularGraphStatement} directly
  * from its query string.
  */
 public abstract class RegularGraphStatement extends GraphStatement {
 
     /**
-     * Returns the Graph query string for this statement.
+     * Returns the graph query string for this statement.
      *
-     * @return The Graph query string for this statement.
+     * @return the graph query string for this statement.
      */
     public abstract String getQueryString();
 
-    /**
-     * Returns an executable {@link RegularStatement} object
-     * corresponding to this RegularGraphStatement.
-     *
-     * @return An executable {@link Statement}.
-     */
     @Override
     public abstract RegularStatement unwrap();
 

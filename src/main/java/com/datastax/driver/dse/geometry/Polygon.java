@@ -26,17 +26,22 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The driver-side representation of DSE's {@code PolygonType}.
+ * <p/>
+ * This is a planar surface in a two-dimensional XY-plane, represented by one exterior boundary and 0 or more interior
+ * boundaries.
+ */
 public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
 
     private static final long serialVersionUID = 7308381476240075319L;
 
     /**
-     * Creates a {@link Polygon} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
-     * representation of a polygon.
+     * Creates a polygon from its <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
+     * representation.
      *
      * @param source the Well-known Text representation to parse.
-     * @return A {@link Polygon} object.
+     * @return the polygon represented by the WKT.
      * @throws InvalidTypeException if the string does not contain a valid Well-known Text representation.
      */
     public static Polygon fromWellKnownText(String source) {
@@ -44,23 +49,24 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
     }
 
     /**
-     * Creates a {@link Polygon} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
-     * representation of a polygon.
+     * Creates a polygon from its
+     * <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
+     * representation.
      *
      * @param source the Well-known Binary representation to parse.
-     * @return A {@link Polygon} object.
-     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary representation.
+     * @return the polygon represented by the WKB.
+     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary
+     *                              representation.
      */
     public static Polygon fromWellKnownBinary(ByteBuffer source) {
         return new Polygon(fromOgcWellKnownBinary(source, OGCPolygon.class));
     }
 
     /**
-     * Creates a {@link Polygon} instance from a JSON representation of a polygon.
+     * Creates a polygon from its JSON representation.
      *
      * @param source the JSON representation to parse.
-     * @return A {@link Polygon} object.
+     * @return the polygon represented by the JSON.
      * @throws InvalidTypeException if the string does not contain a valid JSON representation.
      */
     public static Polygon fromGeoJson(String source) {
@@ -71,12 +77,12 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
     private final List<List<Point>> interiorRings;
 
     /**
-     * Creates a {@link Polygon} instance from a series of 3 or more {@link Point}s.
+     * Creates a polygon instance from a series of 3 or more points.
      *
-     * @param p1 The first point.
-     * @param p2 The second point.
-     * @param p3 The third point.
-     * @param pn Additional points.
+     * @param p1 the first point.
+     * @param p2 the second point.
+     * @param p3 the third point.
+     * @param pn additional points.
      */
     public Polygon(Point p1, Point p2, Point p3, Point... pn) {
         super(fromPoints(p1, p2, p3, pn));
@@ -96,14 +102,18 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
     }
 
     /**
-     * @return the external ring of the polygon.
+     * Returns the external ring of the polygon.
+     *
+     * @return the external ring (as an immutable list).
      */
     public List<Point> getExteriorRing() {
         return exteriorRing;
     }
 
     /**
-     * @return the internal rings of the polygon, i.e. any holes inside of it (or island inside of the holes).
+     * Returns the internal rings of the polygon, i.e. any holes inside of it (or islands inside of the holes).
+     *
+     * @return the internal rings (as an immutable list of immutable lists).
      */
     public List<List<Point>> getInteriorRings() {
         return interiorRings;
@@ -176,6 +186,11 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
         return (com.esri.core.geometry.Polygon) op.execute(polygon, Geometry.SPATIAL_REFERENCE_4326, true, null);
     }
 
+    /**
+     * This object gets replaced by an internal proxy for serialization.
+     *
+     * @serialData a single byte array containing the Well-Known Binary representation.
+     */
     private Object writeReplace() {
         return new WkbSerializationProxy(this.asWellKnownBinary());
     }

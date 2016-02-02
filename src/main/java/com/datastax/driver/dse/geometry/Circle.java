@@ -34,6 +34,14 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The driver-side representation for DSE's {@code CircleType}.
+ * <p/>
+ * This is a circle in a two-dimensional XY-plane, represented by a point indicating its center, and a radius.
+ * <p/>
+ * Note that there is no official representation of a circle in the WKT and WKB standards, therefore
+ * {@link #asWellKnownText()} and {@link #asWellKnownBinary()} use a custom format.
+ */
 public class Circle extends Geometry {
 
     private static final long serialVersionUID = -1047638382280311774L;
@@ -59,16 +67,15 @@ public class Circle extends Geometry {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * Creates a {@link Circle} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
-     * representation of a circle.
+     * Creates a circle from its <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
+     * representation.
      * <p/>
      * Note: there is no official WKT representation of a circle.
      * This method uses the following unofficial syntax: {@code CIRCLE ((X Y) RADIUS)}
      * where {@code (X Y)} is a point representing the circle's center.
      *
      * @param source the Well-known Text representation to parse.
-     * @return A {@link Circle} object.
+     * @return the circle represented by the WKT.
      * @throws InvalidTypeException if the string does not contain a valid Well-known Text representation.
      */
     public static Circle fromWellKnownText(String source) {
@@ -87,9 +94,9 @@ public class Circle extends Geometry {
     }
 
     /**
-     * Creates a {@link Circle} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
-     * representation of a circle.
+     * Creates a circle from its
+     * <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
+     * representation.
      * <p/>
      * Note: there is no official WKB representation of a circle.
      * This class uses the following byte structure:
@@ -102,8 +109,9 @@ public class Circle extends Geometry {
      * </ol>
      *
      * @param source the Well-known Binary representation to parse.
-     * @return A {@link Circle} object.
-     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary representation.
+     * @return the circle represented by the WKB.
+     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary
+     *                              representation.
      */
     public static Circle fromWellKnownBinary(ByteBuffer source) {
         try {
@@ -121,11 +129,10 @@ public class Circle extends Geometry {
     }
 
     /**
-     * Creates a {@link Circle} instance from
-     * a JSON representation of a circle.
+     * Creates a circle instance from its JSON representation.
      *
      * @param source the JSON representation to parse.
-     * @return A {@link Circle} object.
+     * @return the circle represented by the JSON.
      * @throws InvalidTypeException if the string does not contain a valid JSON representation.
      */
     public static Circle fromGeoJson(String source) {
@@ -166,6 +173,12 @@ public class Circle extends Geometry {
         this(new Point(x, y), radius);
     }
 
+    /**
+     * Creates a new instance.
+     *
+     * @param center the center.
+     * @param radius the radius.
+     */
     public Circle(Point center, double radius) {
         checkNotNull(center);
         checkArgument(radius > 0, "radius must be > 0");
@@ -174,6 +187,8 @@ public class Circle extends Geometry {
     }
 
     /**
+     * Returns the center of this circle.
+     *
      * @return the center of this circle.
      */
     public Point getCenter() {
@@ -181,6 +196,8 @@ public class Circle extends Geometry {
     }
 
     /**
+     * Returns the radius of this circle.
+     *
      * @return the radius of this circle.
      */
     public double getRadius() {
@@ -188,8 +205,7 @@ public class Circle extends Geometry {
     }
 
     /**
-     * Returns a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
-     * representation of this circle.
+     * {@inheritDoc}
      * <p/>
      * Note: there is no official WKB representation of a circle.
      * This class uses the following byte structure:
@@ -214,8 +230,7 @@ public class Circle extends Geometry {
     }
 
     /**
-     * Returns a <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
-     * representation of this geospatial type.
+     * {@inheritDoc}
      * <p/>
      * Note: there is no official WKT representation of a circle.
      * This method uses the following unofficial syntax: {@code CIRCLE ((X Y) RADIUS)}
@@ -251,6 +266,11 @@ public class Circle extends Geometry {
         return result;
     }
 
+    /**
+     * This object gets replaced by an internal proxy for serialization.
+     *
+     * @serialData a single byte array containing the Well-Known Binary representation.
+     */
     private Object writeReplace() {
         return new WkbSerializationProxy(this.asWellKnownBinary());
     }

@@ -20,6 +20,15 @@ import com.google.common.base.Objects;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A walk through a graph as defined by a traversal.
+ * <p/>
+ * Clients typically obtain instances of this class by calling {@link GraphResult#asVertex()}, for example:
+ * <pre>
+ *     GraphResult r = dseSession.executeGraph("g.V().hasLabel('some_vertex').outE().inV().path()").one();
+ *     Path path = r.asPath();
+ * </pre>
+ */
 public class Path {
     private List<Set<String>> labels;
     private List<GraphResult> objects;
@@ -29,18 +38,38 @@ public class Path {
         this.objects = objects;
     }
 
+    /**
+     * Returns the sets of labels of the steps traversed.
+     *
+     * @return the labels.
+     */
     public List<Set<String>> getLabels() {
         return labels;
     }
 
+    /**
+     * Sets the sets of labels of the steps traversed.
+     *
+     * @param labels the new value.
+     */
     public void setLabels(List<Set<String>> labels) {
         this.labels = labels;
     }
 
+    /**
+     * Returns the objects traversed.
+     *
+     * @return the objects.
+     */
     public List<GraphResult> getObjects() {
         return objects;
     }
 
+    /**
+     * Sets the objects traversed.
+     *
+     * @param objects the new value.
+     */
     public void setObjects(List<GraphResult> objects) {
         this.objects = objects;
     }

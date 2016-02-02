@@ -25,6 +25,7 @@ import com.datastax.driver.dse.geometry.codecs.LineStringCodec;
 import com.datastax.driver.dse.geometry.codecs.PointCodec;
 import com.datastax.driver.dse.geometry.codecs.PolygonCodec;
 import com.datastax.driver.dse.graph.GraphOptions;
+import com.datastax.driver.dse.graph.GraphStatement;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,7 +38,17 @@ import java.util.concurrent.Future;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Extension of the {@link Cluster} object with DSE-specific features.
+ * Information and known state of a DSE cluster.
+ * <p/>
+ * This is the main entry point of the DSE driver. It extends the CQL driver's {@link Cluster} object with DSE-specific
+ * features. A simple example of access to a DSE cluster would be:
+ * <pre>
+ *   DseCluster cluster = DseCluster.builder().addContactPoint("192.168.0.1").build();
+ *   DseSession session = cluster.connect("db1");
+ *
+ *   for (Row row : session.execute("SELECT * FROM table1"))
+ *       // do something ...
+ * </pre>
  */
 public class DseCluster extends DelegatingCluster {
 
@@ -52,6 +63,14 @@ public class DseCluster extends DelegatingCluster {
 
         private boolean geospatialCodecs = true;
 
+        /**
+         * Sets the default options to use with graph queries.
+         * <p/>
+         * If you don't provide this, the new cluster will get a {@link GraphOptions} instance with the default values.
+         *
+         * @param graphOptions the graph options.
+         * @return this builder (for method chaining).
+         */
         public DseCluster.Builder withGraphOptions(GraphOptions graphOptions) {
             this.graphOptions = graphOptions;
             return this;
@@ -262,23 +281,20 @@ public class DseCluster extends DelegatingCluster {
 
     /**
      * Creates a new DSE session on this cluster but does not initialize it.
-     * <p>
+     * <p/>
      * Because this method does not perform any initialization, it cannot fail.
-     * The initialization of the session (the connection of the DseSession to the
+     * The initialization of the session (the connection of the session to the
      * Cassandra nodes) will occur if either the {@link DseSession#init} method is
-     * called explicitly, or whenever the returned session object is used.
-     * <p>
+     * called explicitly, or whenever the returned object is used.
+     * <p/>
      * Once a session returned by this method gets initialized (see above), it
      * will be set to no keyspace. If you want to set such session to a
      * keyspace, you will have to explicitly execute a 'USE mykeyspace' query.
-     * <p>
+     * <p/>
      * Note that if you do not particularly need to defer initialization, it is
      * simpler to use one of the {@code connect()} methods of this class.
      *
-     * @return a new, non-initialized Graph session on this cluster.
-     */
-    /**
-     * {@inheritDoc}
+     * @return a new, non-initialized DSE session on this cluster.
      */
     @Override
     public DseSession newSession() {
@@ -288,12 +304,12 @@ public class DseCluster extends DelegatingCluster {
     /**
      * Creates a new DSE session on this cluster and initializes it.
      * <p/>
-     * Note that this method will initialize the newly created DSE session, trying
+     * This method will initialize the newly created session, trying
      * to connect to the Cassandra nodes before returning. If you only want to
-     * create a DseSession object without initializing it right away, see
+     * create a session without initializing it right away, see
      * {@link #newSession}.
      *
-     * @return a new session on this cluster sets to no keyspace.
+     * @return a new session on this cluster set to no keyspace.
      * @throws NoHostAvailableException if the Cluster has not been initialized
      *                                  yet ({@link #init} has not be called and this is the first connect call)
      *                                  and no host amongst the contact points can be reached.
@@ -310,23 +326,20 @@ public class DseCluster extends DelegatingCluster {
     }
 
     /**
-     * Creates a new DSE session on this cluster, initialize it and sets the
+     * Creates a new DSE session on this cluster, initializes it and sets the
      * keyspace to the provided one.
      * <p/>
-     * Note that this method will initialize the newly created DSE session, trying
+     * This method will initialize the newly created session, trying
      * to connect to the Cassandra nodes before returning. If you only want to
-     * create a DseSession object without initializing it right away, see
+     * create a session without initializing it right away, see
      * {@link #newSession}.
      * <p/>
-     * Note that the keyspace set through this method is only valid
-     * for CQL queries; Graph namespaces (that map to keyspaces in Cassandra)
-     * should be selected via the {@link GraphOptions#setGraphName(String)}
-     * method.
+     * The keyspace set through this method is only valid for CQL queries; for graph queries, the graph to target is
+     * determined by the graph name specified via {@link GraphStatement#setGraphName(String)}} or
+     * {@link GraphOptions#setGraphName(String)}.
      *
-     * @param keyspace The name of the keyspace to use for the created
-     *                 {@link DseSession}.
-     * @return a new session on this cluster sets to keyspace
-     * {@code keyspaceName}.
+     * @param keyspace the name of the keyspace to use for the created {@link DseSession}.
+     * @return a new session on this cluster set to keyspace {@code keyspace}.
      * @throws NoHostAvailableException if the Cluster has not been initialized
      *                                  yet ({@link #init} has not be called and this is the first connect call)
      *                                  and no host amongst the contact points can be reached, or if no host can
@@ -384,10 +397,9 @@ public class DseCluster extends DelegatingCluster {
      * Therefore it is recommended to initialize the cluster at application
      * startup, and not rely on this method to do it.
      * <p/>
-     * Note that the keyspace set through this method is only valid
-     * for CQL queries; Graph namespaces (that map to keyspaces in Cassandra)
-     * should be selected via the {@link GraphOptions#setGraphName(String)}
-     * method.
+     * The keyspace set through this method is only valid for CQL queries; for graph queries, the graph to target is
+     * determined by the graph name specified via {@link GraphStatement#setGraphName(String)}} or
+     * {@link GraphOptions#setGraphName(String)}.
      * <p/>
      * The {@link Session} object returned by the future's {@link Future#get() get} method can be safely cast
      * to {@link DseSession}.
