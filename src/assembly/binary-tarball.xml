@@ -28,7 +28,7 @@
             <useProjectArtifact>true</useProjectArtifact>
             <unpack>false</unpack>
             <includes>
-                <include>com.datastax.cassandra:cassandra-driver-dse</include>
+                <include>com.datastax.cassandra:dse-driver</include>
             </includes>
         </dependencySet>
         <dependencySet>
