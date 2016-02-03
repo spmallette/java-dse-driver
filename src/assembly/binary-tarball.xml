@@ -38,6 +38,10 @@
             <scope>runtime</scope>
             <excludes>
                 <exclude>com.datastax.cassandra:*:*:sources:*</exclude>
+                <exclude>com.fasterxml.jackson.core:*</exclude>
+                <exclude>com.esri.geometry:*</exclude>
+                <exclude>org.json:*</exclude>
+                <exclude>org.codehaus.jackson:*</exclude>
             </excludes>
         </dependencySet>
         <dependencySet>

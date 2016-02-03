@@ -203,48 +203,6 @@
         <plugins>
 
             <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <version>2.4.0</version>
-                <!--
-                  Default configuration, used by the `bundle` goal that is implicitly bound to the `package` phase
-                  (because the project uses the `bundle` packaging)
-                -->
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>com.datastax.driver.dse</Bundle-SymbolicName>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <_include>-osgi.bnd</_include>
-                        <Import-Package><![CDATA[com.google.common*;version="[16.0.1,19)",*]]></Import-Package>
-                    </instructions>
-                    <supportedProjectTypes>
-                        <supportedProjectType>jar</supportedProjectType>
-                        <supportedProjectType>bundle</supportedProjectType>
-                        <supportedProjectType>pom</supportedProjectType>
-                    </supportedProjectTypes>
-                </configuration>
-                <executions>
-                    <!-- Alternate execution to generate the shaded JAR's manifest -->
-                    <execution>
-                        <id>bundle-manifest-shaded</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>manifest</goal>
-                        </goals>
-                        <configuration>
-                            <manifestLocation>${project.build.directory}/META-INF-shaded</manifestLocation>
-                            <instructions>
-                                <Import-Package>
-                                    <![CDATA[com.google.common.*;version="[16.0.1,19)",!com.fasterxml.jackson.*,*]]></Import-Package>
-                                <Private-Package>com.datastax.shaded.*</Private-Package>
-                            </instructions>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
@@ -264,6 +222,38 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <version>2.4.0</version>
+                <!--
+                  Default configuration, used by the `bundle` goal that is implicitly bound to the `package` phase
+                  (because the project uses the `bundle` packaging)
+                -->
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.datastax.driver.dse</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <_include>-osgi.bnd</_include>
+                        <Import-Package>
+                            <![CDATA[com.google.common.*;version="[16.0.1,19)",
+                            !com.fasterxml.jackson.*,*
+                            !com.esri.core.geometry.*,*
+                            !org.json.*,*
+                            !org.codehaus.jackson.*,*
+                            ]]>
+                        </Import-Package>
+                        <Private-Package>com.datastax.shaded.*</Private-Package>
+                    </instructions>
+                    <supportedProjectTypes>
+                        <supportedProjectType>jar</supportedProjectType>
+                        <supportedProjectType>bundle</supportedProjectType>
+                        <supportedProjectType>pom</supportedProjectType>
+                    </supportedProjectTypes>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4.2</version>
                 <executions>
@@ -273,16 +263,30 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
                             <artifactSet>
                                 <includes>
                                     <include>com.fasterxml.jackson.core:*</include>
+                                    <include>com.esri.geometry:*</include>
+                                    <include>org.json:*</include>
+                                    <include>org.codehaus.jackson:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>com.datastax.shaded.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.esri.core.geometry</pattern>
+                                    <shadedPattern>com.datastax.shaded.esri</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.json</pattern>
+                                    <shadedPattern>com.datastax.shaded.json</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.codehaus.jackson</pattern>
+                                    <shadedPattern>com.datastax.shaded.codehaus-jackson</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
@@ -317,13 +321,13 @@
                                         <resource>
                                             META-INF/maven/com.fasterxml.jackson.core/jackson-databind/pom.xml
                                         </resource>
+                                        <resource>
+                                            META-INF/maven/com.esri.geometry/esri-geometry-api/pom.xml
+                                        </resource>
+                                        <resource>
+                                            META-INF/maven/com.esri.geometry/esri-geometry-api/pom.properties
+                                        </resource>
                                     </resources>
-                                </transformer>
-                                <!-- Pick up the alternate manifest that was generated by the alternate execution of the bundle plugin -->
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                                    <resource>META-INF/MANIFEST.MF</resource>
-                                    <file>${project.build.directory}/META-INF-shaded/MANIFEST.MF</file>
                                 </transformer>
                             </transformers>
                         </configuration>
