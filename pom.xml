@@ -277,8 +277,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.fasterxml.jackson.core:*</include>
-                                    <include>com.fasterxml.jackson.annotations:*</include>
-                                    <include>com.fasterxml.jackson.databind:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
