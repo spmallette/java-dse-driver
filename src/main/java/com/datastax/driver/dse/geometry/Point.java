@@ -93,4 +93,8 @@ public class Point extends OgcCompatibleGeometry<OGCPoint> {
     public double Y() {
         return getOgcGeometry().Y();
     }
+
+    private Object writeReplace() {
+        return new WkbSerializationProxy(this.asWellKnownBinary());
+    }
 }

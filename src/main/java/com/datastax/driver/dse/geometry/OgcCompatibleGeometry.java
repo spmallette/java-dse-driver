@@ -16,17 +16,13 @@
 package com.datastax.driver.dse.geometry;
 
 import com.datastax.driver.core.exceptions.InvalidTypeException;
-import com.datastax.driver.core.utils.Bytes;
 import com.esri.core.geometry.GeometryException;
 import com.esri.core.geometry.ogc.OGCGeometry;
 import com.esri.core.geometry.ogc.OGCLineString;
 import com.google.common.collect.ImmutableList;
 
-import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -83,7 +79,7 @@ abstract class OgcCompatibleGeometry<T extends OGCGeometry> extends Geometry {
         }
     }
 
-    private transient T ogcGeometry;
+    private final T ogcGeometry;
 
     protected OgcCompatibleGeometry(T ogcGeometry) {
         checkNotNull(ogcGeometry);
@@ -158,26 +154,8 @@ abstract class OgcCompatibleGeometry<T extends OGCGeometry> extends Geometry {
         return getEsriGeometry().hashCode();
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        ByteBuffer wkb = asWellKnownBinary();
-        out.writeObject(Bytes.getArray(wkb));
+    // Should never be called since we serialize a proxy (see subclasses)
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
     }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] bytes = (byte[]) in.readObject();
-        Class<?> klass = getClass();
-        Type superclass = null;
-        while (!klass.equals(OgcCompatibleGeometry.class)) {
-            superclass = klass.getGenericSuperclass();
-            klass = klass.getSuperclass();
-        }
-        assert superclass != null;
-        assert superclass instanceof ParameterizedType;
-        Class<T> ogcGeometryClass = (Class<T>) ((ParameterizedType) superclass).getActualTypeArguments()[0];
-        ogcGeometry = fromOgcWellKnownBinary(ByteBuffer.wrap(bytes), ogcGeometryClass);
-    }
-
 }

@@ -20,6 +20,8 @@ import com.datastax.driver.core.utils.Bytes;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -249,4 +251,12 @@ public class Circle extends Geometry {
         return result;
     }
 
+    private Object writeReplace() {
+        return new WkbSerializationProxy(this.asWellKnownBinary());
+    }
+
+    // Should never be called since we serialize a proxy
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Proxy required");
+    }
 }

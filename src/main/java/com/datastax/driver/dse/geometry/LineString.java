@@ -99,4 +99,7 @@ public class LineString extends OgcCompatibleGeometry<OGCLineString> {
         return points;
     }
 
+    private Object writeReplace() {
+        return new WkbSerializationProxy(this.asWellKnownBinary());
+    }
 }

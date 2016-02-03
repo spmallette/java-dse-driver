@@ -175,4 +175,8 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
         OperatorSimplifyOGC op = (OperatorSimplifyOGC) OperatorFactoryLocal.getInstance().getOperator(Operator.Type.SimplifyOGC);
         return (com.esri.core.geometry.Polygon) op.execute(polygon, Geometry.SPATIAL_REFERENCE_4326, true, null);
     }
+
+    private Object writeReplace() {
+        return new WkbSerializationProxy(this.asWellKnownBinary());
+    }
 }

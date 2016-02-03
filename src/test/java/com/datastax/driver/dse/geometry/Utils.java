@@ -15,7 +15,11 @@
  */
 package com.datastax.driver.dse.geometry;
 
+import com.datastax.driver.core.utils.Bytes;
+
 import java.io.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class Utils {
     /**
@@ -31,7 +35,11 @@ public class Utils {
 
         out.writeObject(geometry);
 
-        ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+        byte[] bytes = baos.toByteArray();
+        byte[] wkb = Bytes.getArray(geometry.asWellKnownBinary());
+        assertThat(bytes).containsSequence(wkb);
+
+        ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes));
         return in.readObject();
     }
 }
