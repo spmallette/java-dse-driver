@@ -293,7 +293,6 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
-                                        <resource>META-INF/MANIFEST.MF</resource>
                                         <!-- ServicesResourceTransformer does not transform file names, only file contents -->
                                         <resource>META-INF/services/com.fasterxml.jackson.core.JsonFactory</resource>
                                         <resource>META-INF/services/com.fasterxml.jackson.core.ObjectCodec</resource>
