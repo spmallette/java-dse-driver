@@ -463,8 +463,10 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <comparisonVersion>5.0.0</comparisonVersion>
+                    <comparisonVersion>1.0.0</comparisonVersion>
                     <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
+                    <!-- TODO re-enable after 1.0.0 is released -->
+                    <skip>true</skip>
                 </configuration>
                 <!--
                 Workaround to make clirr plugin work with Java 8.
