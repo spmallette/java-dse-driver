@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <a href="https://en.wikipedia.org/wiki/Open_Geospatial_Consortium">OGC</a> equivalent
  * within the <a href="http://esri.github.io/geometry-api-java/javadoc/com/esri/core/geometry/ogc/OGCGeometry.html">ESRI</a> library.
  *
- * @param <T> The equivalent OGC type, a concrete subtype of {@link OGCGeometry}
+ * @param <T> the equivalent OGC type, a concrete subtype of {@link OGCGeometry}
  */
 abstract class OgcCompatibleGeometry<T extends OGCGeometry> extends Geometry {
 

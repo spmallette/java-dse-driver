@@ -21,21 +21,21 @@ import com.esri.core.geometry.ogc.OGCPoint;
 import java.nio.ByteBuffer;
 
 /**
- * A Point is a zero-dimensional object that represents a specific (X,Y)
- * location in a two-dimensional XY-Plane. In case of Geographic Coordinate
- * Systems, the X coordinate is the longitude and the Y is the latitude.
+ * The driver-side representation of DSE's {@code PointType}.
+ * <p/>
+ * This is a zero-dimensional object that represents a specific (X,Y) location in a two-dimensional XY-plane.
+ * In case of Geographic Coordinate Systems, the X coordinate is the longitude and the Y is the latitude.
  */
 public class Point extends OgcCompatibleGeometry<OGCPoint> {
 
     private static final long serialVersionUID = 6329957740309318716L;
 
     /**
-     * Creates a {@link Point} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
-     * representation of a point.
+     * Creates a point from its <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
+     * representation.
      *
      * @param source the Well-known Text representation to parse.
-     * @return A {@link Point} object.
+     * @return the point represented by the WKT.
      * @throws InvalidTypeException if the string does not contain a valid Well-known Text representation.
      */
     public static Point fromWellKnownText(String source) {
@@ -43,23 +43,24 @@ public class Point extends OgcCompatibleGeometry<OGCPoint> {
     }
 
     /**
-     * Creates a {@link Point} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
-     * representation of a point.
+     * Creates a point from its
+     * <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
+     * representation.
      *
      * @param source the Well-known Binary representation to parse.
-     * @return A {@link Point} object.
-     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary representation.
+     * @return the point represented by the WKB.
+     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary
+     *                              representation.
      */
     public static Point fromWellKnownBinary(ByteBuffer source) {
         return new Point(fromOgcWellKnownBinary(source, OGCPoint.class));
     }
 
     /**
-     * Creates a {@link Point} instance from a JSON representation of a point.
+     * Creates a point from its JSON representation.
      *
      * @param source the JSON representation to parse.
-     * @return A {@link Point} object.
+     * @return the point represented by the JSON.
      * @throws InvalidTypeException if the string does not contain a valid JSON representation.
      */
     public static Point fromGeoJson(String source) {
@@ -67,10 +68,10 @@ public class Point extends OgcCompatibleGeometry<OGCPoint> {
     }
 
     /**
-     * Creates a new instance.
+     * Creates a new point.
      *
-     * @param x The X coordinate.
-     * @param y The Y coordinate.
+     * @param x the X coordinate.
+     * @param y the Y coordinate.
      */
     public Point(double x, double y) {
         this(new OGCPoint(new com.esri.core.geometry.Point(x, y), Geometry.SPATIAL_REFERENCE_4326));
@@ -81,19 +82,28 @@ public class Point extends OgcCompatibleGeometry<OGCPoint> {
     }
 
     /**
-     * @return The X coordinate of this 2D point.
+     * Returns the X coordinate of this 2D point.
+     *
+     * @return the X coordinate.
      */
     public double X() {
         return getOgcGeometry().X();
     }
 
     /**
-     * @return The Y coordinate of this 2D point.
+     * Returns the Y coordinate of this 2D point.
+     *
+     * @return the Y coordinate.
      */
     public double Y() {
         return getOgcGeometry().Y();
     }
 
+    /**
+     * This object gets replaced by an internal proxy for serialization.
+     *
+     * @serialData a single byte array containing the Well-Known Binary representation.
+     */
     private Object writeReplace() {
         return new WkbSerializationProxy(this.asWellKnownBinary());
     }

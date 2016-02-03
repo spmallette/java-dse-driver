@@ -20,8 +20,8 @@ import com.datastax.driver.dse.graph.GraphOptions;
 
 /**
  * The configuration of a {@link DseCluster}.
- *
- * @see Configuration
+ * <p/>
+ * This class extends the CQL driver's {@link Configuration} to add DSE-specific options.
  */
 public class DseConfiguration extends Configuration {
 
@@ -33,9 +33,9 @@ public class DseConfiguration extends Configuration {
     }
 
     /**
-     * Returns the {@link GraphOptions} instance for this configuration.
+     * Returns the default graph options to use for the cluster.
      *
-     * @return the {@link GraphOptions} instance for this configuration.
+     * @return the default graph options.
      */
     public GraphOptions getGraphOptions() {
         return graphOptions;

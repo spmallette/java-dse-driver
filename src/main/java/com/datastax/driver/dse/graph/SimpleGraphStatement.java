@@ -58,8 +58,8 @@ public class SimpleGraphStatement extends RegularGraphStatement {
      * Parameter values can be of any type supported in JSON:
      * Boolean, Integer, Long, Float, Double, and String.
      *
-     * @param name  The parameter name, as referenced in the Graph query.
-     * @param value The parameter value.
+     * @param name  the parameter name, as referenced in the graph query.
+     * @param value the parameter value.
      */
     public SimpleGraphStatement set(String name, Object value) {
         this.valuesMap.put(name, value);

@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A statement containing a Graph query.
+ * An executable graph query.
  */
 public abstract class GraphStatement {
 
@@ -35,9 +35,9 @@ public abstract class GraphStatement {
     private String graphAlias;
 
     /**
-     * Returns the Graph language to use with this statement.
+     * Returns the graph language to use with this statement.
      *
-     * @return The Graph language to use with this statement.
+     * @return the graph language to use with this statement.
      * @see #setGraphLanguage(String)
      */
     public String getGraphLanguage() {
@@ -45,13 +45,13 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Sets the Graph language to use with this statement.
+     * Sets the graph language to use with this statement.
      * <p/>
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphLanguage()} will be
      * used when executing the statement.
      *
-     * @param graphLanguage The Graph language to use with this statement.
-     * @return This {@link GraphStatement} instance (for method chaining).
+     * @param graphLanguage the Graph language to use with this statement.
+     * @return this {@link GraphStatement} instance (for method chaining).
      */
     public GraphStatement setGraphLanguage(String graphLanguage) {
         checkNotNull(graphLanguage, "graphLanguage cannot be null");
@@ -61,9 +61,9 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Returns the Graph traversal source name to use with this statement.
+     * Returns the graph traversal source name to use with this statement.
      *
-     * @return The graph traversal source name to use with this statement.
+     * @return the graph traversal source name to use with this statement.
      * @see #setGraphSource(String)
      */
     public String getGraphSource() {
@@ -71,13 +71,13 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Sets the Graph traversal source name to use with this statement.
+     * Sets the graph traversal source name to use with this statement.
      * <p/>
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphSource()} will be
      * used when executing the statement.
      *
-     * @param graphSource The graph traversal source name to use with this statement.
-     * @return This {@link GraphStatement} instance (for method chaining).
+     * @param graphSource the graph traversal source name to use with this statement.
+     * @return this {@link GraphStatement} instance (for method chaining).
      */
     public GraphStatement setGraphSource(String graphSource) {
         checkNotNull(graphSource, "graphSource cannot be null");
@@ -87,9 +87,9 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Returns the Graph name to use with this statement.
+     * Returns the graph name to use with this statement.
      *
-     * @return The Graph name to use with this statement.
+     * @return the graph name to use with this statement.
      * @see #getGraphName()
      */
     public String getGraphName() {
@@ -97,7 +97,7 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Sets the Graph name to use with this statement.
+     * Sets the graph name to use with this statement.
      * <p/>
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphName()} (which may
      * itself be unset) will be used when executing the statement.
@@ -105,8 +105,8 @@ public abstract class GraphStatement {
      * If the default is set on the global options, but you explicitly want to force this statement to execute with no
      * graph name, pass {@link GraphOptions#NONE} to this method.
      *
-     * @param graphName The Graph name to use with this statement.
-     * @return This {@link GraphStatement} instance (for method chaining).
+     * @param graphName the Graph name to use with this statement.
+     * @return this {@link GraphStatement} instance (for method chaining).
      */
     public GraphStatement setGraphName(String graphName) {
         checkNotNull(graphName, "graphName cannot be null");
@@ -115,9 +115,9 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Returns the Graph alias to use with this statement.
+     * Returns the graph alias to use with this statement.
      *
-     * @return The graph alias to use with this statement.
+     * @return the graph alias to use with this statement.
      * @see #setGraphAlias(String)
      */
     public String getGraphAlias() {
@@ -125,7 +125,7 @@ public abstract class GraphStatement {
     }
 
     /**
-     * Sets the Graph alias to use with this statement.
+     * Sets the graph alias to use with this statement.
      * <p/>
      * This property is not required; if it is not set, the default {@link GraphOptions#getGraphAlias()} (which may
      * itself be unset) will be used when executing the statement.
@@ -133,8 +133,8 @@ public abstract class GraphStatement {
      * If the default is set on the global options, but you explicitly want to force this statement to execute with no
      * graph alias, pass {@link GraphOptions#NONE} to this method.
      *
-     * @param graphAlias The graph alias to use with this statement.
-     * @return This {@link GraphStatement} instance (for method chaining).
+     * @param graphAlias the graph alias to use with this statement.
+     * @return this {@link GraphStatement} instance (for method chaining).
      */
     public GraphStatement setGraphAlias(String graphAlias) {
         checkNotNull(graphAlias, "graphAlias cannot be null");
@@ -143,17 +143,17 @@ public abstract class GraphStatement {
     }
 
     /**
-     * "Unwraps" the current Graph statement, i.e.,
-     * returns an executable {@link Statement} object corresponding to this Graph statement.
-     * This method is intended for internal use only, users wishing to execute Graph statements
+     * "Unwraps" the current graph statement, i.e.,
+     * returns an executable {@link Statement} object corresponding to this graph statement.
+     * This method is intended for internal use only, users wishing to execute graph statements
      * should use {@link DseSession#executeGraph(GraphStatement)}.
      * <p/>
-     * This method acts as a bridge between Graph statements and
+     * This method acts as a bridge between graph statements and
      * regular {@link Statement}s.
      * <p/>
      * Implementations are free to cache the returned {@link Statement} if appropriate.
      *
-     * @return An executable {@link Statement}.
+     * @return an executable {@link Statement}.
      */
     public abstract Statement unwrap();
 

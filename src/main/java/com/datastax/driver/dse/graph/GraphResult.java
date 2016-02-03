@@ -38,7 +38,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as an integer.
      *
-     * @return An integer representation of the encapsulated JSON node,
+     * @return an integer representation of the encapsulated JSON node,
      * or {@code 0} if the encapsulated JSON node is {@code null}.
      */
     public int asInt() {
@@ -48,7 +48,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a boolean.
      *
-     * @return A boolean representation of the encapsulated JSON node,
+     * @return a boolean representation of the encapsulated JSON node,
      * or {@code false} if the encapsulated JSON node is {@code null}.
      */
     public boolean asBoolean() {
@@ -58,7 +58,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a long integer.
      *
-     * @return A long integer representation of the encapsulated JSON node,
+     * @return a long integer representation of the encapsulated JSON node,
      * or {@code 0L} if the encapsulated JSON node is {@code null}.
      */
     public long asLong() {
@@ -68,7 +68,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a double.
      *
-     * @return A double representation of the encapsulated JSON node,
+     * @return a double representation of the encapsulated JSON node,
      * or {@code 0.0D} if the encapsulated JSON node is {@code null}.
      */
     public double asDouble() {
@@ -78,7 +78,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a String.
      *
-     * @return A String representation of the encapsulated JSON node,
+     * @return a String representation of the encapsulated JSON node,
      * or {@code "null"} if the encapsulated JSON node is {@code null}.
      */
     public String asString() {
@@ -88,7 +88,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a {@link Vertex}.
      *
-     * @return A {@link Vertex} representation of the encapsulated JSON node,
+     * @return a {@link Vertex} representation of the encapsulated JSON node,
      * or {@code null} if the encapsulated JSON node is {@code null}.
      */
     public Vertex asVertex() {
@@ -98,7 +98,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as an {@link Edge}.
      *
-     * @return An {@link Edge} representation of the encapsulated JSON node,
+     * @return an {@link Edge} representation of the encapsulated JSON node,
      * or {@code null} if the encapsulated JSON node is {@code null}.
      */
     public Edge asEdge() {
@@ -108,7 +108,7 @@ public class GraphResult {
     /**
      * Returns the encapsulated JSON node as a {@link Path}.
      *
-     * @return A {@link Path} representation of the encapsulated JSON node,
+     * @return a {@link Path} representation of the encapsulated JSON node,
      * or {@code null} if the encapsulated JSON node is {@code null}.
      */
     public Path asPath() {
@@ -155,7 +155,7 @@ public class GraphResult {
     /**
      * Returns the number of objects in the wrapped content if the content is an array.
      *
-     * @return an {@link int} for the size of the wrapped content.
+     * @return an {@code int} for the size of the wrapped content.
      */
     public int size() {
         return this.jsonNode.size();

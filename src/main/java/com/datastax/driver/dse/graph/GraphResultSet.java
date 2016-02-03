@@ -29,67 +29,61 @@ import java.util.List;
 import static com.datastax.driver.dse.graph.GraphJsonUtils.ROW_TO_GRAPH_RESULT;
 
 /**
- * The result set containing the Graph results returned from a query.
+ * The result of a graph query.
  */
 public class GraphResultSet implements Iterable<GraphResult> {
 
     private final ResultSet wrapped;
 
     /**
-     * This constructor is intended for internal use only, users should normally obtain
-     * instances from {@link DseSession#executeGraph(GraphStatement)}.
+     * This constructor is intended for internal use only, users should normally obtain instances from
+     * {@link DseSession#executeGraph(GraphStatement)}.
      */
     public GraphResultSet(ResultSet wrapped) {
         this.wrapped = wrapped;
     }
 
     /**
-     * Returns whether this GraphResultSet has more results.
+     * Returns whether there are more results.
      *
-     * @return whether this GraphResultSet has more results.
+     * @return whether there are more results.
      */
     public boolean isExhausted() {
         return wrapped.isExhausted();
     }
 
     /**
-     * Returns the next result from this GraphResultSet.
+     * Returns the next result.
      *
-     * @return the next GraphResult in this GraphResultSet or null if this GraphResultSet is
-     * exhausted.
+     * @return the next result, or {@code null} if there are no more of them.
      */
     public GraphResult one() {
         return ROW_TO_GRAPH_RESULT.apply(wrapped.one());
     }
 
     /**
-     * Returns all the remaining GraphResults in this GraphResultSet as a list.
+     * Returns all the remaining results as a list.
      * <p/>
-     * Note that, contrary to {@code iterator()} or successive calls to
-     * {@code one()}, this method forces fetching the full content of the GraphResultSet
-     * at once, holding it all in memory in particular. It is thus recommended
-     * to prefer iterations through {@code iterator()} when possible, especially
-     * if the GraphResultSet can be big.
+     * Note that, contrary to {@code iterator()} or successive calls to {@code one()}, this method force-fetches all
+     * remaining results from the server, holding them all in memory. It is thus recommended to prefer iterations
+     * through {@code iterator()} when possible, especially when there is a large number of results.
      *
-     * @return a list containing the remaining results of this GraphResultSet. The
-     * returned list is empty if and only the GraphResultSet is exhausted. The GraphResultSet
-     * will be exhausted after a call to this method.
+     * @return a list containing the remaining results. The returned list is empty if and only this result set is
+     * {@link #isExhausted() exhausted}. The result set will be exhausted after a call to this method.
      */
     public List<GraphResult> all() {
         return Lists.transform(wrapped.all(), ROW_TO_GRAPH_RESULT);
     }
 
     /**
-     * Returns an iterator over the GraphResults contained in this GraphResultSet.
+     * Returns an iterator over the results.
      * <p/>
-     * The {@link Iterator#next} method is equivalent to calling {@link #one}.
-     * So this iterator will consume results from this GraphResultSet and after a
-     * full iteration, the GraphResultSet will be empty.
+     * The {@link Iterator#next} method is equivalent to calling {@link #one}. After a full iteration, the result set
+     * will be {@link #isExhausted() exhausted}.
      * <p/>
      * The returned iterator does not support the {@link Iterator#remove} method.
      *
-     * @return an iterator that will consume and return the remaining GraphResults of
-     * this GraphResultSet.
+     * @return an iterator that will consume and return the remaining results.
      */
     public Iterator<GraphResult> iterator() {
         return new Iterator<GraphResult>() {
@@ -111,25 +105,23 @@ public class GraphResultSet implements Iterable<GraphResult> {
     }
 
     /**
-     * The number of GraphResults that can be retrieved from this result set without
-     * blocking to fetch.
+     * The number of results that can be retrieved without blocking to fetch.
      *
-     * @return the number of GraphResults readily available in this result set. If
-     * {@link #isFullyFetched()}, this is the total number of GraphResults remaining
-     * in this result set (after which the result set will be exhausted).
+     * @return the number of results readily available. If {@link #isFullyFetched()}, this is the total number of
+     * results remaining, otherwise going past that limit will trigger background fetches.
      */
     public int getAvailableWithoutFetching() {
         return wrapped.getAvailableWithoutFetching();
     }
 
     /**
-     * Whether all results from this result set have been fetched from the
-     * database.
+     * Whether all results have been fetched from the database.
      * <p/>
-     * Note that if {@code isFullyFetched()}, then {@link #getAvailableWithoutFetching}
-     * will return how many GraphResults remain in the result set before exhaustion. But
-     * please note that {@code !isFullyFetched()} never guarantees that the result set
-     * is not exhausted (you should call {@code isExhausted()} to verify it).
+     * If {@code isFullyFetched()}, then {@link #getAvailableWithoutFetching} will return the number of results
+     * remaining before exhaustion.
+     * <p/>
+     * But {@code !isFullyFetched()} does not necessarily mean that the result set is not exhausted (you should call
+     * {@code isExhausted()} to verify it).
      *
      * @return whether all results have been fetched.
      */
@@ -162,7 +154,7 @@ public class GraphResultSet implements Iterable<GraphResult> {
      * </pre>
      * This method is not blocking, so in the example above, the call to {@code
      * fetchMoreResults} will not block the processing of the 100 currently available
-     * rows (but {@code iter.hasNext()} will block once those rows have been processed
+     * results (but {@code iter.hasNext()} will block once those results have been processed
      * until the fetch query returns, if it hasn't yet).
      * <p/>
      * Only one page of results (for a given result set) can be
@@ -173,10 +165,9 @@ public class GraphResultSet implements Iterable<GraphResult> {
      *
      * @return a future on the completion of fetching the next page of results.
      * If the result set is already fully retrieved ({@code isFullyFetched() == true}),
-     * then the returned future will return immediately but not particular error will be
+     * then the returned future will return immediately, but not particular error will be
      * thrown (you should thus call {@code isFullyFetched() to know if calling this
      * method can be of any use}).
-     * @see ResultSet#fetchMoreResults()
      */
     public ListenableFuture<GraphResultSet> fetchMoreResults() {
         return Futures.transform(wrapped.fetchMoreResults(), new Function<ResultSet, GraphResultSet>() {
@@ -188,9 +179,9 @@ public class GraphResultSet implements Iterable<GraphResult> {
     }
 
     /**
-     * Returns information on the execution of the last query made for this GraphResultSet.
+     * Returns information on the execution of the last query made for this result set.
      * <p/>
-     * Note that in most cases, a GraphResultSet is fetched with only one query, but large
+     * Note that in most cases, a result set is fetched with only one query, but large
      * result sets can be paged and thus be retrieved by multiple queries. In that
      * case this method return the {@code ExecutionInfo} for the last query
      * performed. To retrieve the information for all queries, use {@link #getAllExecutionInfo}.
@@ -205,39 +196,16 @@ public class GraphResultSet implements Iterable<GraphResult> {
     }
 
     /**
-     * Return the execution information for all queries made to retrieve this
-     * GraphResultSet.
+     * Returns the execution information for all queries made to retrieve this result set.
      * <p/>
-     * Unless the GraphResultSet is large enough to get paged underneath, the returned
-     * list will be singleton. If paging has been used however, the returned list
-     * contains the {@code ExecutionInfo} for all the queries done to obtain this
-     * GraphResultSet (at the time of the call) in the order those queries were made.
+     * If paging was used, the returned list contains the {@code ExecutionInfo} for all the queries done to obtain the
+     * results (at the time of the call), in the order those queries were made.
+     * <p/>
+     * If no paging was used (because the result set was small enough), the list only contains one element.
      *
-     * @return a list of the execution info for all the queries made for this GraphResultSet.
+     * @return a list of the execution info for all the queries made for this result set.
      */
     public List<ExecutionInfo> getAllExecutionInfo() {
         return wrapped.getAllExecutionInfo();
-    }
-
-    /**
-     * If the query that produced this GraphResultSet was a conditional update,
-     * return whether it was successfully applied.
-     * <p/>
-     * For consistency, this method always returns {@code true} for
-     * non-conditional queries (although there is no reason to call the method
-     * in that case). This is also the case for conditional DDL statements
-     * ({@code CREATE KEYSPACE... IF NOT EXISTS}, {@code CREATE TABLE... IF NOT EXISTS}),
-     * for which Cassandra doesn't return an {@code [applied]} column.
-     * <p/>
-     * Note that, for versions of Cassandra strictly lower than 2.0.9 and 2.1.0-rc2,
-     * a server-side bug (CASSANDRA-7337) causes this method to always return
-     * {@code true} for batches containing conditional queries.
-     *
-     * @return if the query was a conditional update, whether it was applied.
-     * {@code true} for other types of queries.
-     * @see <a href="https://issues.apache.org/jira/browse/CASSANDRA-7337">CASSANDRA-7337</a>
-     */
-    public boolean wasApplied() {
-        return wrapped.wasApplied();
     }
 }

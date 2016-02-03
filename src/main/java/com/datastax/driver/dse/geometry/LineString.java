@@ -23,17 +23,22 @@ import com.google.common.collect.ImmutableList;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+/**
+ * The driver-side representation for DSE's {@code LineStringType}.
+ * <p/>
+ * This is a curve in a two-dimensional XY-plane, represented by a set of points (with linear interpolation between
+ * them).
+ */
 public class LineString extends OgcCompatibleGeometry<OGCLineString> {
 
     private static final long serialVersionUID = -2541987694856357606L;
 
     /**
-     * Creates a {@link LineString} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
-     * representation of a linestring.
+     * Creates a line string from its <a href="https://en.wikipedia.org/wiki/Well-known_text">Well-known Text</a> (WKT)
+     * representation.
      *
      * @param source the Well-known Text representation to parse.
-     * @return A {@link LineString} object.
+     * @return the line string represented by the WKT.
      * @throws InvalidTypeException if the string does not contain a valid Well-known Text representation.
      */
     public static LineString fromWellKnownText(String source) {
@@ -41,23 +46,24 @@ public class LineString extends OgcCompatibleGeometry<OGCLineString> {
     }
 
     /**
-     * Creates a {@link LineString} instance from
-     * a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
-     * representation of a linestring.
+     * Creates a line string from its
+     * <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
+     * representation.
      *
      * @param source the Well-known Binary representation to parse.
-     * @return A {@link LineString} object.
-     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary representation.
+     * @return the line string represented by the WKB.
+     * @throws InvalidTypeException if the provided {@link ByteBuffer} does not contain a valid Well-known Binary
+     *                              representation.
      */
     public static LineString fromWellKnownBinary(ByteBuffer source) {
         return new LineString(fromOgcWellKnownBinary(source, OGCLineString.class));
     }
 
     /**
-     * Creates a {@link LineString} instance from a JSON representation of a linestring.
+     * Creates a line string from its JSON representation.
      *
      * @param source the JSON representation to parse.
-     * @return A {@link LineString} object.
+     * @return the line string represented by the JSON.
      * @throws InvalidTypeException if the string does not contain a valid JSON representation.
      */
     public static LineString fromGeoJson(String source) {
@@ -76,11 +82,11 @@ public class LineString extends OgcCompatibleGeometry<OGCLineString> {
     private final List<Point> points;
 
     /**
-     * Creates a {@link LineString} instance from a series of 2 or more {@link Point}s.
+     * Creates a line string from a series of 2 or more points.
      *
-     * @param p1 The first point.
-     * @param p2 The second point.
-     * @param pn Additional points.
+     * @param p1 the first point.
+     * @param p2 the second point.
+     * @param pn additional points.
      */
     public LineString(Point p1, Point p2, Point... pn) {
         super(fromPoints(p1, p2, pn));
@@ -93,12 +99,19 @@ public class LineString extends OgcCompatibleGeometry<OGCLineString> {
     }
 
     /**
-     * @return the points composing this instance.
+     * Returns the points composing this line string.
+     *
+     * @return the points (as an immutable list).
      */
     public List<Point> getPoints() {
         return points;
     }
 
+    /**
+     * This object gets replaced by an internal proxy for serialization.
+     *
+     * @serialData a single byte array containing the Well-Known Binary representation.
+     */
     private Object writeReplace() {
         return new WkbSerializationProxy(this.asWellKnownBinary());
     }

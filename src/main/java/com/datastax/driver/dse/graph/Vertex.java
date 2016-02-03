@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import java.util.Map;
 
 /**
- * A default representation of a Vertex in DSE Graph.
+ * A default representation of a vertex in DSE graph.
  */
 public class Vertex extends Element {
 
