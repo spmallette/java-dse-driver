@@ -423,6 +423,7 @@
                         <descriptor>src/assembly/binary-tarball.xml</descriptor>
                     </descriptors>
                     <tarLongFileMode>posix</tarLongFileMode>
+                    <attach>false</attach>
                 </configuration>
             </plugin>
 
