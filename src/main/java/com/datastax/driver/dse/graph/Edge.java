@@ -63,30 +63,12 @@ public class Edge extends Element {
     }
 
     /**
-     * Sets the incoming/head vertex.
-     *
-     * @param inV the new value.
-     */
-    public void setInV(GraphResult inV) {
-        this.inV = inV;
-    }
-
-    /**
      * Returns the label of the incoming/head vertex.
      *
      * @return the label.
      */
     public String getInVLabel() {
         return inVLabel;
-    }
-
-    /**
-     * Sets the label of the incoming/head vertex.
-     *
-     * @param inVLabel the new value.
-     */
-    public void setInVLabel(String inVLabel) {
-        this.inVLabel = inVLabel;
     }
 
     /**
@@ -99,30 +81,12 @@ public class Edge extends Element {
     }
 
     /**
-     * Sets the outgoing/tail vertex.
-     *
-     * @param outV the new value.
-     */
-    public void setOutV(GraphResult outV) {
-        this.outV = outV;
-    }
-
-    /**
      * Returns the label of the outgoing/tail vertex.
      *
      * @return the label.
      */
     public String getOutVLabel() {
         return outVLabel;
-    }
-
-    /**
-     * Sets the label of the outgoing/tail vertex.
-     *
-     * @param outVLabel the new value.
-     */
-    public void setOutVLabel(String outVLabel) {
-        this.outVLabel = outVLabel;
     }
 
     @Override

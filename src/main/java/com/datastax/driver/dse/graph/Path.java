@@ -48,30 +48,12 @@ public class Path {
     }
 
     /**
-     * Sets the sets of labels of the steps traversed.
-     *
-     * @param labels the new value.
-     */
-    public void setLabels(List<Set<String>> labels) {
-        this.labels = labels;
-    }
-
-    /**
      * Returns the objects traversed.
      *
      * @return the objects.
      */
     public List<GraphResult> getObjects() {
         return objects;
-    }
-
-    /**
-     * Sets the objects traversed.
-     *
-     * @param objects the new value.
-     */
-    public void setObjects(List<GraphResult> objects) {
-        this.objects = objects;
     }
 
     @Override

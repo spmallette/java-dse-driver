@@ -38,30 +38,12 @@ public abstract class Element {
     }
 
     /**
-     * Sets the identifier.
-     *
-     * @param id the new value.
-     */
-    public void setId(GraphResult id) {
-        this.id = id;
-    }
-
-    /**
      * Returns the identifier.
      *
      * @return the identifier.
      */
     public GraphResult getId() {
         return this.id;
-    }
-
-    /**
-     * Sets the label.
-     *
-     * @param label the new value.
-     */
-    public void setLabel(String label) {
-        this.label = label;
     }
 
     /**
@@ -74,30 +56,12 @@ public abstract class Element {
     }
 
     /**
-     * Sets the type.
-     *
-     * @param type the new value.
-     */
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    /**
      * Returns the type.
      *
      * @return the type.
      */
     public String getType() {
         return this.type;
-    }
-
-    /**
-     * Sets the element's properties.
-     *
-     * @param properties the new value.
-     */
-    public void setProperties(Map<String, GraphResult> properties) {
-        this.properties = properties;
     }
 
     /**
