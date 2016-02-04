@@ -336,6 +336,7 @@
                 <configuration>
                     <groups>${test.groups}</groups>
                     <useFile>false</useFile>
+                    <argLine>-Duser.language=en</argLine>
                     <systemPropertyVariables>
                         <cassandra.version>${cassandra.version}</cassandra.version>
                         <dse>${dse}</dse>
