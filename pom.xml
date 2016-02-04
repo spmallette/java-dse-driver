@@ -3,13 +3,12 @@
          Copyright (C) 2012-2016 DataStax Inc.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.datastax.cassandra</groupId>
     <artifactId>dse-driver</artifactId>
-    <version>1.0.0-eap1-SNAPSHOT</version>
+    <version>1.0.0-eap1</version>
 
     <packaging>bundle</packaging>
 
@@ -43,7 +42,7 @@
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
         <!-- Set default javadoc.opts, overriden by profiles -->
-        <javadoc.opts/>
+        <javadoc.opts />
         <!-- Skip deployment, unless explicitly overridden from the command line -->
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
@@ -330,8 +329,7 @@
                                 </relocation>
                             </relocations>
                             <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
                                         <!-- ServicesResourceTransformer does not transform file names, only file contents -->
                                         <resource>META-INF/services/com.fasterxml.jackson.core.JsonFactory</resource>
@@ -645,7 +643,7 @@
         <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
         <url>https://github.com/datastax/java-driver-dse</url>
-        <tag>HEAD</tag>
+        <tag>1.0.0-eap1</tag>
     </scm>
 
     <developers>
