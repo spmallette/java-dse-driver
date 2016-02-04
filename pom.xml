@@ -1,18 +1,6 @@
 <!--
 
-         Copyright (C) 2012-2015 DataStax Inc.
-
-      Licensed under the Apache License, Version 2.0 (the "License");
-      you may not use this file except in compliance with the License.
-      You may obtain a copy of the License at
-
-         http://www.apache.org/licenses/LICENSE-2.0
-
-      Unless required by applicable law or agreed to in writing, software
-      distributed under the License is distributed on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-      See the License for the specific language governing permissions and
-      limitations under the License.
+         Copyright (C) 2012-2016 DataStax Inc.
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -51,7 +39,7 @@
         <scassandra.version>0.11.0</scassandra.version>
         <apacheds.version>2.0.0-M19</apacheds.version>
         <ldapcodec.version>1.0.0-M26</ldapcodec.version>
-        <currentYear>2015</currentYear>
+        <currentYear>2016</currentYear>
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
         <!-- Set default javadoc.opts, overriden by profiles -->
