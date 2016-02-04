@@ -18,6 +18,7 @@ package com.datastax.driver.dse.geometry.codecs;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.driver.dse.CCMDseTestsSupport;
 import com.datastax.driver.dse.geometry.Geometry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -32,7 +33,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DseVersion(major = 5.0)
-public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends CCMTestsSupport {
+public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends CCMDseTestsSupport {
 
     private final String cqlTypeName;
     private final Class<T> selfType;
@@ -58,11 +59,6 @@ public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends C
         }
         data[sampleData.size()][0] = null;
         return data;
-    }
-
-    @Override
-    public Cluster.Builder createClusterBuilder() {
-        return createClusterBuilderNoDebouncing();
     }
 
     @Override
