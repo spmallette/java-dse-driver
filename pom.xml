@@ -54,6 +54,8 @@
         <test.groups>unit</test.groups>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts/>
+        <!-- Skip deployment, unless explicitly overridden from the command line -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
