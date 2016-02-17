@@ -5,7 +5,8 @@ java:
 os:
   - ubuntu/trusty64
 cassandra:
-  - 3.0
+  - dse-4.8
+  - dse-5.0-eap
 build:
   - type: maven
     version: 3.2.5
@@ -13,11 +14,12 @@ build:
     properties: |
       com.datastax.driver.TEST_BASE_NODE_WAIT=120
       com.datastax.driver.NEW_NODE_DELAY_SECONDS=100
-      cassandra.version=5.0.0
-      cassandra.directory=/home/jenkins/bdp-master
-      dse=true
+      cassandra.version=$CCM_VERSION
+      cassandra.directory=$CCM_INSTALL_DIR
+      dse=$CCM_IS_DSE
       ccm.java.home=$CCM_JAVA_HOME
       ccm.path=$CCM_JAVA_HOME/bin
+      ccm.maxNumberOfNodes=1
       failIfNoTests=false
       maven.test.failure.ignore=true
   - xunit:
