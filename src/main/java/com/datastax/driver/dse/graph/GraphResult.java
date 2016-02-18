@@ -171,7 +171,18 @@ public class GraphResult {
         return new GraphResult(this.jsonNode.get(index));
     }
 
-    <T> T as(Class<T> clazz) {
+    /**
+     * Tries to return the enclosed JSON result as an instance of the {@link Class} in parameter.
+     * <p/>
+     *
+     * Caution: this will only work for primitive JSON classes and nested maps and lists with primitive JSON types.
+     * This can also work with the driver's Graph specific classes like {@link Vertex}, {@link Edge} and {@link Path}.
+     * 
+     * @param clazz the class to deserialize this object into. You can only provide JSON primitive types, {@link java.util.Map}s,
+     *              {@link java.util.List}s and driver's Graph elements such as {@link Vertex}, {@link Edge} and {@link Path}.
+     * @return the result deserialized and instantiated into the desired class.
+     */
+    public <T> T as(Class<T> clazz) {
         return GraphJsonUtils.as(jsonNode, clazz);
     }
 

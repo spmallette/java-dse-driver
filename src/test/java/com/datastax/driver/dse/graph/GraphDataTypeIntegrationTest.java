@@ -9,15 +9,13 @@ import com.datastax.driver.dse.geometry.LineString;
 import com.datastax.driver.dse.geometry.Point;
 import com.datastax.driver.dse.geometry.Polygon;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.assertj.core.api.iterable.Extractor;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.datastax.driver.dse.geometry.Utils.p;
@@ -43,41 +41,42 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 // TODO: by the driver.  All unsupported types are written as String parameters and read back as String
                 // TODO: parameters, with exception of Geometric types which can be serialized as parameters but not
                 // TODO: deserialized using GraphResult.
-                {"java.math.BigDecimal", new String[]{"8675309.9998"}, null},
-                {"java.math.BigInteger", new String[]{"8675309"}, null},
-                {"String", new String[]{"", "75", "Lorem Ipsum"}, null},
-                {"Long", new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null},
-                {"Integer", new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null},
-                {"Short", new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, (short) 0, 42}, null},
-                {"Double", new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null},
-                {"Boolean", new Boolean[]{true, false}, null},
-                {"org.apache.cassandra.db.marshal.geometry.Point", new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}},
-                {"org.apache.cassandra.db.marshal.geometry.LineString", new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, new String[]{"LINESTRING (30 10, 10 30, 40 40)"}},
+                {"java.math.BigDecimal", new String[]{"8675309.9998"}, null, String.class},
+                {"java.math.BigInteger", new String[]{"8675309"}, null, String.class},
+                {"String", new String[]{"", "75", "Lorem Ipsum"}, null, String.class},
+                {"Long", new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null, Long.class},
+                {"Integer", new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null, Integer.class},
+                {"Short", new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, (short) 0, 42}, null, Short.class},
+                {"Double", new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null, Double.class},
+                {"Boolean", new Boolean[]{true, false}, null, Boolean.class},
+                {"org.apache.cassandra.db.marshal.geometry.Point", new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}, String.class},
+                {"org.apache.cassandra.db.marshal.geometry.LineString", new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, new String[]{"LINESTRING (30 10, 10 30, 40 40)"}, String.class},
                 {"org.apache.cassandra.db.marshal.geometry.Polygon",
                         new Polygon[]{
                                 Polygon.builder()
                                         .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
                                         .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
                                         .build()},
-                        new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}},
-                {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, new String[]{"CIRCLE((1.0 2.0) 3.0)"}},
-                {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null},
-                {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null},
-                {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null},
-                {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, null},
+                        new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}, String.class},
+                {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, new String[]{"CIRCLE((1.0 2.0) 3.0)"}, String.class},
+                {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
+                {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null, String.class},
+                {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
+                {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, null, String.class},
                 // TODO: While Instant is supported, it returns back a JSON object,
                 // TODO: i.e.: {prop1:{"nano":657000000,"epochSecond":1454552791}} instead of a parsable data string.
-                // {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null}
+                // {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null, String.class}
                 // TODO: DSE Graph seems to support Map type properties, but this doesn't currently work.  Add when functional.
         };
     }
 
-    private void validateVertexResult(GraphResultSet resultSet, Object expectedResult, String vertexLabel, String propertyName) {
+    private <T> void validateVertexResult(GraphResultSet resultSet, T expectedResult, String vertexLabel, String propertyName, Class<T> expectedClass) {
         // Ensure the created vertex is returned and the property value matches what was provided.
         assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
         Vertex v = resultSet.one().asVertex();
         VertexAssert a = assertThat(v).hasLabel(vertexLabel);
 
+        // Validate using the appropriate asXXX method depending on the type of the class.
         if (expectedResult instanceof String) {
             a.hasProperty(propertyName, (String) expectedResult);
         } else if (expectedResult instanceof Integer) {
@@ -89,6 +88,9 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         } else if (expectedResult instanceof Double) {
             a.hasProperty(propertyName, (Double) expectedResult);
         }
+
+        // Validate using the as(Clazz) method depending on the expectedClass.
+        a.hasProperty(propertyName, expectedResult, expectedClass);
     }
 
     /**
@@ -97,17 +99,18 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      * <ol>
      * <li>Define a property of the given type.</li>
      * <li>Create a vertex for each data sample with that property having that data sample value.</li>
-     * <li>Validates that the result contains the created vertex with that property and that the property can be retrieve dint eh same format it was inserted in.</li>
+     * <li>Validates that the result contains the created vertex with that property and that the property can be retrieved in the same format it was inserted in.</li>
      * <li>For completeness, queries the vertex and ensures the property value matches that which was inserted.</li>
      * </ol>
      *
-     * @param clazz      The class that the property key's should should be.
-     * @param data       The sample data to add as property values and use as parameters.
-     * @param resultData The expected data returned from querying.
+     * @param clazz       The class that the property key's should should be.
+     * @param data        The sample data to add as property values and use as parameters.
+     * @param resultData  The expected data returned from querying.
+     * @Param resultClass The class to get the resulting data as.
      * @test_category dse:graph
      */
     @Test(groups = "short", dataProvider = "dataTypeSamples")
-    public void should_create_and_retrieve_vertex_property(String clazz, Object[] data, Object[] resultData) {
+    public <T> void should_create_and_retrieve_vertex_property(String clazz, Object[] data, T[] resultData, Class<T> resultClass) {
         int id = schemaCounter.incrementAndGet();
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
@@ -122,13 +125,14 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
 
         for (int i = 0; i < data.length; i++) {
             Object input = data[i];
-            Object expectedResult = resultData != null ? resultData[i] : input;
+            @SuppressWarnings("unchecked")
+            T expectedResult = resultData != null ? resultData[i] : (T) input;
             GraphStatement addV = new SimpleGraphStatement("g.addV(label, vertexLabel, propertyName, val)")
                     .set("vertexLabel", vertexLabel)
                     .set("propertyName", propertyName)
                     .set("val", input);
             GraphResultSet resultSet = session().executeGraph(addV);
-            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName);
+            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName, resultClass);
 
             // For completeness, retrieve the vertex and ensure the property value was maintained.
             GraphStatement getV = new SimpleGraphStatement("g.V().hasLabel(vertexLabel).has(propertyName, val).next()")
@@ -136,7 +140,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                     .set("propertyName", propertyName)
                     .set("val", input);
             resultSet = session().executeGraph(getV);
-            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName);
+            validateVertexResult(resultSet, expectedResult, vertexLabel, propertyName, resultClass);
         }
     }
 
@@ -167,6 +171,34 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
 
         // Ensure that the returned vertex is the same as the first.
         assertThat(marko2).isEqualTo(marko);
+    }
+
+    /**
+     * A sanity check that ensures that we can deserialize a Vertex Id as a Map using {@link GraphResult#as(Class)}.
+     * This test could break in the future if the format of a Vertex ID changes from a Map to something else.
+     *
+     * @jira_ticket JAVA-1080
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_deserialize_vertex_id_as_map() {
+        GraphResultSet resultSet = session().executeGraph(
+                new SimpleGraphStatement("g.V().hasLabel('person').has('name', name)").set("name", "marko"));
+
+        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        Vertex marko = resultSet.one().asVertex();
+        assertThat(marko).hasProperty("name", "marko");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> deserializedId = (Map<String, Object>) marko.getId().as(Map.class);
+        assertThat(deserializedId.keySet()).containsExactly(Iterators.toArray(marko.getId().keys(), String.class));
+
+        Iterator<String> keys = marko.getId().keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = deserializedId.get(key);
+            assertThat(value).isEqualTo(marko.getId().get(key).as(value.getClass()));
+        }
     }
 
     /**
