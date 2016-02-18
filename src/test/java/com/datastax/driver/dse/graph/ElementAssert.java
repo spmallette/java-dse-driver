@@ -88,4 +88,11 @@ public abstract class ElementAssert<S extends AbstractAssert<S, A>, A extends El
         assertThat(result.asEdge()).isEqualTo(value);
         return myself;
     }
+
+    public <T> S hasProperty(String propertyName, T value, Class<T> clazz) {
+        hasProperty(propertyName);
+        GraphResult result = actual.getProperties().get(propertyName);
+        assertThat(result.as(clazz)).isEqualTo(value);
+        return myself;
+    }
 }
