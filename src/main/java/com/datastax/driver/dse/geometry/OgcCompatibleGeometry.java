@@ -125,6 +125,18 @@ abstract class OgcCompatibleGeometry<T extends OGCGeometry> extends Geometry {
     }
 
     @Override
+    public boolean contains(Geometry other) {
+        checkNotNull(other);
+
+        if (!(other instanceof OgcCompatibleGeometry))
+            throw new UnsupportedOperationException(String.format(
+                    "Testing whether another geo type contains a %s is not supported",
+                    other.getClass().getName()));
+
+        return getOgcGeometry().contains(((OgcCompatibleGeometry) other).getOgcGeometry());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

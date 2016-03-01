@@ -237,6 +237,59 @@ public class Circle extends Geometry {
     }
 
     @Override
+    public boolean contains(Geometry other) {
+        checkNotNull(other);
+
+        if (other instanceof Point)
+            return contains((Point) other);
+
+        if (other instanceof LineString)
+            return contains((LineString) other);
+
+        if (other instanceof Polygon)
+            return contains((Polygon) other);
+
+        if (other instanceof Circle)
+            return contains((Circle) other);
+
+        throw new IllegalArgumentException("Unexpected type: " + other.getClass().getName());
+    }
+
+    private boolean contains(Point point) {
+        return distanceToCenter(point) <= radius;
+    }
+
+    private double distanceToCenter(Point point) {
+        return center.getOgcGeometry().distance(point.getOgcGeometry());
+    }
+
+    private boolean contains(List<Point> points) {
+        for (Point point : points) {
+            if (!contains(point))
+                return false;
+        }
+        return true;
+    }
+
+    private boolean contains(LineString lineString) {
+        return contains(lineString.getPoints());
+    }
+
+    private boolean contains(Polygon polygon) {
+        if (!contains(polygon.getExteriorRing()))
+            return false;
+        for (List<Point> ring : polygon.getInteriorRings()) {
+            if (!contains(ring))
+                return false;
+        }
+        return true;
+    }
+
+    private boolean contains(Circle other) {
+        return distanceToCenter(other.center) + other.radius <= radius;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

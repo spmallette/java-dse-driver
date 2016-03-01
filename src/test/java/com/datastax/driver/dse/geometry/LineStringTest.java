@@ -114,6 +114,38 @@ public class LineStringTest {
         assertThat(Utils.serializeAndDeserialize(lineString)).isEqualTo(lineString);
     }
 
+    @Test(groups = "unit")
+    public void should_contain_self() {
+        assertThat(lineString.contains(lineString)).isTrue();
+    }
+
+    @Test(groups = "unit")
+    public void should_contain_all_intersected_points_except_start_and_end() {
+        LineString s = new LineString(p(0, 0), p(0, 30), p(30, 30));
+        assertThat(s.contains(p(0, 0))).isFalse();
+        assertThat(s.contains(p(0, 15))).isTrue();
+        assertThat(s.contains(p(0, 30))).isTrue();
+        assertThat(s.contains(p(15, 30))).isTrue();
+        assertThat(s.contains(p(30, 30))).isFalse();
+    }
+
+    @Test(groups = "unit")
+    public void should_contain_substring() {
+        assertThat(lineString.contains(new LineString(p(30, 10), p(10, 30)))).isTrue();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_unrelated_string() {
+        assertThat(lineString.contains(new LineString(p(10, 10), p(30, 30)))).isFalse();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_polygon() {
+        LineString s = new LineString(p(0, 0), p(0, 30), p(30, 30), p(30, 0));
+        Polygon p = new Polygon(p(10, 10), p(10, 20), p(20, 20), p(20, 10));
+        assertThat(s.contains(p)).isFalse();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             LineString.fromWellKnownText(s);

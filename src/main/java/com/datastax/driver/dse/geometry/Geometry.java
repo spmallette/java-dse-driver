@@ -56,6 +56,17 @@ public abstract class Geometry implements Serializable {
      */
     public abstract String asGeoJson();
 
+    /**
+     * Tests whether this geospatial type instance contains another instance.
+     * <p/>
+     * Note that testing for inclusion of a {@link Circle} into another type is not supported.
+     *
+     * @param other the other instance.
+     * @return whether {@code this} contains {@code other}.
+     * @throws UnsupportedOperationException if {@code other} is a {@link Circle} and {@code this} is another type.
+     */
+    public abstract boolean contains(Geometry other);
+
     @Override
     public String toString() {
         return asWellKnownText();
