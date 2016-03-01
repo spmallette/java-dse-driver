@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.0.0-eap4 (in progress)
+
+- [new feature] JAVA-1098: Route graph analytics queries to the Spark master.
+
+
 ### 1.0.0-eap3
 
 - [new feature] JAVA-1107: add Geometry#contains().
