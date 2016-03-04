@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.0.0-eap3
+
+- [new feature] JAVA-1107: add Geometry#contains().
+
+
 ### 1.0.0-eap2
 
 - [new feature] JAVA-1080: Expose automatic inference of GraphResult.

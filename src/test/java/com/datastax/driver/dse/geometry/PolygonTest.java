@@ -158,6 +158,41 @@ public class PolygonTest {
         assertThat(Utils.serializeAndDeserialize(polygon)).isEqualTo(polygon);
     }
 
+    @Test(groups = "unit")
+    public void should_contain_self() {
+        assertThat(polygon.contains(polygon)).isTrue();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_point_or_linestring_on_exterior_ring() {
+        assertThat(polygon.contains(p(30, 10))).isFalse();
+        assertThat(polygon.contains(p(30, 40))).isFalse();
+        assertThat(polygon.contains(new LineString(p(35, 40), p(25, 40)))).isFalse();
+    }
+
+    @Test(groups = "unit")
+    public void should_contain_interior_shape() {
+        assertThat(polygon.contains(p(20, 20))).isTrue();
+        assertThat(polygon.contains(new LineString(p(20, 20), p(30, 20)))).isTrue();
+        assertThat(polygon.contains(new Polygon(p(20, 20), p(30, 20), p(20, 30)))).isTrue();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_exterior_shape() {
+        assertThat(polygon.contains(p(10, 10))).isFalse();
+        assertThat(polygon.contains(new LineString(p(10, 10), p(20, 20)))).isFalse();
+        assertThat(polygon.contains(new Polygon(p(0, 0), p(0, 10), p(10, 10)))).isFalse();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_shapes_in_interior_hole() {
+        Polygon complex = Polygon.builder()
+                .addRing(p(0, 0), p(30, 0), p(30, 30), p(0, 30))
+                .addRing(p(10, 10), p(20, 10), p(20, 20), p(10, 20))
+                .build();
+        assertThat(complex.contains(p(15, 15))).isFalse();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             Polygon.fromWellKnownText(s);

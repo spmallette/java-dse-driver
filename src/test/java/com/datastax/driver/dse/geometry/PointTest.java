@@ -92,6 +92,20 @@ public class PointTest {
         assertThat(Utils.serializeAndDeserialize(point)).isEqualTo(point);
     }
 
+    @Test(groups = "unit")
+    public void should_contain_self() {
+        assertThat(point.contains(point)).isTrue();
+    }
+
+    @Test(groups = "unit")
+    public void should_not_contain_any_other_shape_than_self() {
+        Point point2 = new Point(1, 2);
+        Point point3 = new Point(1, 3);
+        assertThat(point.contains(point2)).isFalse();
+        assertThat(point.contains(new LineString(point, point2))).isFalse();
+        assertThat(point.contains(new Polygon(point, point2, point3))).isFalse();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             Point.fromWellKnownText(s);
