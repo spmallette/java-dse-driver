@@ -3,6 +3,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.TestUtils;
 import com.datastax.driver.dse.CCMDseTestsSupport;
@@ -18,7 +19,7 @@ import java.util.Collection;
 
 import static com.datastax.driver.core.CCMAccess.Workload.graph;
 
-@CCMConfig(createKeyspace = false, dse = true, workloads = graph)
+@CCMConfig(createKeyspace = false, dse = true)
 public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
@@ -78,5 +79,10 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
                 Throwables.propagate(e);
             }
         }
+    }
+
+    @Override
+    public CCMBridge.Builder configureCCM() {
+        return super.configureCCM().withWorkload(1, graph);
     }
 }
