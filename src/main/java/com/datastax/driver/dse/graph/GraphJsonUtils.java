@@ -146,23 +146,17 @@ class GraphJsonUtils {
     };
 
     /**
-     * Converts a map of named query parameters into a list
-     * of (positional) query parameters, each of them
-     * being composed of a small JSON string in the form:
-     * {@code {"name" : "paramName", "value" : paramValue}};
-     * this is the query parameter format expected by DSE Graph.
-     * <p/>
-     * TODO this is likely to evolve, see DSP-7660
+     * Converts a map of named query parameters into its JSON string representation.
      *
      * @param valuesMap the map of named query parameters.
-     * @return a list of query parameters, as expected by DSE Graph.
+     * @return the JSON string, as expected by DSE Graph.
      */
     static String convert(Map<String, Object> valuesMap) {
         String values;
         try {
             values = OBJECT_MAPPER.writeValueAsString(valuesMap);
         } catch (IOException e) {
-            throw new DriverException(String.format("Cannot serialize parameter"));
+            throw new DriverException(String.format("Cannot serialize parameter."), e);
         }
         return values;
     }
@@ -171,7 +165,7 @@ class GraphJsonUtils {
         try {
             return OBJECT_MAPPER.treeToValue(jsonNode, clazz);
         } catch (JsonProcessingException e) {
-            throw new DriverException("Cannot deserialize element", e);
+            throw new DriverException("Cannot deserialize element.", e);
         }
     }
 

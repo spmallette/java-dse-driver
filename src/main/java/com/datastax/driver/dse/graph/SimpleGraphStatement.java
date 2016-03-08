@@ -3,6 +3,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.SimpleStatement;
 
 import java.util.HashMap;
@@ -20,6 +21,10 @@ public class SimpleGraphStatement extends RegularGraphStatement {
     private boolean needsRebuild = true;
 
     private SimpleStatement statement;
+
+    private ConsistencyLevel nativeConsistencyLevel;
+
+    private long defaultTimestamp = -1;
 
     public SimpleGraphStatement(String query) {
         this(query, new HashMap<String, Object>());
@@ -56,6 +61,30 @@ public class SimpleGraphStatement extends RegularGraphStatement {
     }
 
     @Override
+    public GraphStatement setConsistencyLevel(ConsistencyLevel consistencyLevel) {
+        needsRebuild = true;
+        this.nativeConsistencyLevel = consistencyLevel;
+        return this;
+    }
+
+    @Override
+    public ConsistencyLevel getConsistencyLevel() {
+        return nativeConsistencyLevel;
+    }
+
+    @Override
+    public GraphStatement setDefaultTimestamp(long defaultTimestamp) {
+        needsRebuild = true;
+        this.defaultTimestamp = defaultTimestamp;
+        return this;
+    }
+
+    @Override
+    public long getDefaultTimestamp() {
+        return defaultTimestamp;
+    }
+
+    @Override
     public SimpleStatement unwrap() {
         maybeRebuildCache();
         return statement;
@@ -65,6 +94,10 @@ public class SimpleGraphStatement extends RegularGraphStatement {
         if (needsRebuild) {
             String values = GraphJsonUtils.convert(valuesMap);
             statement = new SimpleStatement(query, values);
+            if (getConsistencyLevel() != null)
+                statement.setConsistencyLevel(nativeConsistencyLevel);
+            if (getDefaultTimestamp() >= 0)
+                statement.setDefaultTimestamp(defaultTimestamp);
             needsRebuild = false;
         }
     }

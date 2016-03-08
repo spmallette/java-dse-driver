@@ -6,7 +6,7 @@
 - [bug] JAVA-1076: Handle WKT 'EMPTY' keyword in Geospatial types.
 - [improvement] JAVA-1106: Remove Circle type.
 - [improvement] JAVA-1129: Don't expose graph alias in user API.
-
+- [improvement] JAVA-1104: Expose methods to set CLs and Timestamp on GraphStatement.
 
 ### 1.0.0-eap3
 
