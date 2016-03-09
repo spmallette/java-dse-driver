@@ -5,6 +5,7 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.SimpleStatement;
+import com.google.common.base.Preconditions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,9 @@ public class SimpleGraphStatement extends RegularGraphStatement {
 
     private ConsistencyLevel nativeConsistencyLevel;
 
-    private long defaultTimestamp = -1;
+    private long defaultTimestamp = Long.MIN_VALUE;
+
+    private volatile int readTimeoutMillis = Integer.MIN_VALUE;
 
     public SimpleGraphStatement(String query) {
         this(query, new HashMap<String, Object>());
@@ -84,6 +87,18 @@ public class SimpleGraphStatement extends RegularGraphStatement {
         return this;
     }
 
+    public int getReadTimeoutMillis() {
+        return this.readTimeoutMillis;
+    }
+
+    @Override
+    public GraphStatement setReadTimeoutMillis(int readTimeoutMillis) {
+        Preconditions.checkArgument(readTimeoutMillis >= 0, "read timeout must be >= 0");
+        this.readTimeoutMillis = readTimeoutMillis;
+        needsRebuild = true;
+        return this;
+    }
+
     @Override
     public long getDefaultTimestamp() {
         return defaultTimestamp;
@@ -105,8 +120,10 @@ public class SimpleGraphStatement extends RegularGraphStatement {
             }
             if (getConsistencyLevel() != null)
                 statement.setConsistencyLevel(nativeConsistencyLevel);
-            if (getDefaultTimestamp() >= 0)
+            if (getDefaultTimestamp() != Long.MIN_VALUE)
                 statement.setDefaultTimestamp(defaultTimestamp);
+            if (getReadTimeoutMillis() != Integer.MIN_VALUE)
+                statement.setReadTimeoutMillis(readTimeoutMillis);
             needsRebuild = false;
         }
     }

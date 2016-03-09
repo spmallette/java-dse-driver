@@ -196,6 +196,18 @@ GraphStatement s = new SimpleGraphStatement("system.graph('demo').ifNotExists().
 dseSession.executeGraph(s);
 ```
 
+#### Timeouts 
+
+The higher time limit for executing a Graph query is defined server side, in the `dse.yaml`.
+
+By default the Java driver will rely on that option that is declared server-side. This means that by default,
+after sending a request, the driver will wait until the server responds with a result or an error message, or times out.
+
+This can be changed if the client needs a lower timeout. A timeout for the client can be set either on the Cluster's 
+`GraphOptions` object and will apply to all Graph queries, or individually on each `GraphStatement` object, through
+the methods `setReadTimeoutMillis()`. Note that the server will abort a query once the client has stopped waiting for
+it, so there's no risk of leaving long-running queries on the server.
+
 ### Query execution
 
 As seen already, graph statements can be executed with the session's `executeGraph` method. There is also an

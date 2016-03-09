@@ -239,6 +239,25 @@ public abstract class GraphStatement {
     public abstract long getDefaultTimestamp();
 
     /**
+     * Return the per-host socket read timeout that was set for this statement.
+     *
+     * @return the timeout. A negative value means that the timeout has not been set on this statement; the default
+     * {@link GraphOptions#getReadTimeoutMillis()} will be used.
+     */
+    public abstract int getReadTimeoutMillis();
+
+    /**
+     * Overrides the default per-host read timeout ({@link GraphOptions#setReadTimeoutMillis(int)}) for this statement.
+     * <p/>
+     * If you don't call this method, the default {@link GraphOptions#getReadTimeoutMillis()} will be used.
+     *
+     * @param readTimeoutMillis the timeout to set. {@code 0} will disable the timeout for the query, negative values
+     *                          are not allowed.
+     * @return this {@link GraphOptions} instance (for method chaining).
+     */
+    public abstract GraphStatement setReadTimeoutMillis(int readTimeoutMillis);
+
+    /**
      * "Unwraps" the current graph statement, that is,
      * returns an executable {@link Statement} object corresponding to this graph statement.
      * <p>

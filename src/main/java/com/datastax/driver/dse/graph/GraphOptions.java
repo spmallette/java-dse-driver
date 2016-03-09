@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -29,6 +30,7 @@ public class GraphOptions {
     static final String GRAPH_LANGUAGE_KEY = "graph-language";
     static final String GRAPH_READ_CONSISTENCY_KEY = "graph-read-consistency";
     static final String GRAPH_WRITE_CONSISTENCY_KEY = "graph-write-consistency";
+    static final String REQUEST_TIMEOUT_KEY = "request-timeout";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -47,6 +49,8 @@ public class GraphOptions {
     private volatile ConsistencyLevel graphWriteConsistency;
 
     private volatile Map<String, ByteBuffer> defaultPayload;
+
+    private volatile int readTimeoutMillis = 0;
 
     public GraphOptions() {
         rebuildDefaultPayload();
@@ -178,8 +182,34 @@ public class GraphOptions {
         return this;
     }
 
+
     /**
-     * >>>>>>> JAVA-1104: add Native CL and Timestamp and graph CL to GraphOptions and Statements.
+     * Return the per-host socket read timeout that is set for all graph queries.
+     *
+     * @return the timeout.
+     */
+    public int getReadTimeoutMillis() {
+        return this.readTimeoutMillis;
+    }
+
+    /**
+     * Sets the per-host read timeout in milliseconds for graph queries. The default is 0, which means the driver
+     * will wait until the coordinator responds with the result or an error, or times out.
+     * <p/>
+     * Only call this method if you want to wait less than the server's default timeout (defined in {@code dse.yaml}).
+     * Note that the server will abort a query once the client has stopped waiting for it, so there's no risk of leaving
+     * long-running queries on the server.
+     *
+     * @param readTimeoutMillis the timeout to set.
+     * @return this {@link GraphOptions} instance (for method chaining).
+     */
+    public GraphOptions setReadTimeoutMillis(int readTimeoutMillis) {
+        checkArgument(readTimeoutMillis >= 0, "readTimeoutMillis can not be negative");
+        this.readTimeoutMillis = readTimeoutMillis;
+        return this;
+    }
+
+    /**
      * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
      * <p/>
      * This method is intended for internal use only.
@@ -198,19 +228,45 @@ public class GraphOptions {
         } else {
             ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
 
-            setOrDefault(builder, GRAPH_LANGUAGE_KEY, statement.getGraphLanguage());
-            setOrDefault(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
+            setOrDefaultText(builder, GRAPH_LANGUAGE_KEY, statement.getGraphLanguage());
+            setOrDefaultText(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
+
+            // ----- Optional DSEGraph settings -----
+            setOrDefaultCl(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel());
+            setOrDefaultCl(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel());
             if (!statement.isSystemQuery())
-                setOrDefault(builder, GRAPH_NAME_KEY, statement.getGraphName());
-            setOrDefault(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel());
-            setOrDefault(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel());
+                setOrDefaultText(builder, GRAPH_NAME_KEY, statement.getGraphName());
+            if (statement.getReadTimeoutMillis() > 0) {
+                // If > 0 it means it's not the default and has to be in the payload.
+                setOrDefaultBigInt(builder, REQUEST_TIMEOUT_KEY, (long) statement.getReadTimeoutMillis());
+            }
 
             return builder.build();
         }
     }
 
-    private void setOrDefault(ImmutableMap.Builder<String, ByteBuffer> builder, String key, Object value) {
-        ByteBuffer bytes = (value == null) ? defaultPayload.get(key) : PayloadHelper.asBytes(value.toString());
+    private void setOrDefaultText(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
+        ByteBuffer bytes = (value == null)
+                ? defaultPayload.get(key)
+                : PayloadHelper.asBytes(value);
+
+        if (bytes != null)
+            builder.put(key, bytes);
+    }
+
+    private void setOrDefaultCl(ImmutableMap.Builder<String, ByteBuffer> builder, String key, ConsistencyLevel value) {
+        ByteBuffer bytes = (value == null)
+                ? defaultPayload.get(key)
+                : PayloadHelper.asBytes(value.name());
+
+        if (bytes != null)
+            builder.put(key, bytes);
+    }
+
+    private void setOrDefaultBigInt(ImmutableMap.Builder<String, ByteBuffer> builder, String key, Long value) {
+        ByteBuffer bytes = (value == null)
+                ? defaultPayload.get(key)
+                : PayloadHelper.asBytes(value);
 
         if (bytes != null)
             builder.put(key, bytes);
