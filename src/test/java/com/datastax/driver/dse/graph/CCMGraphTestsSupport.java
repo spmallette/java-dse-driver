@@ -24,6 +24,10 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
 
+    // Share lease port for all graph instances, as we expect to only use one.
+    private static final int LEASE_PORT = TestUtils.findAvailablePort();
+
+
     @Override
     public void onTestContextInitialized() {
         // TODO only create the graph schema if told to via annotation config
@@ -83,6 +87,6 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     @Override
     public CCMBridge.Builder configureCCM() {
-        return super.configureCCM().withWorkload(1, graph);
+        return super.configureCCM().withWorkload(1, graph).withDSEConfiguration("lease_netty_server_port", LEASE_PORT);
     }
 }

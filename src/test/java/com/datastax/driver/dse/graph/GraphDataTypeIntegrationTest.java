@@ -58,15 +58,13 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                                         .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
                                         .build()},
                         new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}, String.class},
+                // TODO: Remove when circle is removed.
                 {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, new String[]{"CIRCLE((1.0 2.0) 3.0)"}, String.class},
                 {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
                 {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null, String.class},
                 {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
                 {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, null, String.class},
-                // TODO: While Instant is supported, it returns back a JSON object,
-                // TODO: i.e.: {prop1:{"nano":657000000,"epochSecond":1454552791}} instead of a parsable data string.
-                // {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null, String.class}
-                // TODO: DSE Graph seems to support Map type properties, but this doesn't currently work.  Add when functional.
+                {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null, String.class}
         };
     }
 
@@ -312,6 +310,8 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      * <p/>
      * Executes a vertex traversal that binds label 'a' and 'b' to vertex properties and label 'c' to vertices that
      * have edges from that vertex.
+     *
+     * @test_category dse:graph
      */
     @Test(groups = "short")
     public void should_handle_result_object_of_mixed_types() {
@@ -363,6 +363,43 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 Vertex vertex = c.get(0).asVertex();
                 assertThat(vertex).hasProperty("name", "josh");
             }
+        }
+    }
+
+    /**
+     * Ensures that a traversal that returns a subgraph can be properly deserialized as a graph result.
+     * <p/>
+     * A subgraph should contain 2 members, vertices and edges, with each being a list of the appropriate types.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_handle_subgraph() {
+        GraphResultSet rs = session().executeGraph("g.E().hasLabel('knows').subgraph('subGraph').cap('subGraph')");
+
+        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(1);
+
+        GraphResult result = rs.one();
+        assertThat(result)
+                .hasChild("edges")
+                .hasChild("vertices");
+
+        // There should only be 2 edges as there are only 2 knows edges (marko knows josh and vadas)
+        GraphResult edges = result.get("edges");
+        assertThat(edges.size()).isEqualTo(2);
+        // Ensure edges can be deserialized as a list and that we can get each value as an Edge.
+        for(int i = 0; i < edges.size(); i++) {
+            GraphResult edge = edges.get(i);
+            assertThat(edge).asEdge();
+        }
+
+        // There should only be 3 vertices (marko, josh, and vadas).
+        GraphResult vertices = result.get("vertices");
+        assertThat(vertices.size()).isEqualTo(3);
+        // Ensure vertices can be deserialized as a list and that we can get each value as a Vertex.
+        for(int i = 0; i < vertices.size(); i++) {
+            GraphResult vertex = vertices.get(i);
+            assertThat(vertex).asVertex();
         }
     }
 
