@@ -106,6 +106,12 @@ public class PointTest {
         assertThat(point.contains(new Polygon(point, point2, point3))).isFalse();
     }
 
+    @Test(groups = "unit")
+    public void should_accept_empty_shape() throws Exception {
+        Point point = Point.fromWellKnownText("POINT EMPTY");
+        assertThat(point.getOgcGeometry().isEmpty()).isTrue();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             Point.fromWellKnownText(s);

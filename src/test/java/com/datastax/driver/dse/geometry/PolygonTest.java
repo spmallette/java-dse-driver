@@ -193,6 +193,13 @@ public class PolygonTest {
         assertThat(complex.contains(p(15, 15))).isFalse();
     }
 
+    @Test(groups = "unit")
+    public void should_accept_empty_shape() throws Exception {
+        Polygon polygon = Polygon.fromWellKnownText("POLYGON EMPTY");
+        assertThat(polygon.getExteriorRing()).isEmpty();
+        assertThat(polygon.getOgcGeometry().isEmpty()).isTrue();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             Polygon.fromWellKnownText(s);

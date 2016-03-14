@@ -80,7 +80,10 @@ public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
 
     private Polygon(OGCPolygon polygon) {
         super(polygon);
-        this.exteriorRing = getPoints(polygon.exteriorRing());
+        if (polygon.isEmpty())
+            this.exteriorRing = ImmutableList.of();
+        else
+            this.exteriorRing = getPoints(polygon.exteriorRing());
 
         ImmutableList.Builder<List<Point>> builder = ImmutableList.builder();
         for (int i = 0; i < polygon.numInteriorRing(); i++) {
