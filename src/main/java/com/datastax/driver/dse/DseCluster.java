@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.ResourceBundle;
 import java.util.concurrent.Future;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -38,6 +39,24 @@ import static com.google.common.base.Preconditions.checkArgument;
  * </pre>
  */
 public class DseCluster extends DelegatingCluster {
+
+    private static final ResourceBundle dseDriverProperties = ResourceBundle.getBundle("com.datastax.driver.dse.DseDriver");
+
+    /**
+     * Returns the current version of the DSE driver.
+     * <p/>
+     * This is intended for products that wrap or extend the driver, as a way to check
+     * compatibility if end-users override the driver version in their application.
+     * <p>
+     * Note that this method returns the DSE driver version, not the core driver version.
+     * If you are interested in the latter, you should call {@link Cluster#getDriverVersion()}
+     * instead.
+     *
+     * @return the DSE driver version.
+     */
+    public static String getDseDriverVersion() {
+        return dseDriverProperties.getString("dse.driver.version");
+    }
 
     private final Cluster delegate;
 
@@ -244,7 +263,9 @@ public class DseCluster extends DelegatingCluster {
 
         @Override
         public DseConfiguration getConfiguration() {
-            return new DseConfiguration(super.getConfiguration(), graphOptions != null ? graphOptions : new GraphOptions());
+            return new DseConfiguration(super.getConfiguration(),
+                    graphOptions != null ? graphOptions : new GraphOptions()
+            );
         }
 
         private static void registerGeospatialCodecs(DseCluster dseCluster) {
@@ -300,7 +321,7 @@ public class DseCluster extends DelegatingCluster {
      */
     @Override
     public DseSession newSession() {
-        return new DefaultDseSession(super.newSession(), getConfiguration().getGraphOptions());
+        return new DefaultDseSession(super.newSession(), this);
     }
 
     /**
@@ -324,7 +345,7 @@ public class DseCluster extends DelegatingCluster {
      */
     @Override
     public DseSession connect() {
-        return new DefaultDseSession(super.connect(), getConfiguration().getGraphOptions());
+        return new DefaultDseSession(super.connect(), this);
     }
 
     /**
@@ -356,7 +377,7 @@ public class DseCluster extends DelegatingCluster {
      */
     @Override
     public DseSession connect(String keyspace) {
-        return new DefaultDseSession(super.connect(keyspace), getConfiguration().getGraphOptions());
+        return new DefaultDseSession(super.connect(keyspace), this);
     }
 
     /**
@@ -385,7 +406,7 @@ public class DseCluster extends DelegatingCluster {
         return Futures.transform(super.connectAsync(), new Function<Session, Session>() {
             @Override
             public Session apply(Session input) {
-                return new DefaultDseSession(input, getConfiguration().getGraphOptions());
+                return new DefaultDseSession(input, DseCluster.this);
             }
         });
     }
@@ -422,8 +443,9 @@ public class DseCluster extends DelegatingCluster {
         return Futures.transform(super.connectAsync(keyspace), new Function<Session, Session>() {
             @Override
             public Session apply(Session input) {
-                return new DefaultDseSession(input, getConfiguration().getGraphOptions());
+                return new DefaultDseSession(input, DseCluster.this);
             }
         });
     }
+
 }

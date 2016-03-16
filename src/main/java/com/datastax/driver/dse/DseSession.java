@@ -24,6 +24,14 @@ import java.util.concurrent.Future;
 public interface DseSession extends Session {
 
     /**
+     * Returns the {@link DseCluster} object this session is part of.
+     *
+     * @return the {@link DseCluster} object this session is part of.
+     */
+    @Override
+    DseCluster getCluster();
+
+    /**
      * Forces the initialization of this instance if it hasn't been
      * initialized yet.
      * <p/>

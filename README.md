@@ -213,43 +213,43 @@ GraphResultSet rs2 = dseSession.executeGraph(new SimpleGraphStatement("g.V()"));
 
 ### Handling results
 
-Graph queries return a `GraphResultSet`, which is essentially an iterable of `GraphResult`:
+Graph queries return a `GraphResultSet`, which is essentially an iterable of `GraphNode`:
 
 ```java
 GraphResultSet rs = dseSession.executeGraph("g.V()");
 
 // Iterating:
-for (GraphResult r : rs) {
-    System.out.println(r);
+for (GraphNode n : rs) {
+    System.out.println(n);
 }
 
 // Get the first result only (or if you know there is exactly one):
-GraphResult r = rs.one();
+GraphNode n = rs.one();
 ```
 
-`GraphResult` wraps the JSON responses returned by the server. You can coerce the result to a specific type using the
+`GraphNode` wraps the responses returned by the server. You can coerce the result to a specific type using the
 `asXxx` methods:
 
 ```java
-GraphResult r = dseSession.executeGraph("g.V().count()").one();
-System.out.printf("The graph has %s vertices%n", r.asInt());
+GraphNode n = dseSession.executeGraph("g.V().count()").one();
+System.out.printf("The graph has %s vertices%n", n.asInt());
 ```
 
-If the result is a JSON array or map, you can iterate its child elements:
+If the result is an array or an object (non-leaf node), you can iterate its child elements:
 
 ```java
-if (r.isArray()) {
-    for (int i = 0; i < r.size(); i++) {
-        GraphResult child = r.get(i);
+if (n.isArray()) {
+    for (int i = 0; i < n.size(); i++) {
+        GraphNode child = n.get(i);
         System.out.printf("Element at position %d: %s%n", i, child);
     }
 }
 
-if (r.isMap()) {
-    Iterator<String> keys = r.keys();
-    while (keys.hasNext()) {
-        String key = keys.next();
-        System.out.printf("Element at key %s: %s%n", key, r.get(key));
+if (n.isObject()) {
+    Iterator<String> fieldNames = n.fieldNames();
+    while (fieldNames.hasNext()) {
+        String fieldName = fieldNames.next();
+        System.out.printf("Element at key %s: %s%n", fieldName, n.get(fieldName));
     }
 }
 ```
@@ -257,14 +257,14 @@ if (r.isMap()) {
 The driver also has client-side representations for vertices, edges and paths:
 
 ```java
-GraphResult r = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
-Vertex vertex = r.asVertex();
+GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
+Vertex vertex = n.asVertex();
 
-r = dseSession.executeGraph("g.V().hasLabel('test_vertex').outE()").one();
-Edge edge = r.asEdge();
+n = dseSession.executeGraph("g.V().hasLabel('test_vertex').outE()").one();
+Edge edge = n.asEdge();
 
-r = dseSession.executeGraph("g.V().hasLabel('test_vertex').outE().inV().path()").one();
-Path path = r.asPath();
+n = dseSession.executeGraph("g.V().hasLabel('test_vertex').outE().inV().path()").one();
+Path path = n.asPath();
 ```
 
 ### Parameters
@@ -305,7 +305,7 @@ Parameters can have the following types:
 
 In addition, you can inject:
 
-* any `GraphResult` instance. In particular, the identifier of a previously retrieved vertex or edge:
+* any `GraphNode` instance. In particular, the identifier of a previously retrieved vertex or edge:
 
     ```java
     Vertex v1 = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one().asVertex();
@@ -317,6 +317,22 @@ In addition, you can inject:
                     "v1.addEdge('relates', v2)")
             .set("id1", v1.getId())
             .set("id2", v2.getId());
+
+    dseSession.executeGraph(s);
+    ```
+
+* any instance of `Element`. Its identifier will be serialized, so the following is equivalent to the last example above:
+
+    ```java
+    Vertex v1 = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one().asVertex();
+    Vertex v2 = dseSession.executeGraph("g.V().hasLabel('test_vertex_2')").one().asVertex();
+
+    SimpleGraphStatement s = new SimpleGraphStatement(
+            "def v1 = g.V(id1).next()\n" +
+                    "def v2 = g.V(id2).next()\n" +
+                    "v1.addEdge('relates', v2)")
+            .set("id1", v1)
+            .set("id2", v2);
 
     dseSession.executeGraph(s);
     ```
@@ -333,3 +349,59 @@ In addition, you can inject:
 ### Prepared statements
 
 Prepared graph statements are not supported by DSE yet (they will be added in the near future).
+
+### Using Tinkerpop Gremlin Core API
+
+It is possible to configure the driver to support Tinkerpop Gremlin Core API.
+
+When this feature is enabled, results can be coerced to Tinkerpop API classes. The driver will also
+accept parameters that implement that API.
+
+There are some pre-requisites before using Tinkerpop Gremlin Core API:
+
+* Your application must be compiled with JDK 8+.
+* You need to explicitly include Tinkerpop Gremlin Core API in your classpath.
+
+    If your are using Maven, this can be achieved with the following dependency:
+
+
+    ```xml
+    <dependency>
+        <groupId>org.apache.tinkerpop</groupId>
+        <artifactId>gremlin-driver</artifactId>
+        <version>3.2.0-incubating</version>
+    </dependency>
+    ```
+
+__WARNING: please make sure that your version of Tinkerpop is compatible.
+The driver has been compiled and tested against version 3.2.0-incubating;
+it does NOT provide any compatibility guarantees for older Tinkerpop versions.__
+ 
+If the above prerequisites are met, support for Tinkerpop Gremlin Core API
+will be transparently activated by the driver.
+ 
+Here is an example of how to coerce query results to Tinkerpop interfaces:
+
+    ```java
+    import org.apache.tinkerpop.gremlin.structure.*;
+    
+    DseSession dseSession = dseCluster.connect();
+    Vertex john = dseSession.executeGraph("g.V().has('name', 'john').next()").one().as(Vertex.class);
+    VertexProperty<Integer> ageProperty = john.properties("age");
+    int age = ageProperty.value();
+    ```
+
+When deserializing, the driver supports conversions to the following Tinkerpop interfaces:
+    
+* `org.apache.tinkerpop.gremlin.structure.Vertex`
+* `org.apache.tinkerpop.gremlin.structure.Edge`
+* `org.apache.tinkerpop.gremlin.structure.Property`
+* `org.apache.tinkerpop.gremlin.structure.VertexProperty`
+* `org.apache.tinkerpop.gremlin.process.traversal.Path`
+
+When serializing, the driver supports conversions from the following Tinkerpop interfaces:
+
+* `org.apache.tinkerpop.gremlin.structure.Vertex`
+* `org.apache.tinkerpop.gremlin.structure.Edge`
+* `org.apache.tinkerpop.gremlin.structure.VertexProperty`
+

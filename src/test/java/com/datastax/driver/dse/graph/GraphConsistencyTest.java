@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 
 import static com.datastax.driver.core.ConsistencyLevel.ALL;
 import static com.datastax.driver.core.ConsistencyLevel.ONE;
-import static com.datastax.driver.dse.graph.Assertions.assertThat;
+import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 @CCMConfig(numberOfNodes = 3, dirtiesContext = true)
 @DseVersion(major = 5.0)

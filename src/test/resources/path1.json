@@ -1,0 +1,205 @@
+{
+  "labels" : [ [ "a" ], [ "b" ], [ "c", "d" ], [ "e", "f", "g" ], [ "h" ] ],
+  "objects": [
+    {
+      "id": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "person",
+        "group_id": 3
+      },
+      "label": "person",
+      "type": "vertex",
+      "properties": {
+        "name": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8004-0000-000000000000",
+              "~type": "name",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "person",
+                "group_id": 3
+              }
+            },
+            "value": "marko"
+          }
+        ],
+        "age": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8005-0000-000000000000",
+              "~type": "age",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "person",
+                "group_id": 3
+              }
+            },
+            "value": 29
+          }
+        ]
+      }
+    },
+    {
+      "id": {
+        "out_vertex": {
+          "member_id": 0,
+          "community_id": 1025621,
+          "~label": "person",
+          "group_id": 3
+        },
+        "local_id": "dd4902c0-f7e1-11e5-9543-f3c64e5271d8",
+        "in_vertex": {
+          "member_id": 0,
+          "community_id": 1025621,
+          "~label": "person",
+          "group_id": 5
+        },
+        "~type": "knows"
+      },
+      "label": "knows",
+      "type": "edge",
+      "inVLabel": "person",
+      "outVLabel": "person",
+      "inV": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "person",
+        "group_id": 5
+      },
+      "outV": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "person",
+        "group_id": 3
+      },
+      "properties": {
+        "weight": 1.0
+      }
+    },
+    {
+      "id": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "person",
+        "group_id": 5
+      },
+      "label": "person",
+      "type": "vertex",
+      "properties": {
+        "name": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8004-0000-000000000000",
+              "~type": "name",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "person",
+                "group_id": 5
+              }
+            },
+            "value": "josh"
+          }
+        ],
+        "age": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8005-0000-000000000000",
+              "~type": "age",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "person",
+                "group_id": 5
+              }
+            },
+            "value": 32
+          }
+        ]
+      }
+    },
+    {
+      "id": {
+        "out_vertex": {
+          "member_id": 0,
+          "community_id": 1025621,
+          "~label": "person",
+          "group_id": 5
+        },
+        "local_id": "dd4902c2-f7e1-11e5-9543-f3c64e5271d8",
+        "in_vertex": {
+          "member_id": 0,
+          "community_id": 1025621,
+          "~label": "software",
+          "group_id": 6
+        },
+        "~type": "created"
+      },
+      "label": "created",
+      "type": "edge",
+      "inVLabel": "software",
+      "outVLabel": "person",
+      "inV": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "software",
+        "group_id": 6
+      },
+      "outV": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "person",
+        "group_id": 5
+      },
+      "properties": {
+        "weight": 1.0
+      }
+    },
+    {
+      "id": {
+        "member_id": 0,
+        "community_id": 1025621,
+        "~label": "software",
+        "group_id": 6
+      },
+      "label": "software",
+      "type": "vertex",
+      "properties": {
+        "name": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8004-0000-000000000000",
+              "~type": "name",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "software",
+                "group_id": 6
+              }
+            },
+            "value": "ripple"
+          }
+        ],
+        "lang": [
+          {
+            "id": {
+              "local_id": "00000000-0000-8006-0000-000000000000",
+              "~type": "lang",
+              "out_vertex": {
+                "member_id": 0,
+                "community_id": 1025621,
+                "~label": "software",
+                "group_id": 6
+              }
+            },
+            "value": "java"
+          }
+        ]
+      }
+    }
+  ]
+}

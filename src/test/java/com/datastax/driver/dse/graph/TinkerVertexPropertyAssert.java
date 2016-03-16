@@ -1,0 +1,32 @@
+/*
+ *      Copyright (C) 2012-2016 DataStax Inc.
+ */
+package com.datastax.driver.dse.graph;
+
+
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+
+import static com.datastax.driver.dse.graph.TinkerGraphAssertions.assertThat;
+
+public class TinkerVertexPropertyAssert<T> extends TinkerElementAssert<TinkerVertexPropertyAssert<T>, VertexProperty<T>> {
+
+    public TinkerVertexPropertyAssert(VertexProperty<T> actual) {
+        super(actual, TinkerVertexPropertyAssert.class);
+    }
+
+    public TinkerVertexPropertyAssert<T> hasKey(String key) {
+        assertThat(actual.key()).isEqualTo(key);
+        return this;
+    }
+
+    public TinkerVertexPropertyAssert<T> hasParent(Element parent) {
+        assertThat(actual.element()).isEqualTo(parent);
+        return this;
+    }
+
+    public TinkerVertexPropertyAssert<T> hasValue(T value) {
+        assertThat(actual.value()).isEqualTo(value);
+        return this;
+    }
+}

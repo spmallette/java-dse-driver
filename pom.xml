@@ -3,7 +3,8 @@
          Copyright (C) 2012-2016 DataStax Inc.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.datastax.cassandra</groupId>
@@ -31,6 +32,7 @@
         <hdr.version>2.1.4</hdr.version>
         <jackson.version>2.6.3</jackson.version>
         <esri.version>1.2.1</esri.version>
+        <tinkerpop.version>3.2.0-incubating</tinkerpop.version>
         <testng.version>6.8.8</testng.version>
         <assertj.version>1.7.0</assertj.version>
         <mockito.version>1.10.19</mockito.version>
@@ -41,10 +43,10 @@
         <currentYear>2016</currentYear>
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
-        <!-- Set default javadoc.opts, overridden by profiles -->
-        <javadoc.opts />
+        <javadoc.opts>-Xdoclint:none</javadoc.opts>
         <!-- Skip deployment, unless explicitly overridden from the command line -->
         <maven.deploy.skip>true</maven.deploy.skip>
+        <ccm.java.home>none</ccm.java.home>
     </properties>
 
     <dependencies>
@@ -111,6 +113,13 @@
             <groupId>org.hdrhistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
             <version>${hdr.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tinkerpop</groupId>
+            <artifactId>gremlin-core</artifactId>
+            <version>${tinkerpop.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -239,6 +248,13 @@
             </extension>
         </extensions>
 
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
 
             <plugin>
@@ -261,6 +277,45 @@
             </plugin>
 
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.15</version>
+                <executions>
+                    <execution>
+                        <id>check</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java16</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                            <annotations>
+                                <annotation>com.datastax.driver.dse.IgnoreJDK6Requirement</annotation>
+                            </annotations>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check-jdk8</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java18</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -268,6 +323,7 @@
                 <!--
                   Default configuration, used by the `bundle` goal that is implicitly bound to the `package` phase
                   (because the project uses the `bundle` packaging)
+                  Note: the default configuration uses shaded classes.
                 -->
                 <configuration>
                     <instructions>
@@ -329,7 +385,8 @@
                                 </relocation>
                             </relocations>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
                                         <!-- ServicesResourceTransformer does not transform file names, only file contents -->
                                         <resource>META-INF/services/com.fasterxml.jackson.core.JsonFactory</resource>
@@ -410,7 +467,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.3</version>
-                <inherited>true</inherited>
                 <configuration>
                     <verbose>false</verbose>
                     <includeDependencySources>true</includeDependencySources>
@@ -438,6 +494,7 @@
                         <link>http://fasterxml.github.io/jackson-core/javadoc/2.6/</link>
                         <link>http://fasterxml.github.io/jackson-databind/javadoc/2.6/</link>
                         <link>http://esri.github.io/geometry-api-java/javadoc/</link>
+                        <link>http://tinkerpop.apache.org/javadocs/${tinkerpop.version}/core/</link>
                     </links>
                 </configuration>
                 <executions>
@@ -575,29 +632,8 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>1.14</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java16</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>check</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
+
     </build>
 
     <profiles>
@@ -618,14 +654,47 @@
             </properties>
         </profile>
 
+        <!--
+        This profile excludes all JDK 8 dependent classes from
+        tests, thus allowing tests to be run with legacy JDKs (6 or 7).
+        It is automatically activated when a legacy JDK is in use.
+        Note that running tests with a legacy JDK require
+        that you provide a non-legacy JDK for CCM through the
+        system property ccm.java.home.
+        -->
         <profile>
-            <id>doclint-java8-disable</id>
+            <id>legacy-jdks</id>
             <activation>
-                <jdk>[1.8,)</jdk>
+                <jdk>[,1.8)</jdk>
             </activation>
-            <properties>
-                <javadoc.opts>-Xdoclint:none</javadoc.opts>
-            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.19.1</version>
+                        <configuration>
+                            <groups>${test.groups}</groups>
+                            <useFile>false</useFile>
+                            <argLine>-Duser.language=en</argLine>
+                            <systemPropertyVariables>
+                                <cassandra.version>${cassandra.version}</cassandra.version>
+                                <dse>${dse}</dse>
+                                <ipprefix>${ipprefix}</ipprefix>
+                                <ccm.java.home>${ccm.java.home}</ccm.java.home>
+                                <ccm.path>${ccm.java.home}/bin</ccm.path>
+                            </systemPropertyVariables>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>
+                            </classpathDependencyExcludes>
+                            <excludes>
+                                <exclude>**/Jdk8*.java</exclude>
+                                <exclude>**/Tinker*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
     </profiles>

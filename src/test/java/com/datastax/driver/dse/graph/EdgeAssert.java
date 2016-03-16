@@ -3,10 +3,11 @@
  */
 package com.datastax.driver.dse.graph;
 
-import static com.datastax.driver.dse.graph.Assertions.assertThat;
+import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 public class EdgeAssert extends ElementAssert<EdgeAssert, Edge> {
-    protected EdgeAssert(Edge actual) {
+
+    public EdgeAssert(Edge actual) {
         super(actual, EdgeAssert.class);
     }
 
@@ -15,7 +16,7 @@ public class EdgeAssert extends ElementAssert<EdgeAssert, Edge> {
         return myself;
     }
 
-    public EdgeAssert hasInV(GraphResult result) {
+    public EdgeAssert hasInV(GraphNode result) {
         return hasInV(result.asVertex());
     }
 
@@ -29,7 +30,7 @@ public class EdgeAssert extends ElementAssert<EdgeAssert, Edge> {
         return myself;
     }
 
-    public EdgeAssert hasOutV(GraphResult result) {
+    public EdgeAssert hasOutV(GraphNode result) {
         return hasOutV(result.asVertex());
     }
 

@@ -5,6 +5,7 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
+import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.core.TestUtils;
 import com.datastax.driver.dse.CCMDseTestsSupport;
 import com.datastax.driver.dse.DseCluster;
@@ -26,6 +27,13 @@ import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
 public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
+
+    @Override
+    public DseCluster.Builder createClusterBuilder() {
+        return super.createClusterBuilder()
+                // avoid timeouts when creating large graphs
+                .withSocketOptions(new SocketOptions().setReadTimeoutMillis(60000));
+    }
 
     @Override
     public void onTestContextInitialized() {

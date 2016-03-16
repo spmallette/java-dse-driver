@@ -1,0 +1,38 @@
+{
+  "id": {
+    "out_vertex": {
+      "member_id": 0,
+      "community_id": 587008,
+      "~label": "demigod",
+      "group_id": 9
+    },
+    "local_id": "15be4171-f7f0-11e5-9218-1d839f65c7be",
+    "in_vertex": {
+      "member_id": 0,
+      "community_id": 587008,
+      "~label": "monster",
+      "group_id": 5
+    },
+    "~type": "battled"
+  },
+  "label": "battled",
+  "type": "edge",
+  "inVLabel": "monster",
+  "outVLabel": "demigod",
+  "inV": {
+    "member_id": 0,
+    "community_id": 587008,
+    "~label": "monster",
+    "group_id": 5
+  },
+  "outV": {
+    "member_id": 0,
+    "community_id": 587008,
+    "~label": "demigod",
+    "group_id": 9
+  },
+  "properties": {
+    "time": "1970-01-01T00:00:00.022Z",
+    "place": "POINT (39 22)"
+  }
+}
