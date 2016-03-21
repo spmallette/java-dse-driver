@@ -21,8 +21,6 @@ public abstract class GraphStatement {
 
     private volatile boolean systemQuery;
 
-    private volatile String graphAlias;
-
     /**
      * Returns the graph language to use with this statement.
      *
@@ -126,31 +124,6 @@ public abstract class GraphStatement {
      */
     public boolean isSystemQuery() {
         return this.systemQuery;
-    }
-
-    /**
-     * Returns the graph alias to use with this statement.
-     *
-     * @return the graph alias to use with this statement.
-     * @see #setGraphAlias(String)
-     */
-    public String getGraphAlias() {
-        return graphAlias;
-    }
-
-    /**
-     * Sets the graph alias to use with this statement.
-     * <p/>
-     * This property is not required; if it is not set, the default {@link GraphOptions#getGraphAlias()} (which may
-     * itself be unset) will be used when executing the statement.
-     *
-     * @param graphAlias the graph alias to use with this statement.
-     * @return this {@link GraphStatement} instance (for method chaining).
-     */
-    public GraphStatement setGraphAlias(String graphAlias) {
-        checkNotNull(graphAlias, "graphAlias cannot be null");
-        this.graphAlias = graphAlias;
-        return this;
     }
 
     /**
