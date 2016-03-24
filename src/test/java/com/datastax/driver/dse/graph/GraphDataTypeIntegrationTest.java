@@ -4,7 +4,6 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.utils.DseVersion;
-import com.datastax.driver.dse.geometry.Circle;
 import com.datastax.driver.dse.geometry.LineString;
 import com.datastax.driver.dse.geometry.Point;
 import com.datastax.driver.dse.geometry.Polygon;
@@ -58,8 +57,6 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                                         .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
                                         .build()},
                         new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}, String.class},
-                // TODO: Remove when circle is removed.
-                {"org.apache.cassandra.db.marshal.geometry.Circle", new Circle[]{new Circle(p(1, 2), 3)}, new String[]{"CIRCLE((1.0 2.0) 3.0)"}, String.class},
                 {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
                 {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null, String.class},
                 {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
@@ -101,9 +98,9 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      * <li>For completeness, queries the vertex and ensures the property value matches that which was inserted.</li>
      * </ol>
      *
-     * @param clazz       The class that the property key's should should be.
-     * @param data        The sample data to add as property values and use as parameters.
-     * @param resultData  The expected data returned from querying.
+     * @param clazz      The class that the property key's should should be.
+     * @param data       The sample data to add as property values and use as parameters.
+     * @param resultData The expected data returned from querying.
      * @Param resultClass The class to get the resulting data as.
      * @test_category dse:graph
      */
@@ -388,7 +385,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         GraphResult edges = result.get("edges");
         assertThat(edges.size()).isEqualTo(2);
         // Ensure edges can be deserialized as a list and that we can get each value as an Edge.
-        for(int i = 0; i < edges.size(); i++) {
+        for (int i = 0; i < edges.size(); i++) {
             GraphResult edge = edges.get(i);
             assertThat(edge).asEdge();
         }
@@ -397,7 +394,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         GraphResult vertices = result.get("vertices");
         assertThat(vertices.size()).isEqualTo(3);
         // Ensure vertices can be deserialized as a list and that we can get each value as a Vertex.
-        for(int i = 0; i < vertices.size(); i++) {
+        for (int i = 0; i < vertices.size(); i++) {
             GraphResult vertex = vertices.get(i);
             assertThat(vertex).asVertex();
         }
