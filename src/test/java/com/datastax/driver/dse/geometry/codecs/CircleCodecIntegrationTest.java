@@ -5,9 +5,11 @@ package com.datastax.driver.dse.geometry.codecs;
 
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.geometry.Circle;
+import org.testng.annotations.Test;
 import org.testng.collections.Lists;
 
 @DseVersion(major = 5.0)
+@Test(enabled = false)
 public class CircleCodecIntegrationTest extends GeometryCodecIntegrationTest<Circle> {
     public CircleCodecIntegrationTest() {
         super("CircleType", Lists.newArrayList(
