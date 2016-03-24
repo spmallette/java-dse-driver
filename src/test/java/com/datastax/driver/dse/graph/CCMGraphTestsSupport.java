@@ -24,16 +24,12 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
 
-    // Share lease port for all graph instances, as we expect to only use one.
-    private static final int LEASE_PORT = TestUtils.findAvailablePort();
-
-
     @Override
     public void onTestContextInitialized() {
         // TODO only create the graph schema if told to via annotation config
         // Create the graph schema and set the namespace in the graph configuration to it.
         String graphName = TestUtils.generateIdentifier("graph_");
-        session().executeGraph("system.createGraph(name).ifNotExist().build()",
+        session().executeGraph("system.graph(name).ifNotExists().create()",
                 ImmutableMap.<String, Object>of("name", graphName));
         cluster().getConfiguration().getGraphOptions().setGraphName(graphName);
     }
@@ -87,6 +83,7 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     @Override
     public CCMBridge.Builder configureCCM() {
-        return super.configureCCM().withWorkload(1, graph).withDSEConfiguration("lease_netty_server_port", LEASE_PORT);
+        return super.configureCCM().withWorkload(1, graph)
+                .withDSEConfiguration("graph.gremlin_server.port", TestUtils.findAvailablePort());
     }
 }
