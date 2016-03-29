@@ -25,7 +25,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -346,7 +349,7 @@ class RequestHandler {
                     break;
             }
 
-            connectionHandler = connection.write(responseCallback, statement.getReadTimeoutMillis(), false);
+            connectionHandler = connection.write(responseCallback, statement.getReadTimeoutMillis(), false, false);
             // Only start the timeout when we're sure connectionHandler is set. This avoids an edge case where onTimeout() was triggered
             // *before* the call to connection.write had returned.
             connectionHandler.startTimeout();
@@ -789,7 +792,7 @@ class RequestHandler {
         }
     }
 
-    private void logIdempotenceWarning() {
+    static void logIdempotenceWarning() {
         if (WARNED_IDEMPOTENT.compareAndSet(false, true))
             logger.warn("Not retrying statement because it is not idempotent (this message will be logged only once). " +
                     "Note that this version of the driver changes the default retry behavior for non-idempotent " +
@@ -821,6 +824,10 @@ class RequestHandler {
 
         boolean isInProgressAt(int retryCount) {
             return inProgress && this.retryCount == retryCount;
+        }
+
+        boolean isCompleteAt(int retryCount) {
+            return !inProgress && this.retryCount == retryCount;
         }
 
         QueryState complete() {

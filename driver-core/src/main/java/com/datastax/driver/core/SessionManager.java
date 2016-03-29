@@ -16,6 +16,7 @@ import com.datastax.driver.core.policies.ReconnectionPolicy;
 import com.datastax.driver.core.policies.SpeculativeExecutionPolicy;
 import com.datastax.driver.core.utils.MoreFutures;
 import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.*;
@@ -28,7 +29,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -137,6 +137,35 @@ class SessionManager extends AbstractSession {
             }, executor());
             return chainedFuture;
         }
+    }
+
+    @Override
+    public ListenableFuture<AsyncContinuousPagingResult> executeContinuouslyAsync(final Statement statement,
+                                                                                  final ContinuousPagingOptions options) {
+        Preconditions.checkNotNull(options, "Options must not be null");
+        final SettableFuture<AsyncContinuousPagingResult> result = SettableFuture.create();
+        if (isInit) {
+            ContinuousPagingQueue queue = new ContinuousPagingQueue(makeRequestMessage(statement, null, options), result);
+            MultiResponseRequestHandler handler = new MultiResponseRequestHandler(this, queue, statement);
+            handler.sendRequest();
+        } else {
+            this.initAsync().addListener(new Runnable() {
+                @Override
+                public void run() {
+                    ContinuousPagingQueue queue = new ContinuousPagingQueue(makeRequestMessage(statement, null, options), result);
+                    MultiResponseRequestHandler handler = new MultiResponseRequestHandler(SessionManager.this, queue, statement);
+                    handler.sendRequest();
+                }
+            }, executor());
+        }
+        return result;
+    }
+
+    @Override
+    public ContinuousPagingResult executeContinuously(final Statement statement,
+                                                      final ContinuousPagingOptions options) {
+        Preconditions.checkNotNull(options, "Options must not be null");
+        return new DefaultContinuousPagingResult(executeContinuouslyAsync(statement, options));
     }
 
     @Override
@@ -475,6 +504,10 @@ class SessionManager extends AbstractSession {
     }
 
     Message.Request makeRequestMessage(Statement statement, ByteBuffer pagingState) {
+        return makeRequestMessage(statement, pagingState, null);
+    }
+
+    Message.Request makeRequestMessage(Statement statement, ByteBuffer pagingState, ContinuousPagingOptions continuousPagingOptions) {
         // We need the protocol version, which is only available once the cluster has initialized. Initialize the session to ensure this is the case.
         // init() locks, so avoid if we know we don't need it.
         if (!isInit)
@@ -521,9 +554,16 @@ class SessionManager extends AbstractSession {
         if (fetchSize == Integer.MAX_VALUE)
             fetchSize = -1;
 
+        // Override page size with continuous paging size if enabled
+        if (continuousPagingOptions != null)
+            fetchSize = continuousPagingOptions.getPageSize();
+
         if (pagingState == null) {
             usedPagingState = statement.getPagingState();
         }
+
+        if (protocolVersion.compareTo(ProtocolVersion.DSE_V1) < 0 && continuousPagingOptions != null)
+            throw new UnsupportedFeatureException(protocolVersion, "Continuous paging is only supported since native protocol DSE_V1");
 
         if (statement instanceof StatementWrapper)
             statement = ((StatementWrapper) statement).getWrappedStatement();
@@ -554,7 +594,7 @@ class SessionManager extends AbstractSession {
             String qString = rs.getQueryString(codecRegistry);
 
             Requests.QueryProtocolOptions options = new Requests.QueryProtocolOptions(Message.Request.Type.QUERY, consistency, positionalValues, namedValues,
-                    false, fetchSize, usedPagingState, serialConsistency, defaultTimestamp);
+                    false, fetchSize, usedPagingState, serialConsistency, defaultTimestamp, continuousPagingOptions);
             request = new Requests.Query(qString, options, statement.isTracing());
         } else if (statement instanceof BoundStatement) {
             BoundStatement bs = (BoundStatement) statement;
@@ -566,7 +606,7 @@ class SessionManager extends AbstractSession {
                 bs.ensureAllSet();
             boolean skipMetadata = protocolVersion != ProtocolVersion.V1 && bs.statement.getPreparedId().resultSetMetadata != null;
             Requests.QueryProtocolOptions options = new Requests.QueryProtocolOptions(Message.Request.Type.EXECUTE, consistency, Arrays.asList(bs.wrapper.values), Collections.<String, ByteBuffer>emptyMap(),
-                    skipMetadata, fetchSize, usedPagingState, serialConsistency, defaultTimestamp);
+                    skipMetadata, fetchSize, usedPagingState, serialConsistency, defaultTimestamp, continuousPagingOptions);
             request = new Requests.Execute(bs.statement.getPreparedId().id, options, statement.isTracing());
         } else {
             assert statement instanceof BatchStatement : statement;

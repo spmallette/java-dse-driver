@@ -55,6 +55,7 @@ public class BoundStatement extends Statement implements SettableData<BoundState
     private final CodecRegistry codecRegistry;
 
     private ByteBuffer routingKey;
+    private TokenRange routingTokenRange;
 
     /**
      * Creates a new {@code BoundStatement} from the provided prepared
@@ -243,6 +244,23 @@ public class BoundStatement extends Statement implements SettableData<BoundState
             }
         }
         return null;
+    }
+
+    @Override
+    public TokenRange getRoutingTokenRange() {
+        // Don't support setting the range on the prepared statement. Given the intended use case explained in
+        // getRoutingTokenRange(), this would not be very useful.
+        return routingTokenRange;
+    }
+
+    /**
+     * Sets a routing token for this statement.
+     *
+     * @see #getRoutingTokenRange()
+     */
+    public BoundStatement setRoutingTokenRange(TokenRange routingTokenRange) {
+        this.routingTokenRange = routingTokenRange;
+        return this;
     }
 
     /**

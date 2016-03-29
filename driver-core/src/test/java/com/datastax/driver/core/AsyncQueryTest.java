@@ -256,6 +256,16 @@ public class AsyncQueryTest extends CCMTestsSupport {
         }
 
         @Override
+        public ListenableFuture<AsyncContinuousPagingResult> executeContinuouslyAsync(Statement statement, ContinuousPagingOptions options) {
+            return ((ContinuousPagingSession) session).executeContinuouslyAsync(statement, options);
+        }
+
+        @Override
+        public ContinuousPagingResult executeContinuously(Statement statement, ContinuousPagingOptions options) {
+            return ((ContinuousPagingSession) session).executeContinuously(statement, options);
+        }
+
+        @Override
         public CloseFuture closeAsync() {
             return session.closeAsync();
         }

@@ -8,7 +8,6 @@ package com.datastax.driver.dse;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.AddressTranslator;
-import com.datastax.driver.dse.graph.GraphJsonUtils;
 import com.datastax.driver.dse.graph.GraphOptions;
 import com.datastax.driver.dse.graph.GraphResultSet;
 import com.datastax.driver.dse.graph.GraphStatement;
@@ -26,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Default implementation of {@link DseSession} interface.
  */
-class DefaultDseSession implements DseSession {
+class DefaultDseSession implements DseSession, ContinuousPagingSession {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultDseSession.class);
 
@@ -256,6 +255,16 @@ class DefaultDseSession implements DseSession {
     @Override
     public ResultSetFuture executeAsync(String query, Map<String, Object> values) {
         return delegate.executeAsync(query, values);
+    }
+
+    @Override
+    public ListenableFuture<AsyncContinuousPagingResult> executeContinuouslyAsync(Statement statement, ContinuousPagingOptions options) {
+        return ((ContinuousPagingSession) delegate).executeContinuouslyAsync(statement, options);
+    }
+
+    @Override
+    public ContinuousPagingResult executeContinuously(Statement statement, ContinuousPagingOptions options) {
+        return ((ContinuousPagingSession) delegate).executeContinuously(statement, options);
     }
 
     @Override

@@ -73,6 +73,7 @@ abstract class Message {
     static abstract class Request extends Message {
 
         enum Type {
+            // public requests
             STARTUP(1, Requests.Startup.coder),
             CREDENTIALS(4, Requests.Credentials.coder),
             OPTIONS(5, Requests.Options.coder),
@@ -81,7 +82,10 @@ abstract class Message {
             EXECUTE(10, Requests.Execute.coder),
             REGISTER(11, Requests.Register.coder),
             BATCH(13, Requests.Batch.coder),
-            AUTH_RESPONSE(15, Requests.AuthResponse.coder);
+            AUTH_RESPONSE(15, Requests.AuthResponse.coder),
+
+            // private requests
+            CANCEL(255, Requests.Cancel.coder);
 
             final int opcode;
             final Coder<?> coder;

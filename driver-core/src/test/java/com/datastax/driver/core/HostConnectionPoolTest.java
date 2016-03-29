@@ -1322,7 +1322,7 @@ public class HostConnectionPoolTest extends ScassandraTestBase.PerClassCluster {
                 @Override
                 public void onSuccess(Connection connection) {
                     MockRequest thisRequest = MockRequest.this;
-                    thisRequest.responseHandler = new Connection.ResponseHandler(connection, -1, thisRequest);
+                    thisRequest.responseHandler = new Connection.ResponseHandler(connection, -1, thisRequest, false);
                     connection.dispatcher.add(thisRequest.responseHandler);
                 }
             });

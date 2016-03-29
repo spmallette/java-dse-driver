@@ -75,6 +75,9 @@ class Responses {
                         String cfName = CBUtil.readString(body);
                         infos = new AlreadyExistsException(ksName, cfName);
                         break;
+                    case CLIENT_WRITE_FAILURE:
+                        infos = new ClientWriteException(msg);
+                        break;
                 }
                 return new Error(version, code, msg, infos);
             }
@@ -131,6 +134,8 @@ class Responses {
                     return ((AlreadyExistsException) infos).copy(host);
                 case UNPREPARED:
                     return new UnpreparedException(host, message);
+                case CLIENT_WRITE_FAILURE:
+                    return ((ClientWriteException) infos).copy();
                 default:
                     return new DriverInternalError(String.format("Unknown protocol error code %s returned by %s. The error message was: %s", code, host, message));
             }
@@ -323,17 +328,30 @@ class Responses {
             static class Metadata {
 
                 private enum Flag {
-                    // The order of that enum matters!!
-                    GLOBAL_TABLES_SPEC,
-                    HAS_MORE_PAGES,
-                    NO_METADATA;
+                    // public flags
+                    GLOBAL_TABLES_SPEC(0),
+                    HAS_MORE_PAGES(1),
+                    NO_METADATA(2),
+
+                    // private flags
+                    CONTINUOUS_PAGING(30),
+                    LAST_CONTINUOUS_PAGE(31);
+
+                    /**
+                     * The position of the bit that must be set to one to indicate a flag is set
+                     */
+                    private final int pos;
+
+                    Flag(int pos) {
+                        this.pos = pos;
+                    }
 
                     static EnumSet<Flag> deserialize(int flags) {
                         EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
                         Flag[] values = Flag.values();
-                        for (int n = 0; n < values.length; n++) {
-                            if ((flags & (1 << n)) != 0)
-                                set.add(values[n]);
+                        for (Flag value : values) {
+                            if ((flags & (1 << value.pos)) != 0)
+                                set.add(value);
                         }
                         return set;
                     }
@@ -341,23 +359,26 @@ class Responses {
                     static int serialize(EnumSet<Flag> flags) {
                         int i = 0;
                         for (Flag flag : flags)
-                            i |= 1 << flag.ordinal();
+                            i |= 1 << flag.pos;
                         return i;
                     }
                 }
 
-                static final Metadata EMPTY = new Metadata(0, null, null, null);
+                static final Metadata EMPTY = new Metadata(0, null, null, null, null);
 
                 final int columnCount;
                 final ColumnDefinitions columns; // Can be null if no metadata was asked by the query
                 final ByteBuffer pagingState;
                 final int[] pkIndices;
+                final ContinuousPagingMetadata continuousPage;
 
-                private Metadata(int columnCount, ColumnDefinitions columns, ByteBuffer pagingState, int[] pkIndices) {
+                private Metadata(int columnCount, ColumnDefinitions columns, ByteBuffer pagingState, int[] pkIndices,
+                                 ContinuousPagingMetadata continuousPage) {
                     this.columnCount = columnCount;
                     this.columns = columns;
                     this.pagingState = pagingState;
                     this.pkIndices = pkIndices;
+                    this.continuousPage = continuousPage;
                 }
 
                 static Metadata decode(ByteBuf body, ProtocolVersion protocolVersion, CodecRegistry codecRegistry) {
@@ -382,8 +403,12 @@ class Responses {
                     if (flags.contains(Flag.HAS_MORE_PAGES))
                         state = CBUtil.readValue(body);
 
+                    ContinuousPagingMetadata optimizedPage = flags.contains(Flag.CONTINUOUS_PAGING)
+                            ? new ContinuousPagingMetadata(body.readInt(), flags.contains(Flag.LAST_CONTINUOUS_PAGE))
+                            : null;
+
                     if (flags.contains(Flag.NO_METADATA))
-                        return new Metadata(columnCount, null, state, pkIndices);
+                        return new Metadata(columnCount, null, state, pkIndices, optimizedPage);
 
                     boolean globalTablesSpec = flags.contains(Flag.GLOBAL_TABLES_SPEC);
 
@@ -404,7 +429,7 @@ class Responses {
                         defs[i] = new ColumnDefinitions.Definition(ksName, cfName, name, type);
                     }
 
-                    return new Metadata(columnCount, new ColumnDefinitions(defs, codecRegistry), state, pkIndices);
+                    return new Metadata(columnCount, new ColumnDefinitions(defs, codecRegistry), state, pkIndices, optimizedPage);
                 }
 
                 @Override
@@ -450,6 +475,8 @@ class Responses {
             final Queue<List<ByteBuffer>> data;
             private final ProtocolVersion version;
 
+            private volatile Queue<List<ByteBuffer>> rows;
+
             private Rows(Metadata metadata, Queue<List<ByteBuffer>> data, ProtocolVersion version) {
                 super(Kind.ROWS);
                 this.metadata = metadata;
@@ -461,7 +488,11 @@ class Responses {
             public String toString() {
                 StringBuilder sb = new StringBuilder();
                 sb.append("ROWS ").append(metadata).append('\n');
+                int rowNumber = 0;
                 for (List<ByteBuffer> row : data) {
+                    if (++rowNumber > 5) {
+                        break;
+                    }
                     for (int i = 0; i < row.size(); i++) {
                         ByteBuffer v = row.get(i);
                         if (v == null) {
@@ -485,8 +516,26 @@ class Responses {
                     }
                     sb.append('\n');
                 }
+                if (rowNumber > 5) {
+                    sb.append(String.format(" ... (%d rows)\n", data.size()));
+                }
                 sb.append("---");
                 return sb.toString();
+            }
+        }
+
+        static class ContinuousPagingMetadata {
+            final int seqNo;
+            final boolean last;
+
+            ContinuousPagingMetadata(int seqNo, boolean last) {
+                this.seqNo = seqNo;
+                this.last = last;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("Page no. %d%s", seqNo, last ? " final" : "");
             }
         }
 
