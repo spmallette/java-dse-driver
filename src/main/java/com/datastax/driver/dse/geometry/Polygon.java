@@ -20,7 +20,7 @@ import java.util.List;
  * This is a planar surface in a two-dimensional XY-plane, represented by one exterior boundary and 0 or more interior
  * boundaries.
  */
-public class Polygon extends OgcCompatibleGeometry<OGCPolygon> {
+public class Polygon extends Geometry {
 
     private static final long serialVersionUID = 7308381476240075319L;
 

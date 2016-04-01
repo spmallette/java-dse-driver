@@ -17,7 +17,7 @@ import java.util.List;
  * This is a curve in a two-dimensional XY-plane, represented by a set of points (with linear interpolation between
  * them).
  */
-public class LineString extends OgcCompatibleGeometry<OGCLineString> {
+public class LineString extends Geometry {
 
     private static final long serialVersionUID = -2541987694856357606L;
 

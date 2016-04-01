@@ -8,7 +8,6 @@ import com.datastax.driver.core.exceptions.AuthenticationException;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.NoHostAvailableException;
 import com.datastax.driver.core.policies.*;
-import com.datastax.driver.dse.geometry.codecs.CircleCodec;
 import com.datastax.driver.dse.geometry.codecs.LineStringCodec;
 import com.datastax.driver.dse.geometry.codecs.PointCodec;
 import com.datastax.driver.dse.geometry.codecs.PolygonCodec;
@@ -250,7 +249,6 @@ public class DseCluster extends DelegatingCluster {
 
         private static void registerGeospatialCodecs(DseCluster dseCluster) {
             dseCluster.getConfiguration().getCodecRegistry().register(
-                    CircleCodec.INSTANCE,
                     LineStringCodec.INSTANCE,
                     PointCodec.INSTANCE,
                     PolygonCodec.INSTANCE);
