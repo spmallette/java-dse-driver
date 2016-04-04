@@ -6,8 +6,6 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.utils.DseVersion;
 import org.testng.annotations.Test;
 
-import java.util.Set;
-
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 @DseVersion(major = 5.0)
@@ -17,6 +15,75 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
         executeGraph(GraphFixtures.modern);
+    }
+
+    /**
+     * Validates that when traversing a path and labeling some of the elements during the traversal that the
+     * output elements are properly labeled.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_resolve_path_with_some_labels() {
+        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
+                ".outE('knows').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().path()");
+        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        for (GraphNode result : rs) {
+            Path path = result.asPath();
+            validatePathObjects(path);
+            assertThat(path.getLabels()).hasSize(5);
+            assertThat(path)
+                    .hasLabel(0, "a")
+                    .hasNoLabel(1)
+                    .hasLabel(2, "c", "d")
+                    .hasLabel(3, "e", "f", "g")
+                    .hasNoLabel(4);
+        }
+    }
+
+    /**
+     * Validates that when traversing a path and labeling all of the elements during the traversal that the
+     * output elements are properly labeled.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_resolve_path_with_labels() {
+        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
+                ".outE('knows').as('b').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().as('h').path()");
+        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        for (GraphNode result : rs) {
+            Path path = result.asPath();
+            validatePathObjects(path);
+            assertThat(path.getLabels()).hasSize(5);
+            assertThat(path)
+                    .hasLabel(0, "a")
+                    .hasLabel(1, "b")
+                    .hasLabel(2, "c", "d")
+                    .hasLabel(3, "e", "f", "g")
+                    .hasLabel(4, "h");
+        }
+    }
+
+    /**
+     * Validates that when traversing a path and labeling none of the elements during the traversal that all the
+     * labels are empty in the result.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_resolve_path_without_labels() {
+        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko')" +
+                ".outE('knows').inV().outE('created').inV().path()");
+        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        for (GraphNode result : rs) {
+            Path path = result.asPath();
+            validatePathObjects(path);
+            assertThat(path.getLabels()).hasSize(5);
+            for (int i = 0; i < 5; i++)
+                assertThat(path)
+                        .hasNoLabel(i);
+        }
     }
 
     /**
@@ -99,73 +166,6 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
                     .hasLabel("software")
                     .hasProperty("name", "ripple")
                     .hasProperty("lang", "java");
-        }
-    }
-
-    /**
-     * Validates that when traversing a path and labeling some of the elements during the traversal that the
-     * output elements are properly labeled.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "short")
-    public void should_resolve_path_with_some_labels() {
-        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
-                ".outE('knows').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphNode result : rs) {
-            Path path = result.asPath();
-            validatePathObjects(path);
-            assertThat(path)
-                    .hasLabel(0, "a")
-                    .hasLabel(1)
-                    .hasLabel(2, "c", "d")
-                    .hasLabel(3, "e", "f", "g")
-                    .hasLabel(4);
-        }
-    }
-
-    /**
-     * Validates that when traversing a path and labeling all of the elements during the traversal that the
-     * output elements are properly labeled.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "short")
-    public void should_resolve_path_with_labels() {
-        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
-                ".outE('knows').as('b').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().as('h').path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphNode result : rs) {
-            Path path = result.asPath();
-            validatePathObjects(path);
-            assertThat(path)
-                    .hasLabel(0, "a")
-                    .hasLabel(1, "b")
-                    .hasLabel(2, "c", "d")
-                    .hasLabel(3, "e", "f", "g")
-                    .hasLabel(4, "h");
-        }
-    }
-
-    /**
-     * Validates that when traversing a path and labeling none of the elements during the traversal that all the
-     * labels are empty in the result.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "short")
-    public void should_resolve_path_without_labels() {
-        GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko')" +
-                ".outE('knows').inV().outE('created').inV().path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphNode result : rs) {
-            Path path = result.asPath();
-            validatePathObjects(path);
-            assertThat(path.getLabels()).hasSize(5);
-            for (Set<String> labels : path.getLabels()) {
-                assertThat(labels).isEmpty();
-            }
         }
     }
 

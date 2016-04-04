@@ -15,7 +15,7 @@ import java.util.Set;
  *     Path path = n.asPath();
  * </pre>
  */
-public interface Path {
+public interface Path extends Iterable<GraphNode> {
 
     /**
      * Returns the sets of labels of the steps traversed
@@ -37,4 +37,67 @@ public interface Path {
      * @return the objects traversed by this path.
      */
     List<GraphNode> getObjects();
+
+    /**
+     * Returns the size of this path, that is, the number of steps
+     * this path traversed.
+     *
+     * @return the size of this path.
+     */
+    int size();
+
+    /**
+     * Returns the object associated with the given step of this path.
+     * <p>
+     * The step index is zero-based, i.e. the first step has index {@code 0}.
+     * <p>
+     * If the index is out of bounds, this method returns {@code null};
+     * no exception will be thrown.
+     *
+     * @param index the zero-based step index to find the object for.
+     * @return the object associated with the given step index.
+     */
+    GraphNode getObject(int index);
+
+    /**
+     * Returns the first object with the given label in this path.
+     * <p>
+     * If the label is associated with more then one step, then this
+     * method returns the object at the first step with that label.
+     * <p>
+     * If the label does not exist in this path,
+     * this method returns {@code null}.
+     *
+     * @param label the label to find an object for.
+     * @return the first object with the given label.
+     */
+    GraphNode getObject(String label);
+
+    /**
+     * Returns the objects with the given label in this path.
+     * <p>
+     * If the label is unique, the returned list will contain only one element.
+     * <p>
+     * If the label is associated with more then one step, then the list
+     * will contain as many elements as the number of times the label
+     * appears in this path's steps, in order.
+     * <p>
+     * If the label does not exist in this path, an empty list is returned.
+     * <p>
+     * The returned list is immutable.
+     *
+     * @param label the label to find objects for.
+     * @return the objects with the given label.
+     */
+    List<GraphNode> getObjects(String label);
+
+    /**
+     * Returns whether this path has at least one step
+     * with the given label.
+     *
+     * @param label the label to search.
+     * @return {@code true} if this path has at least one step
+     * with the given label, {@code false} otherwise.
+     */
+    boolean hasLabel(String label);
 }
