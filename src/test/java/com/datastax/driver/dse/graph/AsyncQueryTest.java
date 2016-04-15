@@ -22,10 +22,12 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
     @Override
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
-        executeGraph("graph.schema().buildVertexLabel('person').add()",
-                "graph.schema().buildPropertyKey('name', String.class).add()",
-                "graph.schema().buildPropertyKey('uuid', UUID.class).add()",
-                "graph.schema().buildPropertyKey('number', Double.class).add()"
+        executeGraph(
+                GraphFixtures.makeStrict,
+                "graph.schema().propertyKey('name').Text().create()",
+                "graph.schema().propertyKey('uuid').Uuid().create()",
+                "graph.schema().propertyKey('number').Double().create()",
+                "schema.vertexLabel('person').properties('name', 'uuid', 'number').create()"
         );
     }
 
@@ -39,8 +41,7 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short")
     public void should_handle_multiple_vertex_creation_queries_simultaneously() throws Exception {
-        // TODO: Change concurrency to > 1 once DSP-8156 is fixed.
-        int concurrency = 1;
+        int concurrency = 20;
         int requests = 100;
         final Semaphore permits = new Semaphore(concurrency);
         Random random = new Random();

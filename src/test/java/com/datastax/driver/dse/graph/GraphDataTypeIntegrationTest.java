@@ -40,28 +40,29 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 // TODO: by the driver.  All unsupported types are written as String parameters and read back as String
                 // TODO: parameters, with exception of Geometric types which can be serialized as parameters but not
                 // TODO: deserialized using GraphResult.
-                {"java.math.BigDecimal", new String[]{"8675309.9998"}, null, String.class},
-                {"java.math.BigInteger", new String[]{"8675309"}, null, String.class},
-                {"String", new String[]{"", "75", "Lorem Ipsum"}, null, String.class},
-                {"Long", new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null, Long.class},
-                {"Integer", new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null, Integer.class},
-                {"Short", new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, (short) 0, 42}, null, Short.class},
-                {"Double", new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null, Double.class},
-                {"Boolean", new Boolean[]{true, false}, null, Boolean.class},
-                {"org.apache.cassandra.db.marshal.geometry.Point", new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}, String.class},
-                {"org.apache.cassandra.db.marshal.geometry.LineString", new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, new String[]{"LINESTRING (30 10, 10 30, 40 40)"}, String.class},
-                {"org.apache.cassandra.db.marshal.geometry.Polygon",
-                        new Polygon[]{
-                                Polygon.builder()
-                                        .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
-                                        .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
-                                        .build()},
-                        new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}, String.class},
-                {"java.net.InetAddress", new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
-                {"java.net.Inet4Address", new String[]{"127.0.0.1"}, null, String.class},
-                {"java.net.Inet6Address", new String[]{"0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, String.class},
-                {"java.util.UUID", new String[]{UUID.randomUUID().toString()}, null, String.class},
-                {"Instant", new String[]{"2016-02-04T02:26:31.657Z"}, null, String.class}
+                {new Boolean[]{true, false}, null, "Boolean()", Boolean.class},
+                {new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null, "Int()", Integer.class},
+                {new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, 0, 42}, null, "Smallint()", Short.class},
+                {new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null, "Bigint()", Long.class},
+                {new Float[]{Float.MAX_VALUE, Float.MIN_VALUE, 0.0f, (float)Math.PI}, null, "Float()", Float.class},
+                {new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null, "Double()", Double.class},
+                {new String[]{"8675309.9998"}, null, "Decimal()", String.class},
+                {new String[]{"8675309"}, null, "Varint()", String.class},
+                {new String[]{"2016-02-04T02:26:31.657Z"}, null, "Timestamp()", String.class},
+                {new String[]{"P2DT3H4M"}, new String[]{"PT51H4M"}, "Duration()", String.class},
+                // TODO: Reenable when DSP-9208 addressed.
+                //{new String[]{"0xCAFE"}, null, "Blob()", String.class},
+                {new String[]{"", "75", "Lorem Ipsum"}, null, "Text()", String.class},
+                {new String[]{UUID.randomUUID().toString()}, null, "Uuid()", String.class},
+                {new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, "Inet()", String.class},
+                {new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}, "Point()", String.class},
+                {new LineString[]{new LineString(p(30, 10), p(10, 30), p(40, 40))}, new String[]{"LINESTRING (30 10, 10 30, 40 40)"}, "Linestring()", String.class},
+                {new Polygon[]{
+                        Polygon.builder()
+                                .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
+                                .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
+                                .build()},
+                        new String[]{"POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (30 20, 20 30, 35 35, 30 20))"}, "Polygon()", String.class}
         };
     }
 
@@ -98,22 +99,20 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      * <li>For completeness, queries the vertex and ensures the property value matches that which was inserted.</li>
      * </ol>
      *
-     * @param clazz      The class that the property key's should should be.
-     * @param data       The sample data to add as property values and use as parameters.
-     * @param resultData The expected data returned from querying.
-     * @Param resultClass The class to get the resulting data as.
+     * @param data        The sample data to add as property values and use as parameters.
+     * @param resultData  The expected data returned from querying.
+     * @param type        The type function for identifying the property type.
+     * @param resultClass The class to get the resulting data as.
      * @test_category dse:graph
      */
     @Test(groups = "short", dataProvider = "dataTypeSamples")
-    public <T> void should_create_and_retrieve_vertex_property(String clazz, Object[] data, T[] resultData, Class<T> resultClass) {
+    public <T> void should_create_and_retrieve_vertex_property(Object[] data, T[] resultData, String type, Class<T> resultClass) {
         int id = schemaCounter.incrementAndGet();
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
-        String importStatement = clazz.contains(".") ? "import " + clazz + "\n" : "";
-        GraphStatement addVertexLabelAndProperty = new SimpleGraphStatement(importStatement +
-                "Schema schema = graph.schema()\n" +
-                "schema.buildVertexLabel(vertexLabel).add()\n" +
-                "schema.buildPropertyKey(property, " + clazz + ".class).add()")
+        GraphStatement addVertexLabelAndProperty = new SimpleGraphStatement(
+                "schema.propertyKey(property)." + type + ".create()\n" +
+                "schema.vertexLabel(vertexLabel).properties(property).create()")
                 .set("vertexLabel", vertexLabel)
                 .set("property", propertyName);
         session().executeGraph(addVertexLabelAndProperty);
@@ -233,6 +232,9 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short")
     public void should_use_list_as_a_parameter() {
+        GraphStatement schemaStmt = new SimpleGraphStatement("schema.vertexLabel('character').properties('name').create();");
+        session().executeGraph(schemaStmt);
+
         Collection<String> characters = Lists.newArrayList("Mario", "Luigi", "Toad", "Bowser", "Peach", "Wario", "Waluigi");
 
         SimpleGraphStatement createCharacters = new SimpleGraphStatement("" +
@@ -261,6 +263,14 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short")
     public void should_use_map_as_a_parameter() {
+        GraphStatement schemaStmt = new SimpleGraphStatement("" +
+                "schema.propertyKey('year_born').Text().create()\n" +
+                "schema.propertyKey('field').Text().create()\n" +
+                "schema.vertexLabel('scientist').properties('name', 'year_born', 'field').create()\n" +
+                "schema.vertexLabel('country').properties('name').create()\n" +
+                "schema.edgeLabel('had_citizenship').connection('scientist', 'country').create()");
+        session().executeGraph(schemaStmt);
+
         String name = "Albert Einstein";
         int year = 1879;
         String field = "Physics";

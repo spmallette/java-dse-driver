@@ -12,19 +12,23 @@ import java.util.Collection;
  */
 public class GraphFixtures {
 
+    public static final String makeStrict =
+            "schema.config().option('graph.schema_mode').set(com.datastax.bdp.graph.api.model.Schema.Mode.Production)";
+
     /**
-     * @return A single statement that builds the
+     * A single statement that builds the
      * <a href="http://tinkerpop.apache.org/docs/3.1.0-incubating/#intro">TinkerPop Modern</a> example graph.
      */
-    public static Collection<String> modern = Lists.newArrayList(
-            "graph.schema().buildVertexLabel('person').add()",
-            "graph.schema().buildVertexLabel('software').add()",
-            "graph.schema().buildEdgeLabel('knows').add()",
-            "graph.schema().buildEdgeLabel('created').add()",
-            "graph.schema().buildPropertyKey('name', String.class).add()",
-            "graph.schema().buildPropertyKey('age', Integer.class).add()",
-            "graph.schema().buildPropertyKey('lang', String.class).add()",
-            "graph.schema().buildPropertyKey('weight', Float.class).add()",
+    public static final Collection<String> modern = Lists.newArrayList(
+            makeStrict,
+                    "schema.propertyKey('name').Text().ifNotExists().create();\n" +
+                    "schema.propertyKey('age').Int().ifNotExists().create();\n" +
+                    "schema.propertyKey('lang').Text().ifNotExists().create();\n" +
+                    "schema.propertyKey('weight').Float().ifNotExists().create();\n" +
+                    "schema.vertexLabel('person').properties('name', 'age').ifNotExists().create();\n" +
+                    "schema.vertexLabel('software').properties('name', 'lang').ifNotExists().create();\n" +
+                    "schema.edgeLabel('created').properties('weight').connection('person', 'software').ifNotExists().create();\n" +
+                    "schema.edgeLabel('knows').properties('weight').connection('person', 'person').ifNotExists().create();",
             "Vertex marko = graph.addVertex(label, 'person', 'name', 'marko', 'age', 29);\n" +
                     "Vertex vadas = graph.addVertex(label, 'person', 'name', 'vadas', 'age', 27);\n" +
                     "Vertex lop = graph.addVertex(label, 'software', 'name', 'lop', 'lang', 'java');\n" +

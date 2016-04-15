@@ -156,7 +156,7 @@ If you're not going to use geospatial types, you can prevent the codecs from bei
 import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.driver.dse.graph.SimpleGraphStatement;
 
-dseSession.executeGraph("system.createGraph('demo').ifNotExist().build()");
+dseSession.executeGraph("system.graph('demo').ifNotExists().create()");
 
 GraphStatement s1 = new SimpleGraphStatement("g.addV(label, 'test_vertex')").setGraphName("demo");
 dseSession.executeGraph(s1);
@@ -191,7 +191,7 @@ This might be a problem if a default graph name is set, but you explicitly want 
 `system`, for which no graph name must be set. In that situation, use `GraphStatement#setSystemQuery()`:
 
 ```java
-GraphStatement s = new SimpleGraphStatement("system.createGraph('demo').ifNotExist().build()")
+GraphStatement s = new SimpleGraphStatement("system.graph('demo').ifNotExists().create()")
         .setSystemQuery();
 dseSession.executeGraph(s);
 ```

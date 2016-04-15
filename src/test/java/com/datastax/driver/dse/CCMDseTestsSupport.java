@@ -38,7 +38,9 @@ public class CCMDseTestsSupport extends CCMTestsSupport {
         // Acquire a unique port for the netty lease port.
         if (VersionNumber.parse(CCMBridge.getDSEVersion()).getMajor() >= 5) {
             int leasePort = TestUtils.findAvailablePort();
-            builder = builder.withDSEConfiguration("lease_netty_server_port", leasePort);
+            int internodePort = TestUtils.findAvailablePort();
+            builder = builder.withDSEConfiguration("lease_netty_server_port", leasePort)
+                    .withDSEConfiguration("internode_messaging_options.port", internodePort);
         }
         return builder;
     }
