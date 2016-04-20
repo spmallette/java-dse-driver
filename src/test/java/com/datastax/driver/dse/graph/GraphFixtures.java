@@ -23,9 +23,9 @@ public class GraphFixtures {
      * <a href="http://tinkerpop.apache.org/docs/3.1.0-incubating/#intro">TinkerPop Modern</a> example graph.
      */
     public static final Collection<String> modern = Lists.newArrayList(
-            makeStrict,
-            allowScans,
-            "schema.propertyKey('name').Text().ifNotExists().create();\n" +
+            makeStrict + "\n" +
+                    allowScans + "\n" +
+                    "schema.propertyKey('name').Text().ifNotExists().create();\n" +
                     "schema.propertyKey('age').Int().ifNotExists().create();\n" +
                     "schema.propertyKey('lang').Text().ifNotExists().create();\n" +
                     "schema.propertyKey('weight').Float().ifNotExists().create();\n" +
