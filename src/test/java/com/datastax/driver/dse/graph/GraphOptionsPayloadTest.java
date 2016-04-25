@@ -17,7 +17,7 @@ public class GraphOptionsPayloadTest {
     public void should_use_default_options_when_none_set() {
         GraphOptions graphOptions = new GraphOptions();
 
-        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties(null, GraphOptions.DEFAULT_GRAPH_LANGUAGE, null, GraphOptions.DEFAULT_GRAPH_SOURCE);
+        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties(GraphOptions.DEFAULT_GRAPH_LANGUAGE, null, GraphOptions.DEFAULT_GRAPH_SOURCE);
 
         Map<String, ByteBuffer> resultPayload = graphOptions.buildPayloadWithDefaults(new SimpleGraphStatement(""));
 
@@ -27,12 +27,11 @@ public class GraphOptionsPayloadTest {
     @Test(groups = "unit")
     public void should_use_cluster_options_set() {
         GraphOptions graphOptions = new GraphOptions();
-        graphOptions.setGraphAlias("alias1");
         graphOptions.setGraphLanguage("language1");
         graphOptions.setGraphName("name1");
         graphOptions.setGraphSource("source1");
 
-        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties("alias1", "language1", "name1", "source1");
+        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties("language1", "name1", "source1");
 
         Map<String, ByteBuffer> resultPayload = graphOptions.buildPayloadWithDefaults(new SimpleGraphStatement(""));
 
@@ -43,13 +42,11 @@ public class GraphOptionsPayloadTest {
     public void should_use_statement_options_over_cluster_options() {
 
         GraphOptions graphOptions = new GraphOptions();
-        graphOptions.setGraphAlias("alias1");
         graphOptions.setGraphLanguage("language1");
         graphOptions.setGraphName("name1");
         graphOptions.setGraphSource("source1");
 
         SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("");
-        simpleGraphStatement.setGraphAlias("alias2");
         simpleGraphStatement.setGraphLanguage("language2");
         simpleGraphStatement.setGraphName("name2");
         simpleGraphStatement.setGraphSource("source2");
@@ -76,14 +73,13 @@ public class GraphOptionsPayloadTest {
     }
 
     @Test(groups = "unit")
-    public void should_allow_null_graph_name_and_graph_alias_on_cluster() {
+    public void should_allow_null_graph_name_on_cluster() {
         GraphOptions graphOptions = new GraphOptions();
         graphOptions.setGraphLanguage("language1");
         graphOptions.setGraphSource("source1");
         graphOptions.setGraphName(null);
-        graphOptions.setGraphAlias(null);
 
-        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties(null, "language1", null, "source1");
+        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties("language1", null, "source1");
 
         Map<String, ByteBuffer> resultPayload = graphOptions.buildPayloadWithDefaults(new SimpleGraphStatement(""));
 
@@ -94,7 +90,6 @@ public class GraphOptionsPayloadTest {
     @Test(groups = "unit")
     public void should_force_no_graph_name_if_statement_is_a_system_query() {
         GraphOptions graphOptions = new GraphOptions();
-        graphOptions.setGraphAlias("alias1");
         graphOptions.setGraphLanguage("language1");
         graphOptions.setGraphName("name1");
         graphOptions.setGraphSource("source1");
@@ -102,7 +97,7 @@ public class GraphOptionsPayloadTest {
         SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("");
         simpleGraphStatement.setSystemQuery();
 
-        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties("alias1", "language1", null, "source1");
+        Map<String, ByteBuffer> expectedPayload = buildPayloadFromProperties("language1", null, "source1");
 
         Map<String, ByteBuffer> resultPayload = graphOptions.buildPayloadWithDefaults(simpleGraphStatement);
 
@@ -111,18 +106,14 @@ public class GraphOptionsPayloadTest {
 
     private Map<String, ByteBuffer> buildPayloadFromStatement(GraphStatement graphStatement) {
         return ImmutableMap.of(
-                GraphOptions.GRAPH_ALIAS_KEY, PayloadHelper.asBytes(graphStatement.getGraphAlias()),
                 GraphOptions.GRAPH_LANGUAGE_KEY, PayloadHelper.asBytes(graphStatement.getGraphLanguage()),
                 GraphOptions.GRAPH_NAME_KEY, PayloadHelper.asBytes(graphStatement.getGraphName()),
                 GraphOptions.GRAPH_SOURCE_KEY, PayloadHelper.asBytes(graphStatement.getGraphSource())
         );
     }
 
-    private Map<String, ByteBuffer> buildPayloadFromProperties(String graphAlias, String graphLanguage, String graphName, String graphSource) {
+    private Map<String, ByteBuffer> buildPayloadFromProperties(String graphLanguage, String graphName, String graphSource) {
         ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
-        if (graphAlias != null) {
-            builder.put(GraphOptions.GRAPH_ALIAS_KEY, PayloadHelper.asBytes(graphAlias));
-        }
         if (graphLanguage != null) {
             builder.put(GraphOptions.GRAPH_LANGUAGE_KEY, PayloadHelper.asBytes(graphLanguage));
         }

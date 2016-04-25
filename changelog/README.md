@@ -5,6 +5,7 @@
 - [new feature] JAVA-1098: Route graph analytics queries to the Spark master.
 - [bug] JAVA-1076: Handle WKT 'EMPTY' keyword in Geospatial types.
 - [improvement] JAVA-1106: Remove Circle type.
+- [improvement] JAVA-1129: Don't expose graph alias in user API.
 
 
 ### 1.0.0-eap3

@@ -26,7 +26,6 @@ public class GraphOptions {
     static final String GRAPH_SOURCE_KEY = "graph-source";
     static final String GRAPH_NAME_KEY = "graph-name";
     static final String GRAPH_LANGUAGE_KEY = "graph-language";
-    static final String GRAPH_ALIAS_KEY = "graph-alias";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -41,7 +40,6 @@ public class GraphOptions {
     private volatile String graphLanguage = DEFAULT_GRAPH_LANGUAGE;
     private volatile String graphSource = DEFAULT_GRAPH_SOURCE;
     private volatile String graphName;
-    private volatile String graphAlias;
 
     private volatile Map<String, ByteBuffer> defaultPayload;
 
@@ -124,30 +122,6 @@ public class GraphOptions {
     }
 
     /**
-     * Returns the graph alias to use in graph queries.
-     *
-     * @return The graph alias to use in graph queries.
-     * @see #setGraphAlias(String)
-     */
-    public String getGraphAlias() {
-        return graphAlias;
-    }
-
-    /**
-     * Sets the graph alias to use in graph queries.
-     * <p/>
-     * This property is optional. If you don't call this method, it is left unset.
-     *
-     * @param graphAlias the graph alias to use in graph queries.
-     * @return this {@code GraphOptions} instance (for method chaining).
-     */
-    public GraphOptions setGraphAlias(String graphAlias) {
-        this.graphAlias = graphAlias;
-        rebuildDefaultPayload();
-        return this;
-    }
-
-    /**
      * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
      * <p/>
      * This method is intended for internal use only.
@@ -159,8 +133,7 @@ public class GraphOptions {
         if (statement.getGraphLanguage() == null
                 && statement.getGraphSource() == null
                 && statement.getGraphName() == null
-                && !statement.isSystemQuery()
-                && statement.getGraphAlias() == null) {
+                && !statement.isSystemQuery()) {
             return defaultPayload;
         } else {
             ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
@@ -169,7 +142,6 @@ public class GraphOptions {
             setOrDefault(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
             if (!statement.isSystemQuery())
                 setOrDefault(builder, GRAPH_NAME_KEY, statement.getGraphName());
-            setOrDefault(builder, GRAPH_ALIAS_KEY, statement.getGraphAlias());
 
             return builder.build();
         }
@@ -189,8 +161,6 @@ public class GraphOptions {
         builder.put(GRAPH_SOURCE_KEY, PayloadHelper.asBytes(this.graphSource));
         if (this.graphName != null)
             builder.put(GRAPH_NAME_KEY, PayloadHelper.asBytes(this.graphName));
-        if (this.graphAlias != null)
-            builder.put(GRAPH_ALIAS_KEY, PayloadHelper.asBytes(this.graphAlias));
 
         this.defaultPayload = builder.build();
     }

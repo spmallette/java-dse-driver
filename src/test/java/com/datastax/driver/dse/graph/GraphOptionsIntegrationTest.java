@@ -6,10 +6,6 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.utils.DseVersion;
 import org.testng.annotations.Test;
 
-import java.util.List;
-
-import static com.datastax.driver.dse.graph.Assertions.assertThat;
-
 @DseVersion(major = 5.0)
 public class GraphOptionsIntegrationTest extends CCMGraphTestsSupport {
 
@@ -37,38 +33,6 @@ public class GraphOptionsIntegrationTest extends CCMGraphTestsSupport {
         } finally {
             options.setGraphName(originalName);
         }
-    }
-
-    /**
-     * Validates that if the graph alias is set on GraphOptions that the aliased name can be used to represent the
-     * graph in a gremlin query.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "short", enabled = true)
-    public void should_use_alias_if_configured_in_graph_options() {
-        GraphOptions options = cluster().getConfiguration().getGraphOptions();
-        String originalAlias = options.getGraphAlias();
-        try {
-            options.setGraphAlias("myalias");
-            List<GraphResult> result = session().executeGraph("myalias.V().hasLabel('software')").all();
-            assertThat(result).hasSize(2);
-        } finally {
-            options.setGraphAlias(originalAlias);
-        }
-    }
-
-    /**
-     * Validates that if the graph alias is set on GraphStatement that the aliased name can be used to represent the
-     * graph in a gremlin query.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "short", enabled = true)
-    public void should_use_alias_if_configured_in_statement() {
-        GraphStatement stmt = new SimpleGraphStatement("h.V().hasLabel('software')").setGraphAlias("h");
-        List<GraphResult> result = session().executeGraph(stmt).all();
-        assertThat(result).hasSize(2);
     }
 
     // TODO tests for graph source and language.
