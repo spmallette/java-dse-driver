@@ -146,6 +146,12 @@ public class LineStringTest {
         assertThat(s.contains(p)).isFalse();
     }
 
+    @Test(groups = "unit")
+    public void should_accept_empty_shape() throws Exception {
+        LineString s = LineString.fromWellKnownText("LINESTRING EMPTY");
+        assertThat(s.getOgcGeometry().isEmpty()).isTrue();
+    }
+
     private void assertInvalidWkt(String s) {
         try {
             LineString.fromWellKnownText(s);
