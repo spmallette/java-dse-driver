@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * This is a zero-dimensional object that represents a specific (X,Y) location in a two-dimensional XY-plane.
  * In case of Geographic Coordinate Systems, the X coordinate is the longitude and the Y is the latitude.
  */
-public class Point extends OgcCompatibleGeometry<OGCPoint> {
+public class Point extends Geometry {
 
     private static final long serialVersionUID = 6329957740309318716L;
 
@@ -67,6 +67,11 @@ public class Point extends OgcCompatibleGeometry<OGCPoint> {
 
     Point(OGCPoint point) {
         super(point);
+    }
+
+    @Override
+    OGCPoint getOgcGeometry() {
+        return (OGCPoint) super.getOgcGeometry();
     }
 
     /**

@@ -33,8 +33,6 @@ class WkbSerializationProxy implements Serializable {
             return LineString.fromWellKnownBinary(buffer);
         else if (type == 3)
             return Polygon.fromWellKnownBinary(buffer);
-        else if (type == 101)
-            return Circle.fromWellKnownBinary(buffer);
         else
             throw new IllegalArgumentException("Unknown geospatial type code in serialized form: " + type);
     }

@@ -3,6 +3,8 @@
 ### 1.0.0-eap4 (in progress)
 
 - [new feature] JAVA-1098: Route graph analytics queries to the Spark master.
+- [bug] JAVA-1076: Handle WKT 'EMPTY' keyword in Geospatial types.
+- [improvement] JAVA-1106: Remove Circle type.
 
 
 ### 1.0.0-eap3
