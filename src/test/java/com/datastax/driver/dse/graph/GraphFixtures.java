@@ -13,7 +13,10 @@ import java.util.Collection;
 public class GraphFixtures {
 
     public static final String makeStrict =
-            "schema.config().option('graph.schema_mode').set(com.datastax.bdp.graph.api.model.Schema.Mode.Production)";
+            "schema.config().option('graph.schema_mode').set('production')";
+
+    public static final String allowScans =
+            "schema.config().option('graph.allow_scan').set('true')";
 
     /**
      * A single statement that builds the
@@ -21,7 +24,8 @@ public class GraphFixtures {
      */
     public static final Collection<String> modern = Lists.newArrayList(
             makeStrict,
-                    "schema.propertyKey('name').Text().ifNotExists().create();\n" +
+            allowScans,
+            "schema.propertyKey('name').Text().ifNotExists().create();\n" +
                     "schema.propertyKey('age').Int().ifNotExists().create();\n" +
                     "schema.propertyKey('lang').Text().ifNotExists().create();\n" +
                     "schema.propertyKey('weight').Float().ifNotExists().create();\n" +
