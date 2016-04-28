@@ -44,15 +44,14 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 {new Integer[]{Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 42}, null, "Int()", Integer.class},
                 {new Short[]{Short.MAX_VALUE, Short.MIN_VALUE, 0, 42}, null, "Smallint()", Short.class},
                 {new Long[]{Long.MAX_VALUE, Long.MIN_VALUE, 0L}, null, "Bigint()", Long.class},
-                {new Float[]{Float.MAX_VALUE, Float.MIN_VALUE, 0.0f, (float)Math.PI}, null, "Float()", Float.class},
+                {new Float[]{Float.MAX_VALUE, Float.MIN_VALUE, 0.0f, (float) Math.PI}, null, "Float()", Float.class},
                 {new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, Math.PI}, null, "Double()", Double.class},
                 {new String[]{"8675309.9998"}, null, "Decimal()", String.class},
                 {new String[]{"8675309"}, null, "Varint()", String.class},
                 {new String[]{"2016-02-04T02:26:31.657Z"}, null, "Timestamp()", String.class},
-                {new String[]{"P2DT3H4M"}, new String[]{"PT51H4M"}, "Duration()", String.class},
-                // TODO: Reenable when DSP-9208 addressed.
-                //{new String[]{"0xCAFE"}, null, "Blob()", String.class},
                 {new String[]{"", "75", "Lorem Ipsum"}, null, "Text()", String.class},
+                {new String[]{"P2DT3H4M", "5 s", "5 seconds", "1 minute", "1 hour"}, new String[]{"PT51H4M", "PT5S", "PT5S", "PT1M", "PT1H"}, "Duration()", String.class},
+                {new String[]{"0x48656c6c6f20576f726c64"}, new String[]{"SGVsbG8gV29ybGQ="}, "Blob()", String.class}, // Hello World.  TODO: Test with base64 input when supported.
                 {new String[]{UUID.randomUUID().toString()}, null, "Uuid()", String.class},
                 {new String[]{"127.0.0.1", "0:0:0:0:0:0:0:1", "2001:db8:85a3:0:0:8a2e:370:7334"}, null, "Inet()", String.class},
                 {new Point[]{p(0, 1), p(-5, 20)}, new String[]{"POINT (0 1)", "POINT (-5 20)"}, "Point()", String.class},
@@ -112,7 +111,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         String propertyName = "prop" + id;
         GraphStatement addVertexLabelAndProperty = new SimpleGraphStatement(
                 "schema.propertyKey(property)." + type + ".create()\n" +
-                "schema.vertexLabel(vertexLabel).properties(property).create()")
+                        "schema.vertexLabel(vertexLabel).properties(property).create()")
                 .set("vertexLabel", vertexLabel)
                 .set("property", propertyName);
         session().executeGraph(addVertexLabelAndProperty);
