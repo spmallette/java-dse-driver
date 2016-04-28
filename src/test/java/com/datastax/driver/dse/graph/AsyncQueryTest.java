@@ -24,6 +24,7 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
         super.onTestContextInitialized();
         executeGraph(
                 GraphFixtures.makeStrict,
+                GraphFixtures.allowScans,
                 "graph.schema().propertyKey('name').Text().create()",
                 "graph.schema().propertyKey('uuid').Uuid().create()",
                 "graph.schema().propertyKey('number').Double().create()",
