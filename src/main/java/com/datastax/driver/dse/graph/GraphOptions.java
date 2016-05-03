@@ -3,6 +3,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.google.common.collect.ImmutableMap;
 
 import java.nio.ByteBuffer;
@@ -26,6 +27,8 @@ public class GraphOptions {
     static final String GRAPH_SOURCE_KEY = "graph-source";
     static final String GRAPH_NAME_KEY = "graph-name";
     static final String GRAPH_LANGUAGE_KEY = "graph-language";
+    static final String GRAPH_READ_CONSISTENCY_KEY = "graph-read-consistency";
+    static final String GRAPH_WRITE_CONSISTENCY_KEY = "graph-write-consistency";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -40,6 +43,8 @@ public class GraphOptions {
     private volatile String graphLanguage = DEFAULT_GRAPH_LANGUAGE;
     private volatile String graphSource = DEFAULT_GRAPH_SOURCE;
     private volatile String graphName;
+    private volatile ConsistencyLevel graphReadConsistency;
+    private volatile ConsistencyLevel graphWriteConsistency;
 
     private volatile Map<String, ByteBuffer> defaultPayload;
 
@@ -122,6 +127,59 @@ public class GraphOptions {
     }
 
     /**
+     * Returns the read consistency level to use in graph queries.
+     *
+     * @return the read consistency level configured with graph queries.
+     */
+    public ConsistencyLevel getGraphReadConsistencyLevel() {
+        return this.graphReadConsistency;
+    }
+
+    /**
+     * Sets the read consistency level to use for graph queries.
+     * <p/>
+     * This setting will override the consistency level set with {@link GraphStatement#setConsistencyLevel(ConsistencyLevel)}
+     * only for the READ part of the graph query.
+     * <p/>
+     * Please see {@link GraphStatement#setConsistencyLevel(ConsistencyLevel)} for more information.
+     *
+     * @param cl the consistency level to set.
+     * @return this {@link GraphOptions} instance (for method chaining).
+     */
+    public GraphOptions setGraphReadConsistencyLevel(ConsistencyLevel cl) {
+        this.graphReadConsistency = cl;
+        rebuildDefaultPayload();
+        return this;
+    }
+
+    /**
+     * Returns the write consistency level to use in graph queries.
+     *
+     * @return the write consistency level configured with graph queries.
+     */
+    public ConsistencyLevel getGraphWriteConsistencyLevel() {
+        return this.graphWriteConsistency;
+    }
+
+    /**
+     * Sets the write consistency level to use for graph queries.
+     * <p/>
+     * This setting will override the consistency level set with {@link GraphStatement#setConsistencyLevel(ConsistencyLevel)}
+     * only for the write part of the graph query.
+     * <p/>
+     * Please see {@link GraphStatement#setConsistencyLevel(ConsistencyLevel)} for more information.
+     *
+     * @param cl the consistency level to set.
+     * @return this {@link GraphStatement} instance (for method chaining).
+     */
+    public GraphOptions setGraphWriteConsistencyLevel(ConsistencyLevel cl) {
+        this.graphWriteConsistency = cl;
+        rebuildDefaultPayload();
+        return this;
+    }
+
+    /**
+     * >>>>>>> JAVA-1104: add Native CL and Timestamp and graph CL to GraphOptions and Statements.
      * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
      * <p/>
      * This method is intended for internal use only.
@@ -132,6 +190,8 @@ public class GraphOptions {
     public Map<String, ByteBuffer> buildPayloadWithDefaults(GraphStatement statement) {
         if (statement.getGraphLanguage() == null
                 && statement.getGraphSource() == null
+                && statement.getGraphReadConsistencyLevel() == null
+                && statement.getGraphWriteConsistencyLevel() == null
                 && statement.getGraphName() == null
                 && !statement.isSystemQuery()) {
             return defaultPayload;
@@ -142,13 +202,15 @@ public class GraphOptions {
             setOrDefault(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
             if (!statement.isSystemQuery())
                 setOrDefault(builder, GRAPH_NAME_KEY, statement.getGraphName());
+            setOrDefault(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel());
+            setOrDefault(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel());
 
             return builder.build();
         }
     }
 
-    private void setOrDefault(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
-        ByteBuffer bytes = (value == null) ? defaultPayload.get(key) : PayloadHelper.asBytes(value);
+    private void setOrDefault(ImmutableMap.Builder<String, ByteBuffer> builder, String key, Object value) {
+        ByteBuffer bytes = (value == null) ? defaultPayload.get(key) : PayloadHelper.asBytes(value.toString());
 
         if (bytes != null)
             builder.put(key, bytes);
@@ -159,8 +221,15 @@ public class GraphOptions {
 
         builder.put(GRAPH_LANGUAGE_KEY, PayloadHelper.asBytes(this.graphLanguage));
         builder.put(GRAPH_SOURCE_KEY, PayloadHelper.asBytes(this.graphSource));
-        if (this.graphName != null)
+        if (this.graphName != null) {
             builder.put(GRAPH_NAME_KEY, PayloadHelper.asBytes(this.graphName));
+        }
+        if (this.graphReadConsistency != null) {
+            builder.put(GRAPH_READ_CONSISTENCY_KEY, PayloadHelper.asBytes(this.graphReadConsistency.name()));
+        }
+        if (this.graphWriteConsistency != null) {
+            builder.put(GRAPH_WRITE_CONSISTENCY_KEY, PayloadHelper.asBytes(this.graphWriteConsistency.name()));
+        }
 
         this.defaultPayload = builder.build();
     }

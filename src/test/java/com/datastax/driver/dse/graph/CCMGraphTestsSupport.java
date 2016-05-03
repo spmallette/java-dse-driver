@@ -77,7 +77,7 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
             try {
                 // Unfortunately we need to sleep between schema queries with multi-node clusters until
                 // DSP-9376 is fixed.
-                if(cluster().getMetadata().getAllHosts().size() > 1) {
+                if (cluster().getMetadata().getAllHosts().size() > 1) {
                     Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
                 }
                 session().executeGraph(stmt);
