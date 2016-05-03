@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static com.datastax.driver.core.CCMAccess.Workload.graph;
+import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
 
 @CCMConfig(createKeyspace = false, dse = true)
 public class CCMGraphTestsSupport extends CCMDseTestsSupport {
@@ -84,6 +85,6 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
     @Override
     public CCMBridge.Builder configureCCM() {
         return super.configureCCM().withWorkload(1, graph)
-                .withDSEConfiguration("graph.gremlin_server.port", TestUtils.findAvailablePort());
+                .withDSEConfiguration("graph.gremlin_server.port", RANDOM_PORT);
     }
 }

@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 
+import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
+
 @CCMConfig(ccmProvider = "configureCCM")
 public class CCMDseTestsSupport extends CCMTestsSupport {
 
@@ -39,8 +41,8 @@ public class CCMDseTestsSupport extends CCMTestsSupport {
         if (VersionNumber.parse(CCMBridge.getDSEVersion()).getMajor() >= 5) {
             int leasePort = TestUtils.findAvailablePort();
             int internodePort = TestUtils.findAvailablePort();
-            builder = builder.withDSEConfiguration("lease_netty_server_port", leasePort)
-                    .withDSEConfiguration("internode_messaging_options.port", internodePort);
+            builder = builder.withDSEConfiguration("lease_netty_server_port", RANDOM_PORT)
+                    .withDSEConfiguration("internode_messaging_options.port", RANDOM_PORT);
         }
         return builder;
     }
