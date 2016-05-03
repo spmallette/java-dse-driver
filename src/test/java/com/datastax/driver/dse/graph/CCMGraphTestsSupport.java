@@ -11,11 +11,13 @@ import com.datastax.driver.dse.DseCluster;
 import com.datastax.driver.dse.DseSession;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.Uninterruptibles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import static com.datastax.driver.core.CCMAccess.Workload.graph;
 import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
@@ -73,6 +75,11 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
         assert session() != null;
         for (String stmt : statements) {
             try {
+                // Unfortunately we need to sleep between schema queries with multi-node clusters until
+                // DSP-9376 is fixed.
+                if(cluster().getMetadata().getAllHosts().size() > 1) {
+                    Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
+                }
                 session().executeGraph(stmt);
             } catch (Exception e) {
                 errorOut();
