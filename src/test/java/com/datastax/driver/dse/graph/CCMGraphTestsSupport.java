@@ -31,9 +31,21 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
     public void onTestContextInitialized() {
         // TODO only create the graph schema if told to via annotation config
         // Create the graph schema and set the namespace in the graph configuration to it.
+        createAndSetGraphConfig(1);
+    }
+
+    /**
+     * Creates a graph and sets the cluster() configuration to use that graph's name.
+     *
+     * @param rf Replication factor for the graph's data and system keyspaces.
+     */
+    public void createAndSetGraphConfig(int rf) {
         String graphName = TestUtils.generateIdentifier("graph_");
-        session().executeGraph("system.graph(name).ifNotExists().create()",
-                ImmutableMap.<String, Object>of("name", graphName));
+        String replicationConfig = "{'class': 'SimpleStrategy', 'replication_factor' : " + rf + "}";
+        session().executeGraph("system.graph(name).option('graph.replication_config')" +
+                        ".set(replicationConfig).option('graph.system_replication_config')" +
+                        ".set(replicationConfig).ifNotExists().create()",
+                ImmutableMap.<String, Object>of("name", graphName, "replicationConfig", replicationConfig));
         cluster().getConfiguration().getGraphOptions().setGraphName(graphName);
     }
 

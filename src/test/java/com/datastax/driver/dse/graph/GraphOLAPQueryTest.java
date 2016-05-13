@@ -6,18 +6,112 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.utils.DseVersion;
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.Collection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DseVersion(major = 5.0)
+@CCMConfig(dirtiesContext = true)
 public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphOLAPQueryTest.class);
+
+    // Number of nodes to run with.
+    private static final Integer NUM_NODES = 2;
+
+    @Override
+    protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
+        super.initTestContext(testInstance, testMethod);
+        // Set the dse_leases keyspace to RF of NUM_NODES, this will prevent election of new job tracker until all nodes
+        // are available, preventing weird cases where 1 node thinks the wrong node is a master.
+        Cluster tempCluster = createClusterBuilder().addContactPointsWithPorts(getContactPointsWithPorts()).build();
+        try {
+            Session session = tempCluster.connect();
+            session.execute("ALTER KEYSPACE dse_leases WITH REPLICATION = {'class': 'NetworkTopologyStrategy', 'GraphAnalytics': '" + NUM_NODES + "'}");
+        } finally {
+            tempCluster.close();
+        }
+        // Bootstrap additional nodes, waiting for binary interface and for it to come up as a spark worker.
+        for (int i = 1; i <= NUM_NODES; i++) {
+            if (i != 1) {
+                this.ccm().add(i);
+                this.ccm().setWorkload(i, CCMAccess.Workload.graph, CCMAccess.Workload.spark);
+                this.ccm().start(i);
+            }
+
+            InetSocketAddress binaryIntf = new InetSocketAddress(TestUtils.ipOfNode(i), this.ccm().getBinaryPort());
+            LOGGER.debug("Waiting for binary interface: {}.", binaryIntf);
+            TestUtils.waitUntilPortIsUp(binaryIntf);
+
+            InetSocketAddress masterHttpPort = new InetSocketAddress("localhost", 7080);
+            LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
+            TestUtils.waitUntilPortIsUp(masterHttpPort);
+
+            waitForWorkers(i);
+        }
+    }
+
+    /**
+     * Wait for workerCount spark workers to come online.
+     *
+     * @param workerCount Number of workers to expect up.
+     */
+    private void waitForWorkers(final int workerCount) {
+        LOGGER.debug("Waiting for {} workers to be alive.", workerCount);
+        ConditionChecker.check().that(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                URL masterHome = new URL("http://localhost:7080");
+                HttpURLConnection connection = (HttpURLConnection) masterHome.openConnection();
+                connection.setRequestMethod("GET");
+                BufferedReader rd = null;
+                try {
+                    rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String line;
+                    Pattern aliveWorkersPattern = Pattern.compile("Alive Workers:.*(\\d+)</li>");
+                    while ((line = rd.readLine()) != null) {
+                        Matcher matcher = aliveWorkersPattern.matcher(line);
+                        if (matcher.find()) {
+                            Integer numWorkers = Integer.parseInt(matcher.group(1));
+                            if (numWorkers != workerCount) {
+                                LOGGER.debug("Only {}/{} workers are alive.", numWorkers, workerCount);
+                                return false;
+                            } else {
+                                LOGGER.debug("{}/{} workers now alive.", workerCount, workerCount);
+                                return true;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.debug("Error encountered while checking master URL for worker count.", e);
+                } finally {
+                    if (rd != null) {
+                        rd.close();
+                    }
+                }
+                LOGGER.debug("Could not find alive workers text.");
+                return false;
+            }
+        }).every(1, TimeUnit.SECONDS).before(5, TimeUnit.MINUTES).becomesTrue();
+    }
 
     @Override
     public void onTestContextInitialized() {
-        super.onTestContextInitialized();
+        createAndSetGraphConfig(NUM_NODES);
         executeGraph(GraphFixtures.modern);
     }
 
@@ -25,13 +119,11 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
     public CCMBridge.Builder configureCCM() {
         // Unfortunately binary port 9042 is explicitly required for internode communication (without more
         // dse specific configuration code).
-        CCMBridge.Builder builder = super.configureCCM().withNodes(3)
-                .withBinaryPort(9042);
-        // Configure each node with graph and spark workload.
-        for (int i = 1; i <= 3; i++) {
-            builder = builder
-                    .withWorkload(i, CCMAccess.Workload.graph, CCMAccess.Workload.spark);
-        }
+        // Start with 1 node initially, 2 other nodes will be bootstrapped one at a time.
+        CCMBridge.Builder builder = super.configureCCM()
+                .withBinaryPort(9042)
+                .withNodes(1)
+                .withWorkload(1, CCMAccess.Workload.graph, CCMAccess.Workload.spark);
         return builder;
     }
 

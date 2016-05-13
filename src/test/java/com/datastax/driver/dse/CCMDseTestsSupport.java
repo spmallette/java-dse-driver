@@ -21,8 +21,8 @@ public class CCMDseTestsSupport extends CCMTestsSupport {
     protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
         super.initTestContext(testInstance, testMethod);
         // TODO remove this once DSE startup stabilizes.
-        LOGGER.debug("Waiting for binary protocol to show up");
         for (InetSocketAddress node : getContactPointsWithPorts()) {
+            LOGGER.debug("Waiting for binary protocol to show up for {}", node);
             TestUtils.waitUntilPortIsUp(node);
         }
     }
