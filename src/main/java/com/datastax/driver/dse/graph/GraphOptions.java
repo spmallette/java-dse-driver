@@ -38,7 +38,7 @@ public class GraphOptions {
     /**
      * The default value for {@link #getGraphSource()} ({@value}).
      */
-    public static final String DEFAULT_GRAPH_SOURCE = "default";
+    public static final String DEFAULT_GRAPH_SOURCE = "g";
 
     private volatile String graphLanguage = DEFAULT_GRAPH_LANGUAGE;
     private volatile String graphSource = DEFAULT_GRAPH_SOURCE;
