@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.0.0-eap5 (in progress)
+
+- [bug] JAVA-1183: Change default traversal source to 'g'.
+
+
 ### 1.0.0-eap4
 
 - [new feature] JAVA-1098: Route graph analytics queries to the Spark master.
