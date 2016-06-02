@@ -3,10 +3,12 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.CCMAccess;
+import com.datastax.driver.core.CCMBridge;
+import com.datastax.driver.core.CCMConfig;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
-import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.Test;
 
 import static com.datastax.driver.core.ConsistencyLevel.ALL;
@@ -30,13 +32,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
     @Override
     public void onTestContextInitialized() {
         // Create graph with RF 3.
-        String graphName = TestUtils.generateIdentifier("graph_");
-        String replicationConfig = "{'class': 'SimpleStrategy', 'replication_factor' : 3}";
-        session().executeGraph("system.graph(name).option('graph.replication_config')" +
-                        ".set(replicationConfig).option('graph.system_replication_config')" +
-                        ".set(replicationConfig).ifNotExists().create()",
-                ImmutableMap.<String, Object>of("name", graphName, "replicationConfig", replicationConfig));
-        cluster().getConfiguration().getGraphOptions().setGraphName(graphName);
+        createAndSetGraphConfig(3);
         // Set temporarily high read timeout to deal with schema changes made across nodes.
         cluster().getConfiguration().getSocketOptions().setReadTimeoutMillis(32000);
         executeGraph(GraphFixtures.modern);
