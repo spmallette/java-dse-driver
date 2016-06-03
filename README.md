@@ -118,8 +118,8 @@ See the Javadocs of each implementation for more details.
 
 ## Geospatial types
 
-DSE 5 comes with a set of additional types to represent geospatial data: `PointType`, `LineStringType`, `PolygonType`
-and `CircleType`:
+DSE 5 comes with a set of additional types to represent geospatial data: `PointType`, `LineStringType`, and
+`PolygonType`:
 
 ```
 cqlsh> CREATE TABLE points_of_interest(name text PRIMARY KEY, coords 'PointType');
