@@ -24,7 +24,7 @@
         <dse>true</dse>
         <cassandra.version>5.0</cassandra.version>
         <java.version>1.6</java.version>
-        <java-driver.version>3.0.1</java-driver.version>
+        <core.driver.version.range>[3.0.1,3.1.0)</core.driver.version.range>
         <slf4j-api.version>1.7.13</slf4j-api.version>
         <guava.version>16.0.1</guava.version>
         <snappy.version>1.0.5</snappy.version>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>${java-driver.version}</version>
+            <version>${core.driver.version.range}</version>
         </dependency>
 
         <dependency>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>${java-driver.version}</version>
+            <version>${core.driver.version.range}</version>
             <classifier>sources</classifier>
             <optional>true</optional>
         </dependency>
@@ -128,7 +128,7 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <version>${java-driver.version}</version>
+            <version>${core.driver.version.range}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
