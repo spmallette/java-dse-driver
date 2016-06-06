@@ -3,7 +3,7 @@
  */
 package com.datastax.driver.dse.graph;
 
-public class Assertions extends com.datastax.driver.core.Assertions {
+public class GraphAssertions extends com.datastax.driver.core.Assertions {
 
     public static EdgeAssert assertThat(Edge edge) {
         return new EdgeAssert(edge);
@@ -13,8 +13,12 @@ public class Assertions extends com.datastax.driver.core.Assertions {
         return new VertexAssert(vertex);
     }
 
-    public static GraphResultAssert assertThat(GraphResult result) {
-        return new GraphResultAssert(result);
+    public static VertexPropertyAssert assertThat(VertexProperty vertexProperty) {
+        return new VertexPropertyAssert(vertexProperty);
+    }
+
+    public static GraphNodeAssert assertThat(GraphNode result) {
+        return new GraphNodeAssert(result);
     }
 
     public static PathAssert assertThat(Path path) {

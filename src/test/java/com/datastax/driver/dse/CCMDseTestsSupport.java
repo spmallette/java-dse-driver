@@ -28,13 +28,12 @@ public class CCMDseTestsSupport extends CCMTestsSupport {
     }
 
     @Override
-    public Cluster.Builder createClusterBuilder() {
+    public DseCluster.Builder createClusterBuilder() {
         return DseCluster.builder()
                 .withCodecRegistry(new CodecRegistry())
                 .withQueryOptions(TestUtils.nonDebouncingQueryOptions());
     }
 
-    @SuppressWarnings("unused")
     public CCMBridge.Builder configureCCM() {
         CCMBridge.Builder builder = CCMBridge.builder();
         // Acquire a unique port for the netty lease port.

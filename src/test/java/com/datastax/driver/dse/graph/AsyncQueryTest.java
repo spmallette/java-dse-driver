@@ -14,7 +14,8 @@ import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static com.datastax.driver.dse.graph.Assertions.assertThat;
+import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
+import static com.datastax.driver.dse.graph.GraphExtractors.asVertex;
 
 @DseVersion(major = 5.0)
 public class AsyncQueryTest extends CCMGraphTestsSupport {
@@ -25,9 +26,9 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
         executeGraph(
                 GraphFixtures.makeStrict,
                 GraphFixtures.allowScans,
-                "graph.schema().propertyKey('name').Text().create()",
-                "graph.schema().propertyKey('uuid').Uuid().create()",
-                "graph.schema().propertyKey('number').Double().create()",
+                "schema.propertyKey('name').Text().create()",
+                "schema.propertyKey('uuid').Uuid().create()",
+                "schema.propertyKey('number').Double().create()",
                 "schema.vertexLabel('person').properties('name', 'uuid', 'number').create()"
         );
     }
@@ -77,7 +78,7 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
                 @Override
                 public ListenableFuture<Vertex> apply(GraphResultSet input) {
                     try {
-                        GraphResult r = input.one();
+                        GraphNode r = input.one();
                         assertThat(r).asVertex()
                                 .hasProperty("name", name)
                                 .hasProperty("uuid", uuid.toString())
@@ -94,7 +95,7 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
         List<Vertex> addedVertices = Uninterruptibles.getUninterruptibly(Futures.allAsList(futures), 1, TimeUnit.MINUTES);
 
         // Retrieve all vertices and verify they were stored as expected.
-        List<GraphResult> results = session().executeGraph("g.V().hasLabel('person')").all();
-        assertThat(results).extractingResultOf("asVertex").containsOnlyElementsOf(addedVertices);
+        List<GraphNode> results = session().executeGraph("g.V().hasLabel('person')").all();
+        assertThat(results).extracting(asVertex()).containsOnlyElementsOf(addedVertices);
     }
 }

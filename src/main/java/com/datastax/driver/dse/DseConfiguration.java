@@ -28,5 +28,4 @@ public class DseConfiguration extends Configuration {
     public GraphOptions getGraphOptions() {
         return graphOptions;
     }
-
 }

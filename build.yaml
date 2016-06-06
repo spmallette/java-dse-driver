@@ -8,6 +8,15 @@ cassandra:
   - dse-4.8
   - dse-5.0-eap
 build:
+  - script: |
+      . /usr/local/bin/jdk_switcher.sh
+      jdk_switcher use oraclejdk8
+      export MAVEN_HOME=/home/jenkins/.mvn/apache-maven-3.2.5
+      export PATH=$MAVEN_HOME/bin:$PATH
+      mvn -B install -DskipTests
+  - script: |
+      . /usr/local/bin/jdk_switcher.sh
+      jdk_switcher use $JAVA_VERSION
   - type: maven
     version: 3.2.5
     goals: verify --fail-never -Plong
@@ -22,6 +31,7 @@ build:
       ccm.maxNumberOfNodes=1
       failIfNoTests=false
       maven.test.failure.ignore=true
+      maven.javadoc.skip=true
   - xunit:
     - "**/target/surefire-reports/TEST-*.xml"
     - "**/target/failsafe-reports/TEST-*.xml"

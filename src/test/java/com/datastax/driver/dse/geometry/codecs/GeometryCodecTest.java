@@ -26,7 +26,7 @@ public abstract class GeometryCodecTest<G extends Geometry, C extends GeometryCo
 
     public abstract Object[][] parse();
 
-    @Test(groups = "unit", dataProvider = "serde")
+    @Test(groups = "unit", dataProvider = "jackson")
     public void should_serialize_and_deserialize(G input, G expected) throws Exception {
         assertThat(codec.deserialize(codec.serialize(input, V4), V4)).isEqualTo(expected);
         assertThat(deserialize(serialize(input))).isEqualTo(expected);

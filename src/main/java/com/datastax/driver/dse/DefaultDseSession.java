@@ -5,7 +5,6 @@ package com.datastax.driver.dse;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.AddressTranslator;
-import com.datastax.driver.dse.graph.GraphOptions;
 import com.datastax.driver.dse.graph.GraphResultSet;
 import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.driver.dse.graph.SimpleGraphStatement;
@@ -25,28 +24,15 @@ class DefaultDseSession implements DseSession {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultDseSession.class);
 
-    private static final Function<ResultSet, GraphResultSet> TO_GRAPH_RESULT_SET = new Function<ResultSet, GraphResultSet>() {
-        @Override
-        public GraphResultSet apply(ResultSet input) {
-            return new GraphResultSet(input);
-        }
-    };
-
     private static final String ANALYTICS_GRAPH_SOURCE = "a";
     private static final Statement LOOKUP_ANALYTICS_GRAPH_SERVER = new SimpleStatement("CALL DseClientTool.getAnalyticsGraphServer()");
 
     private final Session delegate;
-    private final Cluster cluster;
-    private final GraphOptions graphOptions;
-    private final AddressTranslator addressTranslator;
-    private final int port;
+    private final DseCluster dseCluster;
 
-    DefaultDseSession(Session delegate, GraphOptions graphOptions) {
+    DefaultDseSession(Session delegate, DseCluster dseCluster) {
         this.delegate = delegate;
-        this.cluster = delegate.getCluster();
-        this.addressTranslator = this.cluster.getConfiguration().getPolicies().getAddressTranslator();
-        this.port = this.cluster.getConfiguration().getProtocolOptions().getPort();
-        this.graphOptions = graphOptions;
+        this.dseCluster = dseCluster;
     }
 
     @Override
@@ -99,8 +85,9 @@ class DefaultDseSession implements DseSession {
 
     @Override
     public ListenableFuture<GraphResultSet> executeGraphAsync(GraphStatement graphStatement) {
+        DseConfiguration configuration = getCluster().getConfiguration();
         final Statement statement = graphStatement.unwrap();
-        statement.setOutgoingPayload(graphOptions.buildPayloadWithDefaults(graphStatement));
+        statement.setOutgoingPayload(dseCluster.getConfiguration().getGraphOptions().buildPayloadWithDefaults(graphStatement));
 
         if (ANALYTICS_GRAPH_SOURCE.equals(graphStatement.getGraphSource())) {
             // Try to send the statement directly to the graph analytics server (we have to look it up first)
@@ -120,11 +107,21 @@ class DefaultDseSession implements DseSession {
                     Statement targetedStatement = (analyticsServer == null)
                             ? statement
                             : new HostTargetingStatement(statement, analyticsServer);
-                    return Futures.transform(delegate.executeAsync(targetedStatement), TO_GRAPH_RESULT_SET);
+                    return Futures.transform(delegate.executeAsync(targetedStatement), new Function<ResultSet, GraphResultSet>() {
+                        @Override
+                        public GraphResultSet apply(ResultSet input) {
+                            return new GraphResultSet(input);
+                        }
+                    });
                 }
             });
         } else {
-            return Futures.transform(delegate.executeAsync(statement), TO_GRAPH_RESULT_SET);
+            return Futures.transform(delegate.executeAsync(statement), new Function<ResultSet, GraphResultSet>() {
+                @Override
+                public GraphResultSet apply(ResultSet input) {
+                    return new GraphResultSet(input);
+                }
+            });
         }
     }
 
@@ -139,9 +136,11 @@ class DefaultDseSession implements DseSession {
             if (result != null && result.containsKey("location")) {
                 String location = result.get("location");
                 String hostName = location.substring(0, location.lastIndexOf(":"));
-                InetSocketAddress broadcastRpcAddress = this.addressTranslator.translate(new InetSocketAddress(hostName, port));
+                AddressTranslator addressTranslator = dseCluster.getConfiguration().getPolicies().getAddressTranslator();
+                int port = dseCluster.getConfiguration().getProtocolOptions().getPort();
+                InetSocketAddress broadcastRpcAddress = addressTranslator.translate(new InetSocketAddress(hostName, port));
                 // TODO it would make sense to expose a 'getHostBySocketAddress' in the core to avoid the iteration
-                for (Host host : cluster.getMetadata().getAllHosts()) {
+                for (Host host : dseCluster.getMetadata().getAllHosts()) {
                     if (host.getSocketAddress().equals(broadcastRpcAddress)) {
                         logger.debug("Routing analytics query to {}", host);
                         return host;
@@ -163,8 +162,10 @@ class DefaultDseSession implements DseSession {
     }
 
     @Override
-    public Cluster getCluster() {
-        return delegate.getCluster();
+    public DseCluster getCluster() {
+        // do not return delegate.getCluster() as this would be
+        // an instance of com.datastax.driver.core.Cluster.
+        return dseCluster;
     }
 
     @Override

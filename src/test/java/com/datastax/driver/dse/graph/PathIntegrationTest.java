@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 import java.util.Set;
 
-import static com.datastax.driver.dse.graph.Assertions.assertThat;
+import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 @DseVersion(major = 5.0)
 public class PathIntegrationTest extends CCMGraphTestsSupport {
@@ -30,6 +30,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
      * </ul>
      */
     private void validatePathObjects(Path path) {
+
         // marko should be the origin point.
         assertThat(path)
                 .object(0)
@@ -57,7 +58,8 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
                 .hasProperty("name", "josh")
                 .hasProperty("age", 32);
 
-        if (path.getObjects().get(4).asVertex().getProperties().get("name").asString().equals("lop")) {
+        if (path.getObjects().get(4).asVertex().getProperty("name").getValue().asString().equals("lop")) {
+
             // there should be a 'created' relationship between josh and lop.
             assertThat(path)
                     .object(3)
@@ -76,7 +78,9 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
                     .hasLabel("software")
                     .hasProperty("name", "lop")
                     .hasProperty("lang", "java");
+
         } else {
+
             // there should be a 'created' relationship between josh and ripple.
             assertThat(path)
                     .object(3)
@@ -109,7 +113,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
                 ".outE('knows').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().path()");
         assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphResult result : rs) {
+        for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
             assertThat(path)
@@ -132,7 +136,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
                 ".outE('knows').as('b').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().as('h').path()");
         assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphResult result : rs) {
+        for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
             assertThat(path)
@@ -155,7 +159,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko')" +
                 ".outE('knows').inV().outE('created').inV().path()");
         assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
-        for (GraphResult result : rs) {
+        for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
             assertThat(path.getLabels()).hasSize(5);

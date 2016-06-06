@@ -40,7 +40,7 @@ public class DefaultTimestampTest extends CCMGraphTestsSupport {
                 .setDefaultTimestamp(ts);
         GraphResultSet result = session().executeGraph(addVtxStmt);
         Vertex v = result.one().asVertex();
-        GraphResult id = v.getId();
+        GraphNode id = v.getId();
 
         // Access the data as it is stored in C* tables.
         // Note: This could be interpreted as somewhat fragile as it is possible the internal storage format for graph

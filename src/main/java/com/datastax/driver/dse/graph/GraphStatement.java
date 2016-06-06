@@ -239,9 +239,9 @@ public abstract class GraphStatement {
     public abstract long getDefaultTimestamp();
 
     /**
-     * >>>>>>> JAVA-1104: add Native CL and Timestamp and graph CL to GraphOptions and Statements.
-     * "Unwraps" the current graph statement, i.e.,
+     * "Unwraps" the current graph statement, that is,
      * returns an executable {@link Statement} object corresponding to this graph statement.
+     * <p>
      * This method is intended for internal use only, users wishing to execute graph statements
      * should use {@link DseSession#executeGraph(GraphStatement)}.
      * <p/>

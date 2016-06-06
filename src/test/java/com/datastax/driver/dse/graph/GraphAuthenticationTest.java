@@ -4,7 +4,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMBridge;
-import com.datastax.driver.core.Cluster;
+import com.datastax.driver.dse.DseCluster;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +35,7 @@ public class GraphAuthenticationTest extends CCMGraphTestsSupport {
     }
 
     @Override
-    public Cluster.Builder createClusterBuilder() {
+    public DseCluster.Builder createClusterBuilder() {
         return super.createClusterBuilder().withCredentials("cassandra", "cassandra");
     }
 }

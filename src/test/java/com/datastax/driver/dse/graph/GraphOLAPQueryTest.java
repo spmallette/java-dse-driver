@@ -153,7 +153,7 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
         for (int i = 0; i < times; i++) {
             GraphResultSet result = session().executeGraph(statement);
             assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
-            GraphResult r = result.one();
+            GraphNode r = result.one();
             assertThat(r.asInt()).isEqualTo(6);
 
             ExecutionInfo executionInfo = result.getExecutionInfo();

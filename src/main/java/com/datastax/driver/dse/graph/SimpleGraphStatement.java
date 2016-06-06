@@ -9,6 +9,8 @@ import com.datastax.driver.core.SimpleStatement;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * A simple graph statement implementation.
  */
@@ -31,6 +33,7 @@ public class SimpleGraphStatement extends RegularGraphStatement {
     }
 
     public SimpleGraphStatement(String query, Map<String, Object> valuesMap) {
+        checkNotNull(valuesMap, "Parameter valuesMap cannot be null");
         this.query = query;
         this.valuesMap = valuesMap;
     }
@@ -48,8 +51,10 @@ public class SimpleGraphStatement extends RegularGraphStatement {
      * parameters in Gremlin queries are simply referenced by their names.
      * Please refer to Gremlin's documentation for more information.
      * <p/>
-     * Parameter values can be of any type supported in JSON:
-     * Boolean, Integer, Long, Float, Double, and String.
+     * Parameter values can be of any type supported by the subprotocol in use:
+     * Boolean, Integer, Long, Float, Double, String, Map, List, {@link GraphNode},
+     * {@link Element}, any geospatial type, and {@link org.apache.tinkerpop.gremlin.structure.Element}
+     * (if support for Tinkerpop is activated).
      *
      * @param name  the parameter name, as referenced in the graph query.
      * @param value the parameter value.
@@ -92,8 +97,12 @@ public class SimpleGraphStatement extends RegularGraphStatement {
 
     private void maybeRebuildCache() {
         if (needsRebuild) {
-            String values = GraphJsonUtils.convert(valuesMap);
-            statement = new SimpleStatement(query, values);
+            if (valuesMap.isEmpty()) {
+                statement = new SimpleStatement(query);
+            } else {
+                String values = GraphJsonUtils.INSTANCE.writeValueAsString(valuesMap);
+                statement = new SimpleStatement(query, values);
+            }
             if (getConsistencyLevel() != null)
                 statement.setConsistencyLevel(nativeConsistencyLevel);
             if (getDefaultTimestamp() >= 0)

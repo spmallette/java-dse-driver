@@ -5,6 +5,8 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.dse.DseSession;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -14,12 +16,28 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.datastax.driver.dse.graph.GraphJsonUtils.ROW_TO_GRAPH_RESULT;
-
 /**
  * The result of a graph query.
  */
-public class GraphResultSet implements Iterable<GraphResult> {
+public class GraphResultSet implements Iterable<GraphNode> {
+
+    private static final Function<Row, GraphNode> ROW_TO_NODE = new Function<Row, GraphNode>() {
+
+        @Override
+        public GraphNode apply(Row row) {
+            // Seems like sometimes traversals can return empty rows
+            if (row != null) {
+                String jsonString = row.getString("gremlin");
+                try {
+                    return GraphJsonUtils.INSTANCE.readStringAsTree(jsonString).get("result");
+                } catch (RuntimeException e) {
+                    throw new DriverException("Could not parse the result returned by the Graph server as a JSON string : " + jsonString, e);
+                }
+            } else {
+                return null;
+            }
+        }
+    };
 
     private final ResultSet wrapped;
 
@@ -45,8 +63,8 @@ public class GraphResultSet implements Iterable<GraphResult> {
      *
      * @return the next result, or {@code null} if there are no more of them.
      */
-    public GraphResult one() {
-        return ROW_TO_GRAPH_RESULT.apply(wrapped.one());
+    public GraphNode one() {
+        return ROW_TO_NODE.apply(wrapped.one());
     }
 
     /**
@@ -59,8 +77,8 @@ public class GraphResultSet implements Iterable<GraphResult> {
      * @return a list containing the remaining results. The returned list is empty if and only this result set is
      * {@link #isExhausted() exhausted}. The result set will be exhausted after a call to this method.
      */
-    public List<GraphResult> all() {
-        return Lists.transform(wrapped.all(), ROW_TO_GRAPH_RESULT);
+    public List<GraphNode> all() {
+        return Lists.transform(wrapped.all(), ROW_TO_NODE);
     }
 
     /**
@@ -73,15 +91,15 @@ public class GraphResultSet implements Iterable<GraphResult> {
      *
      * @return an iterator that will consume and return the remaining results.
      */
-    public Iterator<GraphResult> iterator() {
-        return new Iterator<GraphResult>() {
+    public Iterator<GraphNode> iterator() {
+        return new Iterator<GraphNode>() {
             @Override
             public boolean hasNext() {
                 return !wrapped.isExhausted();
             }
 
             @Override
-            public GraphResult next() {
+            public GraphNode next() {
                 return one();
             }
 
@@ -132,11 +150,11 @@ public class GraphResultSet implements Iterable<GraphResult> {
      * result set, you can do:
      * <pre>
      *   GraphResultSet rs = session.executeGraph(...);
-     *   Iterator&lt;GraphResult&gt; iter = rs.iterator();
+     *   Iterator&lt;GraphNode&gt; iter = rs.iterator();
      *   while (iter.hasNext()) {
      *       if (rs.getAvailableWithoutFetching() == 100 &amp;&amp; !rs.isFullyFetched())
      *           rs.fetchMoreResults();
-     *       GraphResult result = iter.next()
+     *       GraphNode result = iter.next()
      *       ... process the result ...
      *   }
      * </pre>
@@ -191,7 +209,7 @@ public class GraphResultSet implements Iterable<GraphResult> {
      * <p/>
      * If no paging was used (because the result set was small enough), the list only contains one element.
      *
-     * @return a list of the execution info for all the queries made for this result set.
+     * @return a list of the execution info for all the queries made for this GraphResultSet.
      */
     public List<ExecutionInfo> getAllExecutionInfo() {
         return wrapped.getAllExecutionInfo();

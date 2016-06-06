@@ -3,212 +3,143 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.exceptions.DriverException;
-import com.datastax.driver.dse.geometry.Geometry;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 
-import java.io.IOException;
-import java.util.*;
+import com.datastax.driver.core.VersionNumber;
+import com.datastax.driver.dse.DseCluster;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Helper methods that deal with JSON serialization and deserialization of Graph results.
+ *
  */
 class GraphJsonUtils {
 
-    /**
-     * A deserializer for {@link Edge} instances.
-     */
-    static class EdgeDeserializer extends JsonDeserializer<Edge> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphJsonUtils.class);
 
-        @Override
-        public Edge deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-            JsonNode jsonNode = jsonParser.getCodec().readTree(jsonParser);
-            checkEdge(jsonNode);
-            return new Edge(
-                    new GraphResult(jsonNode.get("id")),
-                    jsonNode.get("label").asText(),
-                    jsonNode.get("type").asText(),
-                    transformEdgeProperties(jsonNode.get("properties")),
-                    new GraphResult(jsonNode.get("inV")),
-                    jsonNode.get("inVLabel").asText(),
-                    new GraphResult(jsonNode.get("outV")),
-                    jsonNode.get("outVLabel").asText()
-            );
-        }
-
-    }
-
-    /**
-     * A deserializer for {@link Vertex} instances.
-     */
-    static class VertexDeserializer extends JsonDeserializer<Vertex> {
-
-        @Override
-        public Vertex deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-            JsonNode jsonNode = jsonParser.getCodec().readTree(jsonParser);
-            checkVertex(jsonNode);
-            return new Vertex(
-                    new GraphResult(jsonNode.get("id")),
-                    jsonNode.get("label").asText(),
-                    jsonNode.get("type").asText(),
-                    transformVertexProperties(jsonNode.get("properties")));
-        }
-    }
-
-    static class PathDeserializer extends JsonDeserializer<Path> {
-        @Override
-        public Path deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-            JsonNode jsonNode = jsonParser.getCodec().readTree(jsonParser);
-
-            return new Path(
-                    toStringSets(jsonNode, "labels"),
-                    toGraphResults(jsonNode, "objects"));
-        }
-
-        private List<Set<String>> toStringSets(JsonNode jsonNode, String name) {
-            ImmutableList.Builder<Set<String>> listBuilder = ImmutableList.builder();
-            Iterator<JsonNode> outerElements = jsonNode.get(name).elements();
-            while (outerElements.hasNext()) {
-                JsonNode next = outerElements.next();
-                ImmutableSet.Builder<String> setBuilder = ImmutableSet.builder();
-                Iterator<JsonNode> innerElements = next.elements();
-                while (innerElements.hasNext()) {
-                    setBuilder.add(innerElements.next().asText());
-                }
-                listBuilder.add(setBuilder.build());
-            }
-            return listBuilder.build();
-        }
-
-        private List<GraphResult> toGraphResults(JsonNode jsonNode, String name) {
-            ImmutableList.Builder<GraphResult> builder = ImmutableList.builder();
-            Iterator<JsonNode> it = jsonNode.get(name).elements();
-            while (it.hasNext()) {
-                JsonNode next = it.next();
-                builder.add(new GraphResult(next));
-            }
-            return builder.build();
-        }
-    }
-
-    static class GraphResultSerializer extends JsonSerializer<GraphResult> {
-        @Override
-        public void serialize(GraphResult graphResult, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
-            jsonGenerator.writeTree(graphResult.getJsonNode());
-        }
-    }
-
-    static class GeometrySerializer extends JsonSerializer<Geometry> {
-        @Override
-        public void serialize(Geometry value, JsonGenerator jsonGenerator, SerializerProvider serializers) throws IOException {
-            jsonGenerator.writeString(value.asWellKnownText());
-        }
-    }
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static final boolean JSR_310_AVAILABLE;
 
     static {
-        SimpleModule graphModule = new SimpleModule("graph");
-        graphModule.addDeserializer(Edge.class, new EdgeDeserializer());
-        graphModule.addDeserializer(Vertex.class, new VertexDeserializer());
-        graphModule.addDeserializer(Path.class, new PathDeserializer());
-        graphModule.addSerializer(GraphResult.class, new GraphResultSerializer());
-        graphModule.addSerializer(Geometry.class, new GeometrySerializer());
-        OBJECT_MAPPER.registerModule(graphModule);
+        boolean jsr310Available;
+        try {
+            Class.forName("java.time.Instant");
+            jsr310Available = true;
+        } catch (LinkageError e) {
+            jsr310Available = false;
+            LOGGER.warn("JSR 310 could not be loaded", e);
+        } catch (ClassNotFoundException e) {
+            jsr310Available = false;
+        }
+        JSR_310_AVAILABLE = jsr310Available;
     }
 
-    static final Function<Row, GraphResult> ROW_TO_GRAPH_RESULT = new Function<Row, GraphResult>() {
-        @Override
-        public GraphResult apply(Row row) {
-            // Seems like sometimes traversals can return empty rows
-            if (row != null) {
-                String jsonString = row.getString("gremlin");
-                try {
-                    JsonNode jsonNode = OBJECT_MAPPER.readTree(jsonString).get("result");
-                    return new GraphResult(jsonNode);
-                } catch (IOException e) {
-                    throw new DriverException("Could not parse the result returned by the Graph server as a JSON string : " + jsonString, e);
-                }
-            } else {
-                return new GraphResult(JsonNodeFactory.instance.nullNode());
-            }
+    private static final boolean TINKERPOP_AVAILABLE;
+
+    static {
+        boolean tinkerpopAvailable;
+        try {
+            Class.forName("org.apache.tinkerpop.gremlin.structure.Edge");
+            tinkerpopAvailable = true;
+        } catch (LinkageError e) {
+            tinkerpopAvailable = false;
+            LOGGER.warn("Tinkerpop API could not be loaded", e);
+        } catch (ClassNotFoundException e) {
+            tinkerpopAvailable = false;
         }
-    };
+        TINKERPOP_AVAILABLE = tinkerpopAvailable;
+    }
+
+    static final GraphJsonUtils INSTANCE = new GraphJsonUtils();
+
+    private final ObjectMapper objectMapper;
+
+    private GraphJsonUtils() {
+        objectMapper = new ObjectMapper();
+        Version dseDriverVersion = dseDriverVersion();
+        objectMapper.registerModule(new DefaultGraphModule("graph-default", dseDriverVersion));
+        if (JSR_310_AVAILABLE) {
+            LOGGER.debug("JSR 310 found on the classpath, registering serializers for java.time temporal types");
+            objectMapper.registerModule(new Jdk8Jsr310Module("graph-jsr310", dseDriverVersion));
+        } else {
+            LOGGER.debug("JSR 310 not found on the classpath, not registering serializers for java.time temporal types");
+        }
+        if (TINKERPOP_AVAILABLE) {
+            LOGGER.debug("Tinkerpop API found on the classpath, registering Tinkerpop serializers");
+            objectMapper.registerModule(new TinkerGraphModule("graph-tinkerpop", dseDriverVersion));
+        } else {
+            LOGGER.debug("Tinkerpop API not found on the classpath, not registering Tinkerpop serializers");
+        }
+    }
+
+    private static Version dseDriverVersion() {
+        String versionStr = DseCluster.getDseDriverVersion();
+        VersionNumber version = VersionNumber.parse(versionStr);
+        return new Version(
+                version.getMajor(), version.getMinor(), version.getPatch(),
+                // version.getPreReleaseLabels() throws NPE, see JAVA-1160
+                versionStr.contains("-SNAPSHOT") ? "SNAPSHOT" : null,
+                "com.datastax.cassandra", "dse-driver");
+    }
 
     /**
-     * Converts a map of named query parameters into its JSON string representation.
-     *
-     * @param valuesMap the map of named query parameters.
-     * @return the JSON string, as expected by DSE Graph.
+     * If JDK 8 is available, then node properties in the returned tree can be coerced into
+     * JDK 8 temporal types ({@code java.time.Instant}, {@code java.time.ZonedDateTime}, and {@code java.time.Duration}).
+     * <p>
+     * Example:
+     * <pre>{@code
+     * GraphNode result = session.executeGraph("g.V().has('name', 'robert').next()").one();
+     * Vertex robert = result.asVertex();
+     * VertexProperty birthday = robert.getProperty("birthday");
+     * Instant t = birthday.getValue().as(Instant.class);
+     * }</pre>
+     * <p>
+     * If Tinkerpop API is available, nodes in the returned tree can be coerced into one of the following
+     * Tinkerpop API interfaces:
+     * {@link org.apache.tinkerpop.gremlin.structure.Vertex Vertex},
+     * {@link org.apache.tinkerpop.gremlin.structure.Edge Edge} and
+     * {@link org.apache.tinkerpop.gremlin.process.traversal.Path Path}.
+     * <p>
+     * Example:
+     * <pre>{@code
+     * GraphNode result = session.executeGraph("g.V().has('name', 'robert').next()").one();
+     * Vertex robert = result.as(org.apache.tinkerpop.gremlin.structure.Vertex.class);
+     * VertexProperty<String> nickname = robert.property("nickname");
+     * String bob = nickname.value();
+     * }</pre>
      */
-    static String convert(Map<String, Object> valuesMap) {
-        String values;
+    GraphNode readStringAsTree(String content) {
         try {
-            values = OBJECT_MAPPER.writeValueAsString(valuesMap);
-        } catch (IOException e) {
-            throw new DriverException(String.format("Cannot serialize parameter."), e);
+            return new DefaultGraphNode(objectMapper.readTree(content), objectMapper);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
         }
-        return values;
     }
 
-    static <T> T as(JsonNode jsonNode, Class<T> clazz) {
+    /**
+     * {@inheritDoc}
+     * If JDK 8 is available, then the following temporal types can be serialized:
+     * ({@code java.time.Instant}, {@code java.time.ZonedDateTime}, and {@code java.time.Duration}).
+     * <p>
+     * If Tinkerpop API is available, then
+     * the following Tinkerpop API interfaces can be serialized:
+     * {@link org.apache.tinkerpop.gremlin.structure.Vertex Vertex},
+     * {@link org.apache.tinkerpop.gremlin.structure.Edge Edge} and
+     * {@link org.apache.tinkerpop.gremlin.structure.VertexProperty VertexProperty}.
+     * <p>
+     * These elements are serialized to their identifiers.
+     * <p>
+     * Note that instances of Tinkerpop's
+     * {@link org.apache.tinkerpop.gremlin.structure.Property Property} and
+     * {@link org.apache.tinkerpop.gremlin.process.traversal.Path Path}
+     * cannot be serialized.
+     */
+    String writeValueAsString(Object value) {
         try {
-            return OBJECT_MAPPER.treeToValue(jsonNode, clazz);
-        } catch (JsonProcessingException e) {
-            throw new DriverException("Cannot deserialize element.", e);
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
         }
     }
-
-    // The properties map is stored in a specific (weird) structure (Map<String, Array[Map<String, Object>]>)
-    // This creates a map of the property's name as key and property's value as value as a Map<String, GraphResult>.
-    static Map<String, GraphResult> transformVertexProperties(JsonNode jsonProps) {
-        if (jsonProps == null) {
-            return Maps.newHashMap();
-        }
-        Map<String, GraphResult> properties = new HashMap<String, GraphResult>();
-        Iterator<Map.Entry<String, JsonNode>> jsonPropsIterator = jsonProps.fields();
-        while (jsonPropsIterator.hasNext()) {
-            Map.Entry<String, JsonNode> prop = jsonPropsIterator.next();
-            properties.put(prop.getKey(), new GraphResult(prop.getValue().findValue("value")));
-        }
-        return properties;
-    }
-
-    static Map<String, GraphResult> transformEdgeProperties(JsonNode jsonProps) {
-        if (jsonProps == null) {
-            return Maps.newHashMap();
-        }
-        Map<String, GraphResult> properties = new HashMap<String, GraphResult>();
-        Iterator<Map.Entry<String, JsonNode>> jsonPropsIterator = jsonProps.fields();
-        while (jsonPropsIterator.hasNext()) {
-            Map.Entry<String, JsonNode> prop = jsonPropsIterator.next();
-            properties.put(prop.getKey(), new GraphResult(prop.getValue()));
-        }
-        return properties;
-    }
-
-    static void checkVertex(JsonNode jsonNode) {
-        JsonNode type = jsonNode.findValue("type");
-        if (type == null || !type.asText().equals("vertex")) {
-            throw new DriverException("Trying to deserialize a Vertex from a JSON node that does not represent a Vertex");
-        }
-    }
-
-    static void checkEdge(JsonNode jsonNode) {
-        JsonNode type = jsonNode.findValue("type");
-        if (type == null || !type.asText().equals("edge")) {
-            throw new DriverException("Trying to deserialize an Edge from a JSON node that does not represent an Edge");
-        }
-    }
-
 }
