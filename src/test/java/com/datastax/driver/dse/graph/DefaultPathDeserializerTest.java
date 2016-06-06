@@ -23,13 +23,23 @@ public class DefaultPathDeserializerTest {
     void assertPath(Path path) throws IOException {
         PathAssert pathAssert = assertThat(path)
                 .isInstanceOf(DefaultPath.class)
+                .hasLabel("a")
+                .hasLabel("b")
+                .hasLabel("c")
+                .hasLabel("d")
+                .hasLabel("e")
+                .hasLabel("f")
+                .hasLabel("g")
+                .hasLabel(4, "a")
                 .hasLabel(0, "a")
                 .hasLabel(1, "b")
                 .hasLabel(2, "c", "d")
                 .hasLabel(3, "e", "f", "g")
-                .hasLabel(4, "h");
+                .hasLabel(4, "a")
+                .doesNotHaveLabel("h");
 
         assertThat(path.getObjects()).hasSize(5);
+        assertThat(path.size()).isEqualTo(5);
 
         pathAssert.object(0).asVertex()
                 .hasLabel("person")
@@ -57,6 +67,26 @@ public class DefaultPathDeserializerTest {
                 .hasLabel("software")
                 .hasProperty("name", "ripple")
                 .hasProperty("lang", "java");
+
+        pathAssert.object("a").asVertex()
+                .hasLabel("person")
+                .hasProperty("name", "marko")
+                .hasProperty("age", 29);
+
+        pathAssert.objects("a").hasSize(2);
+
+        assertThat(path.getObjects("a").get(0).asVertex())
+                .hasLabel("person")
+                .hasProperty("name", "marko")
+                .hasProperty("age", 29);
+
+        assertThat(path.getObjects("a").get(1).asVertex())
+                .hasLabel("software")
+                .hasProperty("name", "ripple")
+                .hasProperty("lang", "java");
+
+        assertThat(path.getObject("nonexistent")).isNull();
+        assertThat(path.getObject(5)).isNull();
 
     }
 }

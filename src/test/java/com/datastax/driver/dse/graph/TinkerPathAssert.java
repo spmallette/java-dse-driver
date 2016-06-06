@@ -41,4 +41,8 @@ public class TinkerPathAssert extends AbstractAssert<TinkerPathAssert, Path> {
         assertThat(actual.labels().get(i)).containsExactly(labels);
         return myself;
     }
+
+    public void doesNotHaveLabel(String label) {
+        assertThat(actual.hasLabel(label)).isFalse();
+    }
 }
