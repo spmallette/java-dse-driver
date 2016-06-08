@@ -24,7 +24,7 @@
         <dse>true</dse>
         <cassandra.version>5.0</cassandra.version>
         <java.version>1.6</java.version>
-        <java-driver.version>3.0.1</java-driver.version>
+        <java-driver.version>3.0.2</java-driver.version>
         <slf4j-api.version>1.7.13</slf4j-api.version>
         <guava.version>16.0.1</guava.version>
         <snappy.version>1.0.5</snappy.version>
@@ -685,7 +685,8 @@
                                 <ccm.path>${ccm.java.home}/bin</ccm.path>
                             </systemPropertyVariables>
                             <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>
+                                <classpathDependencyExcludes>io.netty:netty-transport-native-epoll
+                                </classpathDependencyExcludes>
                             </classpathDependencyExcludes>
                             <excludes>
                                 <exclude>**/Jdk8*.java</exclude>
