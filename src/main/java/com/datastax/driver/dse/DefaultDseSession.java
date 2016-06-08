@@ -5,9 +5,11 @@ package com.datastax.driver.dse;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.AddressTranslator;
+import com.datastax.driver.dse.graph.GraphOptions;
 import com.datastax.driver.dse.graph.GraphResultSet;
 import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.driver.dse.graph.SimpleGraphStatement;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.*;
 import org.slf4j.Logger;
@@ -85,9 +87,7 @@ class DefaultDseSession implements DseSession {
 
     @Override
     public ListenableFuture<GraphResultSet> executeGraphAsync(GraphStatement graphStatement) {
-        DseConfiguration configuration = getCluster().getConfiguration();
-        final Statement statement = graphStatement.unwrap();
-        statement.setOutgoingPayload(dseCluster.getConfiguration().getGraphOptions().buildPayloadWithDefaults(graphStatement));
+        final Statement statement = generateCoreStatement(dseCluster.getConfiguration().getGraphOptions(), graphStatement);
 
         if (ANALYTICS_GRAPH_SOURCE.equals(graphStatement.getGraphSource())) {
             // Try to send the statement directly to the graph analytics server (we have to look it up first)
@@ -159,6 +159,31 @@ class DefaultDseSession implements DseSession {
             logger.debug("Error while processing graph analytics server location, query will not be routed optimally", e);
             return null;
         }
+    }
+
+    /**
+     * This method is mainly for internal use, its behaviour is likely to change between driver versions.
+     * This method returns a core {@link com.datastax.driver.core.Statement} with all graph settings correctly applied,
+     * extracted from the {@link GraphStatement} and {@link GraphOptions}.
+     *
+     * @param graphOptions   the graph options to apply.
+     * @param graphStatement the graph statement containing the per-statement options.
+     * @return the statement with the correct options applied to.
+     */
+    @VisibleForTesting
+    static Statement generateCoreStatement(GraphOptions graphOptions, GraphStatement graphStatement) {
+        Statement statement = graphStatement.unwrap();
+        statement.setOutgoingPayload(graphOptions.buildPayloadWithDefaults(graphStatement));
+
+        // Apply graph-options timeout only if not set on statement.
+        // Has to be done here since it applies to the core statement and not the custom payload...
+        if (statement.getReadTimeoutMillis() == Integer.MIN_VALUE) {
+            statement.setReadTimeoutMillis(graphOptions.getReadTimeoutMillis());
+        }
+
+        // Graph statements should not be retried.
+        statement.setIdempotent(false);
+        return statement;
     }
 
     @Override

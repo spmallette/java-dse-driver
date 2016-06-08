@@ -5,6 +5,7 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.dse.DseSessionHook;
 import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.Test;
 
@@ -128,6 +129,34 @@ public class GraphOptionsPayloadTest {
         // Assert that calling maybeRebuildCache internally does not erase the consistency and timestamp.
         assertThat(st.getConsistencyLevel()).isEqualTo(desiredCL);
         assertThat(st.getDefaultTimestamp()).isEqualTo(desiredTimestamp);
+    }
+
+    @Test(groups = "unit")
+    public void should_set_default_timeout_for_graph_queries() {
+        Statement st;
+        GraphOptions graphOptions = new GraphOptions();
+        SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("");
+        st = DseSessionHook.callGenerateCoreStatement(graphOptions, simpleGraphStatement);
+
+        assertThat(st.getReadTimeoutMillis()).isEqualTo(0);
+    }
+
+    @Test(groups = "unit")
+    public void should_set_read_timeout_from_statement_over_cluster() {
+        Statement st;
+        int desiredClusterTimeout = 4000;
+        int desiredStatementTimeout = 50000;
+        GraphOptions graphOptions = new GraphOptions();
+        graphOptions.setReadTimeoutMillis(desiredClusterTimeout);
+
+        SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("");
+
+        st = DseSessionHook.callGenerateCoreStatement(graphOptions, simpleGraphStatement);
+        assertThat(st.getReadTimeoutMillis()).isEqualTo(desiredClusterTimeout);
+
+        simpleGraphStatement.setReadTimeoutMillis(desiredStatementTimeout);
+        st = DseSessionHook.callGenerateCoreStatement(graphOptions, simpleGraphStatement);
+        assertThat(st.getReadTimeoutMillis()).isEqualTo(desiredStatementTimeout);
     }
 
     private Map<String, ByteBuffer> buildPayloadFromStatement(GraphStatement graphStatement) {

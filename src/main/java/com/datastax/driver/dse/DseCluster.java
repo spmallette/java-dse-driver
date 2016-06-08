@@ -71,6 +71,7 @@ public class DseCluster extends DelegatingCluster {
 
         public Builder() {
             this.withLoadBalancingPolicy(new HostTargetingLoadBalancingPolicy(Policies.defaultLoadBalancingPolicy()));
+            this.withRetryPolicy(new IdempotenceAwareRetryPolicy(Policies.defaultRetryPolicy()));
         }
 
         /**
