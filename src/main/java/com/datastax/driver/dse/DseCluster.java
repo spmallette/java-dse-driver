@@ -42,11 +42,6 @@ public class DseCluster extends DelegatingCluster {
 
     private static final ResourceBundle dseDriverProperties = ResourceBundle.getBundle("com.datastax.driver.dse.DseDriver");
 
-    static {
-        // Perform sanity checks to inform user of possible environment misconfiguration.
-        DseSanityChecks.check();
-    }
-
     /**
      * Returns the current version of the DSE driver.
      * <p/>
@@ -61,23 +56,6 @@ public class DseCluster extends DelegatingCluster {
      */
     public static String getDseDriverVersion() {
         return dseDriverProperties.getString("dse.driver.version");
-    }
-
-    /**
-     * Returns the compatible version range for the core Java driver.
-     * <p/>
-     * This is intended for products that wrap or extend the driver, as a way to check
-     * compatibility if end-users override the core Java driver version in their application.
-     * <p>
-     * Note that this method returns a range of allowed versions for the core driver,
-     * not the <em>actual</em> core driver version loaded at runtime.
-     * If you are interested in the latter, you should call {@link Cluster#getDriverVersion()}
-     * instead.
-     *
-     * @return the compatible version range for the core Java driver.
-     */
-    public static String getCompatibleCoreDriverVersionRange() {
-        return dseDriverProperties.getString("core.driver.version.range");
     }
 
     private final Cluster delegate;

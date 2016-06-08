@@ -6,7 +6,6 @@
 - [improvement] JAVA-1081: Vertex Properties don't handle multiple cardinality / rich properties.
 - [improvement] JAVA-1146: Graph module serde improvements.
 - [improvement] JAVA-1125: Improvements to Path class.
-- [improvement] JAVA-1199: Use a version range for the DSE->core dependency.
 
 
 ### 1.0.0-eap4
