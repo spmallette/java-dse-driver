@@ -36,6 +36,12 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
     @Override
     protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
         super.initTestContext(testInstance, testMethod);
+
+        // Wait for master to come online before altering keyspace as it needs to meet LOCAL_QUORUM CL to start, and
+        // that can't be met with 1/NUM_NODES available.
+        InetSocketAddress masterHttpPort = new InetSocketAddress("localhost", 7080);
+        LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
+        TestUtils.waitUntilPortIsUp(masterHttpPort);
         // Set the dse_leases keyspace to RF of NUM_NODES, this will prevent election of new job tracker until all nodes
         // are available, preventing weird cases where 1 node thinks the wrong node is a master.
         Cluster tempCluster = createClusterBuilder().addContactPointsWithPorts(getContactPointsWithPorts()).build();
@@ -56,10 +62,6 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
             InetSocketAddress binaryIntf = new InetSocketAddress(TestUtils.ipOfNode(i), this.ccm().getBinaryPort());
             LOGGER.debug("Waiting for binary interface: {}.", binaryIntf);
             TestUtils.waitUntilPortIsUp(binaryIntf);
-
-            InetSocketAddress masterHttpPort = new InetSocketAddress("localhost", 7080);
-            LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
-            TestUtils.waitUntilPortIsUp(masterHttpPort);
 
             waitForWorkers(i);
         }
