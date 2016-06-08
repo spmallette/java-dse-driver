@@ -96,7 +96,8 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         String propertyName = "prop" + id;
         GraphStatement addVertexLabelAndProperty = new SimpleGraphStatement(
                 "schema.propertyKey(property)." + type + ".create()\n" +
-                        "schema.vertexLabel(vertexLabel).properties(property).create()")
+                        "schema.vertexLabel(vertexLabel).properties(property).create()\n" +
+                        "schema.vertexLabel(vertexLabel).index(property + 'Index').secondary().by(property).add()")
                 .set("vertexLabel", vertexLabel)
                 .set("property", propertyName);
         session().executeGraph(addVertexLabelAndProperty);
