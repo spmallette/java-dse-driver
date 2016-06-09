@@ -4,7 +4,9 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.TypeCodec;
 import com.datastax.driver.dse.DseSessionHook;
 import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.Test;
@@ -15,6 +17,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphOptionsPayloadTest {
+
+    private static final String GRAPH_CONFIG_PREFIX = "cfg.";
 
     @Test(groups = "unit")
     public void should_use_default_options_when_none_set() {
@@ -157,6 +161,41 @@ public class GraphOptionsPayloadTest {
         simpleGraphStatement.setReadTimeoutMillis(desiredStatementTimeout);
         st = DseSessionHook.callGenerateCoreStatement(graphOptions, simpleGraphStatement);
         assertThat(st.getReadTimeoutMillis()).isEqualTo(desiredStatementTimeout);
+    }
+
+
+    @Test
+    public void should_use_graph_internal_options() {
+        Statement st;
+        SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("");
+        String configKey = "external_vertex_verify";
+
+        // Test that it is initially set.
+        simpleGraphStatement.setGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify", "true");
+        st = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), simpleGraphStatement);
+
+        assertThat(simpleGraphStatement.getGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify"))
+                .isEqualTo("true");
+        assertThat(TypeCodec.varchar().deserialize(st.getOutgoingPayload().get(GRAPH_CONFIG_PREFIX + configKey), ProtocolVersion.NEWEST_SUPPORTED))
+                .isEqualTo("true");
+
+        // Test that it can be overriden.
+        simpleGraphStatement.setGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify", "false");
+        st = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), simpleGraphStatement);
+
+        assertThat(simpleGraphStatement.getGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify"))
+                .isEqualTo("false");
+        assertThat(TypeCodec.varchar().deserialize(st.getOutgoingPayload().get(GRAPH_CONFIG_PREFIX + configKey), ProtocolVersion.NEWEST_SUPPORTED))
+                .isEqualTo("false");
+
+        // Test that it can be unset.
+        simpleGraphStatement.setGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify", null);
+        st = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), simpleGraphStatement);
+
+        assertThat(simpleGraphStatement.getGraphInternalOption(GRAPH_CONFIG_PREFIX + "external_vertex_verify"))
+                .isNull();
+        assertThat(TypeCodec.varchar().deserialize(st.getOutgoingPayload().get(GRAPH_CONFIG_PREFIX + configKey), ProtocolVersion.NEWEST_SUPPORTED))
+                .isNull();
     }
 
     private Map<String, ByteBuffer> buildPayloadFromStatement(GraphStatement graphStatement) {

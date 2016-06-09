@@ -223,6 +223,7 @@ public class GraphOptions {
                 && statement.getGraphReadConsistencyLevel() == null
                 && statement.getGraphWriteConsistencyLevel() == null
                 && statement.getGraphName() == null
+                && statement.getGraphInternalOptions().size() == 0
                 && !statement.isSystemQuery()) {
             return defaultPayload;
         } else {
@@ -239,6 +240,10 @@ public class GraphOptions {
             if (statement.getReadTimeoutMillis() > 0) {
                 // If > 0 it means it's not the default and has to be in the payload.
                 setOrDefaultBigInt(builder, REQUEST_TIMEOUT_KEY, (long) statement.getReadTimeoutMillis());
+            }
+
+            for (Map.Entry<String, String> optionEntry : statement.getGraphInternalOptions().entrySet()) {
+                setOrDefaultText(builder, optionEntry.getKey(), optionEntry.getValue());
             }
 
             return builder.build();

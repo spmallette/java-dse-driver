@@ -7,6 +7,9 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.dse.DseSession;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -25,6 +28,8 @@ public abstract class GraphStatement {
     private volatile ConsistencyLevel graphReadConsistencyLevel;
 
     private volatile ConsistencyLevel graphWriteConsistencyLevel;
+
+    private final Map<String, String> graphInternalOptions = new ConcurrentHashMap<String, String>();
 
     /**
      * Returns the graph language to use with this statement.
@@ -181,6 +186,43 @@ public abstract class GraphStatement {
         checkNotNull(consistencyLevel, "graphWriteConsistencyLevel cannot be null");
         this.graphWriteConsistencyLevel = consistencyLevel;
         return this;
+    }
+
+    /**
+     * Sets additional graph option. Those options are supposed to be used by advanced customers only. The different
+     * options settable here are referenced in the DSE documentation.
+     *
+     * @param optionKey the option's name.
+     * @param optionValue the option's value. The value is always a String and will be interpreted to the right type
+     *                    by the DSE server. To unset a value previously set you can put {@code null} as the option's value.
+     * @return this {@link GraphStatement} instance (for method chaining).
+     */
+    public GraphStatement setGraphInternalOption(String optionKey, String optionValue) {
+        checkNotNull(optionKey, "option key cannot be null");
+
+        // Setting null as value means removing it from all payloads/maps.
+        if (optionValue == null) {
+            getGraphInternalOptions().remove(optionKey);
+        } else {
+            getGraphInternalOptions().put(optionKey, optionValue);
+        }
+        return this;
+    }
+
+    /**
+     * Returns the advanced option's value defined for the key in parameter.
+     *
+     * @param optionKey the name of the option.
+     * @return the value. If no value has previously been set for the specified option name, or if a value has been set
+     *                  then unset with {@code null} (see {@link GraphStatement#setGraphInternalOption}), this method
+     *                  returns {@code null}.
+     */
+    public String getGraphInternalOption(String optionKey) {
+        return getGraphInternalOptions().get(optionKey);
+    }
+
+    Map<String, String> getGraphInternalOptions() {
+        return graphInternalOptions;
     }
 
     /**

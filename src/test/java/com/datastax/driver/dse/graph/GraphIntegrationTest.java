@@ -3,6 +3,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -360,5 +361,23 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
         List<VertexProperty> props = Lists.newArrayList(v.getProperties("multi_prop"));
 
         assertThat(props).hasSize(3).extracting(vertexPropertyValueAs(String.class)).containsOnly("Hello", "Sweet", "World");
+    }
+
+    /**
+     * Ensures that {@link GraphStatement#setGraphInternalOption(String, String)} properly updates custom payload
+     * to set a config option that will be used by DSE server for this statement's transaction only by setting
+     * the <code>cfg.read_only</code> option to true and attempting to add a vertex.  This should cause the
+     * statement to fail and DSE to throw an {@link InvalidQueryException}.
+     *
+     * @test_category dse:graph
+     * @jira_ticket JAVA-1208
+     */
+    @Test(groups = "short", expectedExceptions = {InvalidQueryException.class},
+            expectedExceptionsMessageRegExp = "Cannot open new entities in read-only transaction")
+    public void should_set_tx_as_read_only_using_internal_option() {
+        GraphStatement stmt = new SimpleGraphStatement("graph.addVertex(label, 'software', 'name', 'lop2', 'lang', 'java');")
+                .setGraphInternalOption("cfg.read_only", "true");
+
+        session().executeGraph(stmt);
     }
 }
