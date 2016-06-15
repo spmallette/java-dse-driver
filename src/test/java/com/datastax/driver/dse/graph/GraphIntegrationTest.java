@@ -4,6 +4,8 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.exceptions.NoHostAvailableException;
+import com.datastax.driver.core.exceptions.OperationTimedOutException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -377,6 +379,58 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
     public void should_set_tx_as_read_only_using_internal_option() {
         GraphStatement stmt = new SimpleGraphStatement("graph.addVertex(label, 'software', 'name', 'lop2', 'lang', 'java');")
                 .setGraphInternalOption("cfg.read_only", "true");
+
+        session().executeGraph(stmt);
+    }
+
+    /**
+     * Ensures that {@link GraphStatement}s do not have idempotence set by default, and therefore are not idempotent.
+     * Thus when executing a {@link GraphStatement} that times out that it is not retried on the next host and a
+     * {@link OperationTimedOutException} is raised to the client.
+     *
+     * @jira_ticket JAVA-1222
+     * @test_category retry_policy
+     */
+    @Test(groups = "short", expectedExceptions = {OperationTimedOutException.class})
+    public void should_not_retry_graph_statement_by_default() {
+        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1000L);")
+                .setReadTimeoutMillis(1);
+        // Statement should have no idempotence config by default.
+        assertThat(stmt.isIdempotent()).isNull();
+
+        session().executeGraph(stmt);
+    }
+
+    /**
+     * Ensures that when executing a {@link GraphStatement} that is configured to be non-idempotent that when it times
+     * times out it is not retried on the next host and a {@link OperationTimedOutException} is raised to the
+     * client.
+     *
+     * @jira_ticket JAVA-1222
+     * @test_category retry_policy
+     */
+    @Test(groups = "short", expectedExceptions = {OperationTimedOutException.class})
+    public void should_not_retry_non_idempotent_graph_statement_by_default() {
+        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1000L);")
+                .setReadTimeoutMillis(1).setIdempotent(false);
+        assertThat(stmt.isIdempotent()).isFalse();
+
+        session().executeGraph(stmt);
+    }
+
+    /**
+     * Ensures that when executing a {@link GraphStatement} that is configured to be idempotent that when it times
+     * times out it will be attempted on the next host.  With no remaining hosts to try, a
+     * {@link NoHostAvailableException} should be raised to the client.
+     *
+     * @jira_ticket JAVA-1222
+     * @test_category retry_policy
+     */
+    @Test(groups = "short", expectedExceptions = {NoHostAvailableException.class})
+    public void should_retry_idempotent_graph_statement_by_default() {
+        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1000L);")
+                .setReadTimeoutMillis(1).setIdempotent(true);
+        assertThat(stmt.isIdempotent()).isTrue();
 
         session().executeGraph(stmt);
     }

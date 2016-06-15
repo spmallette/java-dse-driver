@@ -181,8 +181,9 @@ class DefaultDseSession implements DseSession {
             statement.setReadTimeoutMillis(graphOptions.getReadTimeoutMillis());
         }
 
-        // Graph statements should not be retried.
-        statement.setIdempotent(false);
+        Boolean idempotent = graphStatement.isIdempotent();
+        if (idempotent != null)
+            statement.setIdempotent(idempotent);
         return statement;
     }
 

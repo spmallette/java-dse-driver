@@ -1,6 +1,11 @@
 ## Changelog
 
-### 1.0.0-eap5 (in progress)
+### 1.0.0 (in progress)
+
+- [improvement] JAVA-1222: Add GraphStatement.setIdempotent.
+
+
+### 1.0.0-eap5
 
 - [bug] JAVA-1183: Change default traversal source to 'g'.
 - [improvement] JAVA-1081: Vertex Properties don't handle multiple cardinality / rich properties.
