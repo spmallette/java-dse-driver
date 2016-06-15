@@ -50,7 +50,7 @@ public class DseCluster extends DelegatingCluster {
      * <p/>
      * This is intended for products that wrap or extend the driver, as a way to check
      * compatibility if end-users override the driver version in their application.
-     * <p>
+     * <p/>
      * Note that this method returns the DSE driver version, not the core driver version.
      * If you are interested in the latter, you should call {@link Cluster#getDriverVersion()}
      * instead.
@@ -74,7 +74,7 @@ public class DseCluster extends DelegatingCluster {
 
         public Builder() {
             this.withLoadBalancingPolicy(new HostTargetingLoadBalancingPolicy(Policies.defaultLoadBalancingPolicy()));
-            this.withRetryPolicy(new IdempotenceAwareRetryPolicy(Policies.defaultRetryPolicy()));
+            this.withRetryPolicy(new LoggingIdempotenceAwareRetryPolicy(Policies.defaultRetryPolicy()));
         }
 
         /**
