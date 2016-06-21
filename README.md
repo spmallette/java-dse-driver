@@ -8,6 +8,8 @@ This driver is built on top of the [CQL driver][core] 3.0.0, with specific exten
 
 [core]: http://datastax.github.io/java-driver/
 
+*The Java DataStax Enterprise Driver can be used solely with DataStax Enterprise. Please consult
+[the license](#license).*
 
 
 ## Installing
@@ -417,3 +419,8 @@ When serializing, the driver supports conversions from the following Tinkerpop i
 * `org.apache.tinkerpop.gremlin.structure.Edge`
 * `org.apache.tinkerpop.gremlin.structure.VertexProperty`
 
+# License
+
+Copyright (C) 2012-2016 DataStax Inc.
+
+The full license terms are available at http://www.datastax.com/terms/datastax-dse-driver-license-terms
