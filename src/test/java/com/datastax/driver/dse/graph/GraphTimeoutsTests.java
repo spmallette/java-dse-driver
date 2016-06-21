@@ -41,7 +41,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
             session().executeGraph(new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(35000L);1+1").setGraphSource("drivertest1"));
             fail("The request should have timed out");
         } catch (InvalidQueryException e) {
-            assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms for request");
+            assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms");
         }
     }
 
@@ -57,7 +57,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
             session().executeGraph(new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(35000L);1+1").setGraphSource("drivertest2").setReadTimeoutMillis(clientTimeout));
             fail("The request should have timed out");
         } catch (InvalidQueryException e) {
-            assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms for request");
+            assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms");
         }
     }
 
@@ -78,7 +78,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
             // Since server timeout == client timeout, locally concurrency is likely to happen.
             // We cannot know for sure if it will be a Client timeout error, or a Server timeout, and during tests, both happened and not deterministically.
             if (e instanceof InvalidQueryException) {
-                assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms for request");
+                assertThat(e.toString()).contains("Script evaluation exceeded", "threshold of " + desiredTimeout + " ms");
             } else {
                 assertThat(e).isInstanceOf(OperationTimedOutException.class);
             }
