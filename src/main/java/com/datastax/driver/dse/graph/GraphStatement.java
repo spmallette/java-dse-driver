@@ -4,6 +4,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.dse.DseSession;
 
@@ -28,6 +29,8 @@ public abstract class GraphStatement {
     private volatile ConsistencyLevel graphReadConsistencyLevel;
 
     private volatile ConsistencyLevel graphWriteConsistencyLevel;
+
+    private volatile Boolean idempotent;
 
     private final Map<String, String> graphInternalOptions = new ConcurrentHashMap<String, String>();
 
@@ -163,6 +166,30 @@ public abstract class GraphStatement {
     }
 
     /**
+     * Sets whether this statement is idempotent.
+     *
+     * @param idempotent the new value.
+     * @return this {@code Statement} object.
+     * @see Statement#isIdempotent()
+     */
+    public GraphStatement setIdempotent(boolean idempotent) {
+        this.idempotent = idempotent;
+        return this;
+    }
+
+    /**
+     * Whether this statement is idempotent, i.e. whether it can be applied multiple times
+     * without changing the result beyond the initial application.
+     *
+     * @return whether this statement is idempotent, or {@code null} if it uses the default
+     * {@link QueryOptions#getDefaultIdempotence()}.
+     * @see Statement#setIdempotent(boolean)
+     */
+    public Boolean isIdempotent() {
+        return idempotent;
+    }
+
+    /**
      * Returns the write consistency level to use with this statement.
      *
      * @return the write consistency level configured with this statement.
@@ -192,7 +219,7 @@ public abstract class GraphStatement {
      * Sets additional graph option. Those options are supposed to be used by advanced customers only. The different
      * options settable here are referenced in the DSE documentation.
      *
-     * @param optionKey the option's name.
+     * @param optionKey   the option's name.
      * @param optionValue the option's value. The value is always a String and will be interpreted to the right type
      *                    by the DSE server. To unset a value previously set you can put {@code null} as the option's value.
      * @return this {@link GraphStatement} instance (for method chaining).
@@ -214,8 +241,8 @@ public abstract class GraphStatement {
      *
      * @param optionKey the name of the option.
      * @return the value. If no value has previously been set for the specified option name, or if a value has been set
-     *                  then unset with {@code null} (see {@link GraphStatement#setGraphInternalOption}), this method
-     *                  returns {@code null}.
+     * then unset with {@code null} (see {@link GraphStatement#setGraphInternalOption}), this method
+     * returns {@code null}.
      */
     public String getGraphInternalOption(String optionKey) {
         return getGraphInternalOptions().get(optionKey);
@@ -302,7 +329,7 @@ public abstract class GraphStatement {
     /**
      * "Unwraps" the current graph statement, that is,
      * returns an executable {@link Statement} object corresponding to this graph statement.
-     * <p>
+     * <p/>
      * This method is intended for internal use only, users wishing to execute graph statements
      * should use {@link DseSession#executeGraph(GraphStatement)}.
      * <p/>

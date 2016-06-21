@@ -7,6 +7,7 @@ import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.TypeCodec;
+import com.datastax.driver.dse.DseSession;
 import com.datastax.driver.dse.DseSessionHook;
 import com.google.common.collect.ImmutableMap;
 import org.testng.annotations.Test;
@@ -196,6 +197,23 @@ public class GraphOptionsPayloadTest {
                 .isNull();
         assertThat(TypeCodec.varchar().deserialize(st.getOutgoingPayload().get(GRAPH_CONFIG_PREFIX + configKey), ProtocolVersion.NEWEST_SUPPORTED))
                 .isNull();
+    }
+
+    @Test
+    public void should_propagate_idempotence_from_graph_statement() {
+        SimpleGraphStatement graphStatement = new SimpleGraphStatement("");
+
+        // Unset by default
+        Statement coreStatement = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), graphStatement);
+        assertThat(coreStatement.isIdempotent()).isNull();
+
+        graphStatement.setIdempotent(false);
+        coreStatement = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), graphStatement);
+        assertThat(coreStatement.isIdempotent()).isFalse();
+
+        graphStatement.setIdempotent(true);
+        coreStatement = DseSessionHook.callGenerateCoreStatement(new GraphOptions(), graphStatement);
+        assertThat(coreStatement.isIdempotent()).isTrue();
     }
 
     private Map<String, ByteBuffer> buildPayloadFromStatement(GraphStatement graphStatement) {
