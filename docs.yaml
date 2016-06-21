@@ -1,0 +1,32 @@
+title:    DSE Java driver
+summary:  High performance Java client for DataStax Enterprise
+homepage: http://docs.datastax.com # pending URL where we deploy this doc
+theme: datastax
+sections:
+  - title:     Manual
+    prefix:    /manual
+    sources:
+      - type:  markdown
+        files: 'manual/**/*.md'
+  - title:     Changelog
+    prefix:    /changelog
+    sources:
+      - type:  markdown
+        files: 'changelog/**/*.md'
+  - title:     Upgrading
+    prefix:    /upgrade_guide
+    sources:
+      - type:  markdown
+        files: 'upgrade_guide/**/*.md'
+  - title:     FAQ
+    prefix:    /faq
+    sources:
+      - type:  markdown
+        files: 'faq/**/*.md'
+links:
+  - title: Code
+    href:  https://github.com/datastax/java-driver-dse/
+  - title: Docs
+    href:  http://docs.datastax.com # pending URL where we deploy this doc
+  - title: Issues
+    href:  https://datastax-oss.atlassian.net/browse/JAVA/
