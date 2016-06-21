@@ -4,6 +4,7 @@
 
 - [improvement] JAVA-1222: Add GraphStatement.setIdempotent.
 - [improvement] JAVA-1225: Log warnings about the new retry policy behavior.
+- [bug] JAVA-1230: Force Well-Known Binary encoding to little-endian.
 
 
 ### 1.0.0-eap5
