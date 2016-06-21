@@ -23,17 +23,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A load balancing policy that has the ability to use a preferred coordinator to execute statements (provided that they
- * have been wrapped in a {@link HostTargetingStatement}).
+ * Adds DSE-specific load balancing abilities on top of another policy.
+ * <p/>
+ * Currently, the only special processing performed by this policy is to route graph OLAP queries to the graph analytics
+ * master.
  */
-public class HostTargetingLoadBalancingPolicy implements ChainableLoadBalancingPolicy {
+public class DseLoadBalancingPolicy implements ChainableLoadBalancingPolicy {
 
-    private static final Logger logger = LoggerFactory.getLogger(HostTargetingLoadBalancingPolicy.class);
+    private static final Logger logger = LoggerFactory.getLogger(DseLoadBalancingPolicy.class);
 
     private final LoadBalancingPolicy childPolicy;
     private Set<Host> upHosts = Sets.newSetFromMap(new ConcurrentHashMap<Host, Boolean>());
 
-    public HostTargetingLoadBalancingPolicy(LoadBalancingPolicy childPolicy) {
+    /**
+     * Build a new instance.
+     *
+     * @param childPolicy the policy to add the DSE-specific behavior to.
+     */
+    public DseLoadBalancingPolicy(LoadBalancingPolicy childPolicy) {
         this.childPolicy = childPolicy;
     }
 

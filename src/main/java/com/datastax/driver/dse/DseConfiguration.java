@@ -7,6 +7,8 @@
 package com.datastax.driver.dse;
 
 import com.datastax.driver.core.Configuration;
+import com.datastax.driver.core.policies.LoadBalancingPolicy;
+import com.datastax.driver.core.policies.Policies;
 import com.datastax.driver.dse.graph.GraphOptions;
 
 /**
@@ -30,5 +32,17 @@ public class DseConfiguration extends Configuration {
      */
     public GraphOptions getGraphOptions() {
         return graphOptions;
+    }
+
+    /**
+     * Builds an instance of the default load balancing policy used for DSE.
+     * <p/>
+     * It is the core driver's default policy (as returned by {@link Policies#defaultLoadBalancingPolicy()}), wrapped
+     * into a {@link DseLoadBalancingPolicy}.
+     *
+     * @return the new instance.
+     */
+    public static LoadBalancingPolicy defaultLoadBalancingPolicy() {
+        return new DseLoadBalancingPolicy(Policies.defaultLoadBalancingPolicy());
     }
 }

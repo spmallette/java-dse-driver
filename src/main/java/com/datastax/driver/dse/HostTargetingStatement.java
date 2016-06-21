@@ -13,20 +13,13 @@ import com.datastax.driver.core.StatementWrapper;
 /**
  * Wraps a statement to indicate a given host as the optimal coordinator to use for the query.
  * <p/>
- * This assumes that the cluster is configured to use {@link HostTargetingLoadBalancingPolicy}; this policy will try to
- * prioritize the host in the query plan if possible (but may still route to a different host if the preferred one is
- * not available).
+ * This is used in concert with {@link DseLoadBalancingPolicy} to target graph OLAP queries to the graph analytics
+ * master.
  */
-public class HostTargetingStatement extends StatementWrapper {
+class HostTargetingStatement extends StatementWrapper {
     final Host preferredHost;
 
-    /**
-     * Builds a new instance.
-     *
-     * @param wrapped       the wrapped statement.
-     * @param preferredHost the preferred coordinator to execute this statement.
-     */
-    public HostTargetingStatement(Statement wrapped, Host preferredHost) {
+    HostTargetingStatement(Statement wrapped, Host preferredHost) {
         super(wrapped);
         this.preferredHost = preferredHost;
     }
