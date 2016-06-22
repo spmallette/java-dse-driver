@@ -3,6 +3,7 @@
 ### 1.0.0 (in progress)
 
 - [improvement] JAVA-1222: Add GraphStatement.setIdempotent.
+- [improvement] JAVA-1225: Log warnings about the new retry policy behavior.
 
 
 ### 1.0.0-eap5
