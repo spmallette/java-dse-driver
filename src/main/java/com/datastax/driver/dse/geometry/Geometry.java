@@ -143,11 +143,14 @@ public abstract class Geometry implements Serializable {
     /**
      * Returns a <a href="https://en.wikipedia.org/wiki/Well-known_text#Well-known_binary">Well-known Binary</a> (WKB)
      * representation of this geospatial type.
+     * <p/>
+     * Note that, due to DSE implementation details, the resulting byte buffer always uses little-endian order,
+     * regardless of the platform's native order.
      *
      * @return a Well-known Binary representation of this object.
      */
     public ByteBuffer asWellKnownBinary() {
-        return ogcGeometry.asBinary();
+        return WkbUtil.asLittleEndianBinary(ogcGeometry);
     }
 
     /**
