@@ -73,7 +73,7 @@ public class DseCluster extends DelegatingCluster {
         private boolean geospatialCodecs = true;
 
         public Builder() {
-            this.withLoadBalancingPolicy(new HostTargetingLoadBalancingPolicy(Policies.defaultLoadBalancingPolicy()));
+            this.withLoadBalancingPolicy(DseConfiguration.defaultLoadBalancingPolicy());
             this.withRetryPolicy(new LoggingIdempotenceAwareRetryPolicy(Policies.defaultRetryPolicy()));
         }
 
@@ -153,7 +153,7 @@ public class DseCluster extends DelegatingCluster {
         /**
          * Configures the load balancing policy to use for the new DSE cluster.
          * <p/>
-         * If you use graph analytics queries, it should be wrapped into a {@link HostTargetingLoadBalancingPolicy} to
+         * If you use graph analytics queries, it should be wrapped into a {@link DseLoadBalancingPolicy} to
          * ensure that queries are routed optimally.
          * <p/>
          * If no load balancing policy is set through this method, the default is to use a

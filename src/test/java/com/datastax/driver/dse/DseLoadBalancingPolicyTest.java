@@ -25,7 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class HostTargetingLoadBalancingPolicyTest {
+public class DseLoadBalancingPolicyTest {
     @Mock
     LoadBalancingPolicy childPolicy;
 
@@ -35,13 +35,13 @@ public class HostTargetingLoadBalancingPolicyTest {
     @Mock
     Cluster cluster;
 
-    HostTargetingLoadBalancingPolicy targetingPolicy;
+    DseLoadBalancingPolicy targetingPolicy;
 
     @BeforeMethod(groups = "unit")
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        targetingPolicy = new HostTargetingLoadBalancingPolicy(childPolicy);
+        targetingPolicy = new DseLoadBalancingPolicy(childPolicy);
         targetingPolicy.init(cluster, Lists.newArrayList(host1, host2, host3));
     }
 

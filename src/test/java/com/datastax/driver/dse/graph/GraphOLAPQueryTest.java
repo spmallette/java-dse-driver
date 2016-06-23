@@ -170,7 +170,7 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
 
     /**
      * Validates that when using the default load balancing policy that if you make a query with 'a' traversal source
-     * that the {@link com.datastax.driver.dse.HostTargetingLoadBalancingPolicy} behavior kicks in and targets
+     * that the {@link com.datastax.driver.dse.DseLoadBalancingPolicy} behavior kicks in and targets
      * the spark master as the primary query source.
      *
      * @test_category dse:graph
@@ -184,7 +184,7 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
 
     /**
      * Validates that when using the default load balancing policy that if you make a query with the default traversal
-     * source that {@link com.datastax.driver.dse.HostTargetingLoadBalancingPolicy}
+     * source that {@link com.datastax.driver.dse.DseLoadBalancingPolicy}
      * does not target the spark master as the primary query source.
      *
      * @test_category dse:graph
@@ -197,7 +197,7 @@ public class GraphOLAPQueryTest extends CCMGraphTestsSupport {
 
     /**
      * Validates that when using the default load balancing policy that if you make a query without providing a
-     * traversal source that {@link com.datastax.driver.dse.HostTargetingLoadBalancingPolicy}
+     * traversal source that {@link com.datastax.driver.dse.DseLoadBalancingPolicy}
      * does not target the spark master as the primary query source.
      *
      * @test_category dse:graph
