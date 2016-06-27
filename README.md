@@ -18,60 +18,17 @@ relevant section of the [core manual][core] where necessary.
 [the license](#license).*
 
 
-## Installing
+## Getting the driver
 
-The driver is distributed as a binary tarball with the following structure:
-
-* `README.md`: this file;
-* `dse-driver-<version>.jar`: main DSE driver artifact;
-* `lib/*.jar`: runtime dependencies;
-* `apidocs/*`: Javadoc API reference;
-* `src/*.zip`: source files.
-
-### Including the binaries in your project
-
-Copy all the binaries (main DSE driver artifact and runtime dependencies) into your project, and make sure they are
-included in your runtime classpath.
-
-Some of the dependencies are optional and may be excluded:
-
-* `snappy-java-1.0.5.jar` and `lz4-1.2.0.jar` are only necessary if you enable client-to-server [compression] with the
-  corresponding algorithm;
-* `HdrHistogram-2.1.4.jar` is only necessary if you enable percentile-based [query logging][querylogger] or [speculative
-  executions][specex].
-
-### Using a Maven repository
-
-The DSE driver is not available from a public Maven repository, but all of its dependencies are. If your organization
-uses an internal Maven repository, you can simply deploy the main artifact there:
-
-```
-unzip -p dse-driver-<version>.jar \
-    META-INF/maven/com.datastax.cassandra/dse-driver/pom.xml > pom.xml
-
-mvn org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy-file \
-    -Dfile=dse-driver-<version>.jar \
-    -DpomFile=pom.xml \
-    -Durl=http:/some/url \
-    -DrepositoryId=some.id
-```
-
-And then reference the driver from your application with the following coordinates:
+The driver is available from Maven central:
 
 ```xml
 <dependency>
-    <groupId>com.datastax.cassandra</groupId>
-    <artifactId>dse-driver</artifactId>
-    <version>...</version>
+  <groupId>com.datastax.cassandra</groupId>
+  <artifactId>dse-driver</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
-
-By default, this will not include the driver's optional dependencies. If you use a feature that requires one (see the
-previous section), you'll have to redeclare the dependency explicitly in your application.
-
-[compression]: http://datastax.github.io/java-driver/manual/compression/
-[QueryLogger]: http://datastax.github.io/java-driver/manual/logging/#logging-query-latencies
-[specex]: http://datastax.github.io/java-driver/manual/speculative_execution/
 
 
 ## License
