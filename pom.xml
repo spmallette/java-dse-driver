@@ -6,13 +6,14 @@
          http://www.datastax.com/terms/datastax-dse-driver-license-terms
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <groupId>com.datastax.cassandra</groupId>
@@ -52,8 +53,6 @@
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
         <javadoc.opts>-Xdoclint:none</javadoc.opts>
-        <!-- Skip deployment, unless explicitly overridden from the command line -->
-        <maven.deploy.skip>true</maven.deploy.skip>
         <ccm.java.home>none</ccm.java.home>
     </properties>
 
@@ -393,7 +392,8 @@
                                 </relocation>
                             </relocations>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                     <resources>
                                         <!-- ServicesResourceTransformer does not transform file names, only file contents -->
                                         <resource>META-INF/services/com.fasterxml.jackson.core.JsonFactory</resource>
@@ -712,7 +712,7 @@
             <name>DataStax DSE Driver License</name>
             <url>http://www.datastax.com/terms/datastax-dse-driver-license-terms</url>
             <distribution>repo</distribution>
-            <comments />
+            <comments/>
         </license>
     </licenses>
 
