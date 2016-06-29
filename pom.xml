@@ -22,7 +22,7 @@
 
     <packaging>bundle</packaging>
 
-    <name>Java driver for DataStax Enterprise</name>
+    <name>DataStax Enterprise Java driver</name>
     <description>Extensions to the CQL driver for use with DataStax Enterprise.</description>
     <inceptionYear>2012</inceptionYear>
 
