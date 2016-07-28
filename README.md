@@ -30,6 +30,9 @@ The driver is available from Maven central:
 </dependency>
 ```
 
+## Reporting issues
+
+Create a [JIRA](https://datastax-oss.atlassian.net/browse/JAVA) ticket with the "Component/s" field set to "DSE" (or contact DataStax support if you are a DSE customer).
 
 ## License
 
