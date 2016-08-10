@@ -1,6 +1,11 @@
 ## Changelog
 
-### 1.0.0 (in progress)
+### 1.1.0 (in progress)
+
+- [improvement] JAVA-1251: Update to depend on cassandra-driver-core 3.1.0.
+
+
+### 1.0.0
 
 - [improvement] JAVA-1222: Add GraphStatement.setIdempotent.
 - [improvement] JAVA-1225: Log warnings about the new retry policy behavior.

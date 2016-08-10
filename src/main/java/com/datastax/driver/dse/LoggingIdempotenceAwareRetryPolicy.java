@@ -18,9 +18,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Add warnings to the parent policy.
  * <p/>
- * We'll backport those warnings to driver-core in version 3.1.0, so this policy should become obsolete when driver-dse
- * depends on 3.1.0.
+ *
+ * @deprecated As of release 1.1.0, dse driver now depends on driver-core 3.1.0, which doesn't retry non-idempotent
+ * statements for write timeouts or unexpected errors anymore.
  */
+@Deprecated
 public class LoggingIdempotenceAwareRetryPolicy extends IdempotenceAwareRetryPolicy {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingIdempotenceAwareRetryPolicy.class);
