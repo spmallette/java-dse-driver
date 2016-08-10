@@ -26,7 +26,7 @@ The driver is available from Maven central:
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>dse-driver</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 

@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.1.0 (in progress)
+### 1.1.0
 
 - [improvement] JAVA-1251: Update to depend on cassandra-driver-core 3.1.0.
 
