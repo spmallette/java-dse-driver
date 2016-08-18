@@ -1,4 +1,4 @@
-title:    DSE Java driver
+title:    DataStax Enterprise Java driver
 summary:  High performance Java client for DataStax Enterprise
 homepage: http://docs.datastax.com # pending URL where we deploy this doc
 theme: datastax
@@ -30,3 +30,8 @@ links:
     href:  http://docs.datastax.com # pending URL where we deploy this doc
   - title: Issues
     href:  https://datastax-oss.atlassian.net/browse/JAVA/
+versions:
+  - name: 1.1.0
+    ref: '1.1.0'
+  - name: 1.0.0
+    ref: '1.0.0'
