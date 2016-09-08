@@ -31,10 +31,10 @@ links:
   - title: Issues
     href:  https://datastax-oss.atlassian.net/browse/JAVA/
 api_docs:
-  1.1.0: http://docs.datastax.com/en/drivers/java-dse/1.1/
-  1.0.0: http://docs.datastax.com/en/drivers/java-dse/1.0/
+  '1.1': http://docs.datastax.com/en/drivers/java-dse/1.1/
+  '1.0': http://docs.datastax.com/en/drivers/java-dse/1.0/
 versions:
-  - name: 1.1.0
+  - name: '1.1'
     ref: '62d3366'
-  - name: 1.0.0
+  - name: '1.0'
     ref: '1.0.0'
