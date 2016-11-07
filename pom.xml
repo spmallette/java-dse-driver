@@ -342,6 +342,9 @@
                         <verbose>false</verbose>
                         <quiet>true</quiet>
                         <includeDependencySources>true</includeDependencySources>
+                        <dependencySourceIncludes>
+                            <dependencySourceInclude>com.datastax.cassandra:*</dependencySourceInclude>
+                        </dependencySourceIncludes>
                         <additionalparam>-Xdoclint:none</additionalparam>
                         <!-- open external links in a separate window -->
                         <bottom>
