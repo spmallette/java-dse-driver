@@ -481,7 +481,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <comparisonVersion>1.0.0</comparisonVersion>
+                    <comparisonVersion>1.1.0</comparisonVersion>
                     <ignoredDifferencesFile>${main.basedir}/clirr-ignores.xml</ignoredDifferencesFile>
                 </configuration>
                 <!--
