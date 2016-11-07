@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.1.1-beta1
+
+- [improvement] JAVA-1250: Provide a Fluent API for DSE Graph.
+
+
 ### 1.1.0
 
 - [improvement] JAVA-1251: Update to depend on cassandra-driver-core 3.1.0.

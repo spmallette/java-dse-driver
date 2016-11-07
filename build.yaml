@@ -28,7 +28,7 @@ build:
       dse=$CCM_IS_DSE
       ccm.java.home=$CCM_JAVA_HOME
       ccm.path=$CCM_JAVA_HOME/bin
-      ccm.maxNumberOfNodes=1
+      ccm.maxNumberOfNodes=0
       failIfNoTests=false
       maven.test.failure.ignore=true
       maven.javadoc.skip=true

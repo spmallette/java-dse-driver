@@ -1,5 +1,10 @@
 ## Graph
 
+This section exposes the APIs available through the _DataStax Java driver_ for interacting 
+with a _DataStax Enterprise Graph_ Server.
+
+### DseSession usage
+
 `DseSession` has dedicated methods to execute graph queries:
 
 ```java
@@ -15,6 +20,8 @@ GraphStatement s2 = new SimpleGraphStatement("g.V()").setGraphName("demo");
 GraphResultSet rs = dseSession.executeGraph(s2);
 System.out.println(rs.one().asVertex());
 ```
+
+Note: you need to set `schema_mode: Development` in `dse.yaml` to run the example above.
 
 ### Graph options
 
@@ -48,7 +55,7 @@ dseSession.executeGraph(s);
 
 #### Timeouts
 
-The higher time limit for executing a Graph query is defined server side, in the `dse.yaml`.
+The higher time limit for executing a Graph query is defined server side, in `dse.yaml`.
 
 By default the Java driver will rely on that option that is declared server-side. This means that by default,
 after sending a request, the driver will wait until the server responds with a result or an error message, or times out.
@@ -116,7 +123,18 @@ if (n.isObject()) {
 }
 ```
 
-The driver also has client-side representations for vertices, edges and paths:
+The driver also exposes more general purpose methods to handle results in the form of _Maps_ and _Lists_:
+
+```java
+GraphNode n = dseSession.executeGraph("g.V().valueMap()").one();
+Map<String, Object> values = n.asMap();
+```
+
+#### Graph structural types
+
+The driver also has client-side representations for Vertex, Edge, Path, VertexProperty, and Property.
+
+These are accessible via the corresponding `GraphNode#asXXXX()` methods:
 
 ```java
 GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
@@ -127,7 +145,100 @@ Edge edge = n.asEdge();
 
 n = dseSession.executeGraph("g.V().hasLabel('test_vertex').outE().inV().path()").one();
 Path path = n.asPath();
+
+n = dseSession.executeGraph("g.V().hasLabel('test_vertex').next().property('propName')").one();
+VertexProperty vertexProperty = n.asVertexProperty();
 ```
+
+##### A word on Properties
+
+Vertices' _VertexProperty_ respect the same behaviour than defined by Apache TinkerPop. A _VertexProperty_ 
+is first a property itself, with a value. But also can, in addition, have a list of _Property_ associated
+to it. This is called a _MetaProperty_. 
+
+Moreover, a _Vertex_ can have multiple _VertexProperty_ with the same name/key. This is
+called a _multi value property_.
+
+Altogether, a _Vertex_ can potentially have _multi value MetaProperties_.
+
+Here is the syntax for dealing with properties with the _DataStax Java driver_ Graph types:
+
+```java
+GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex_meta_props')").one();
+Vertex vertex = n.asVertex();
+
+// there can be more than one VertexProperty with the key "meta_property"
+Iterator<VertexProperty> metaProps = vertex.getProperties("meta_property");
+
+VertexProperty metaProp1 = metaProps.next();
+// the value of the meta property
+int metaProp1Value = metaProp1.getValue().asInt();
+// the properties of the meta property itself
+Iterator<Property> simpleProps1 = metaProp1.getProperties();
+Property simpleProp11 = simpleProps1.next();
+double simplePropValue11 = simpleProp11.getValue().asDouble(); 
+Property simpleProp12 = simpleProps1.next();
+double simplePropValue12 = simpleProp12.getValue().asDouble(); 
+
+// **multi value** meta property.
+VertexProperty metaProp2 = metaProps.next();
+[...]
+```
+
+More on how to create multi value meta properties in the
+[Apache Tinkerpop documentation](http://tinkerpop.apache.org/docs/3.2.3/reference/#vertex-properties).
+
+#### Deserializing complex data types
+
+The driver exposes methods to deserialize the data and return it into more complex data
+types, as long as the server side data type associated corresponds. Doing so requires to use 
+the `GraphNode#as(Class<T> clazz)` method:
+
+```java
+GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
+Vertex vertex = n.asVertex();
+UUID uuidProp = vertex.getProperty("uuidProp").getValue().as(UUID.class);
+```
+
+#### DataTypes compatibility matrix
+
+_DSE Graph_ exposes several [data types](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/reference/refDSEGraphDataTypes.html)
+when defining a Graph with the Schema API.
+
+Those data types server-side translate into specific data types when the data is returned from the server.
+
+Here is the exhaustive list of possible _DSE Graph_ data types, and their corresponding class
+in the Java driver.
+
+<table border="1" width="100%">
+<tr><th>DSE Graph</th><th>Java Driver</th></tr>
+<tr><td>bigint</td><td><tt>Long</tt></td></tr>
+<tr><td>int</td><td><tt>Integer</tt></td></tr>
+<tr><td>double</td><td><tt>Double</tt></td></tr>
+<tr><td>float</td><td><tt>Float</tt></td></tr>
+<tr><td>uuid</td><td><tt>UUID</tt></td></tr>
+<tr><td>bigdecimal</td><td><tt>BigDecimal</tt></td></tr>
+<tr><td>duration</td><td><tt>Duration</tt></td></tr>
+<tr><td>inet</td><td><tt>InetAddress</tt></td></tr>
+<tr><td>timestamp</td><td><tt>Instant</tt></td></tr>
+<tr><td>smallint</td><td><tt>Short</tt></td></tr>
+<tr><td>varint</td><td><tt>BigInteger</tt></td></tr>
+<tr><td>polygon</td><td><tt>Polygon</tt></td></tr>
+<tr><td>point</td><td><tt>Point</tt></td></tr>
+<tr><td>linestring</td><td><tt>LineString</tt></td></tr>
+<tr><td>blob</td><td><tt>byte[]</tt></td></tr>
+</table>
+
+#### Java 8 Time types
+
+The _DSE Java driver_ is compatible with Java from version 6. The driver is able to 
+automatically determine whether the application it's used with is running with a
+Java runtime version less than version 6, and will be able to deserialize objects 
+differently accordingly.
+
+If using the driver with Java 8, `java.time` types will be usable when retrieving the data from
+a Traversal. If the driver is used with an inferior version of Java, other classes will
+be usable when deserializing the data returned from the server.
 
 ### Parameters
 
@@ -211,58 +322,3 @@ In addition, you can inject:
 ### Prepared statements
 
 Prepared graph statements are not supported by DSE yet (they will be added in the near future).
-
-### Using Tinkerpop Gremlin Core API
-
-It is possible to configure the driver to support Tinkerpop Gremlin Core API.
-
-When this feature is enabled, results can be coerced to Tinkerpop API classes. The driver will also
-accept parameters that implement that API.
-
-There are some pre-requisites before using Tinkerpop Gremlin Core API:
-
-* Your application must be compiled with JDK 8+.
-* You need to explicitly include Tinkerpop Gremlin Core API in your classpath.
-
-    If your are using Maven, this can be achieved with the following dependency:
-
-
-    ```xml
-    <dependency>
-        <groupId>org.apache.tinkerpop</groupId>
-        <artifactId>gremlin-driver</artifactId>
-        <version>3.2.0-incubating</version>
-    </dependency>
-    ```
-
-__WARNING: please make sure that your version of Tinkerpop is compatible.
-The driver has been compiled and tested against version 3.2.0-incubating;
-it does NOT provide any compatibility guarantees for older Tinkerpop versions.__
-
-If the above prerequisites are met, support for Tinkerpop Gremlin Core API
-will be transparently activated by the driver.
-
-Here is an example of how to coerce query results to Tinkerpop interfaces:
-
-```java
-import org.apache.tinkerpop.gremlin.structure.*;
-
-DseSession dseSession = dseCluster.connect();
-Vertex john = dseSession.executeGraph("g.V().has('name', 'john').next()").one().as(Vertex.class);
-VertexProperty<Integer> ageProperty = john.properties("age");
-int age = ageProperty.value();
-```
-
-When deserializing, the driver supports conversions to the following Tinkerpop interfaces:
-
-* `org.apache.tinkerpop.gremlin.structure.Vertex`
-* `org.apache.tinkerpop.gremlin.structure.Edge`
-* `org.apache.tinkerpop.gremlin.structure.Property`
-* `org.apache.tinkerpop.gremlin.structure.VertexProperty`
-* `org.apache.tinkerpop.gremlin.process.traversal.Path`
-
-When serializing, the driver supports conversions from the following Tinkerpop interfaces:
-
-* `org.apache.tinkerpop.gremlin.structure.Vertex`
-* `org.apache.tinkerpop.gremlin.structure.Edge`
-* `org.apache.tinkerpop.gremlin.structure.VertexProperty`

@@ -1,0 +1,108 @@
+<!--
+
+         Copyright (C) 2012-2016 DataStax Inc.
+
+         This software can be used solely with DataStax Enterprise. Please consult the license at
+         http://www.datastax.com/terms/datastax-dse-driver-license-terms
+
+-->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
+
+    <id>binary-tarball</id>
+
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <moduleSets>
+
+        <!-- main artifacts: DSE driver -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <binaries>
+                <unpack>false</unpack>
+                <includeDependencies>false</includeDependencies>
+            </binaries>
+            <includes>
+                <include>com.datastax.cassandra:dse-driver</include>
+            </includes>
+        </moduleSet>
+
+    </moduleSets>
+
+    <dependencySets>
+
+        <!-- OSS driver jar -->
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <unpack>false</unpack>
+            <includes>
+                <include>com.datastax.cassandra:cassandra-driver-core</include>
+            </includes>
+            <excludes>
+                <exclude>com.datastax.cassandra:*:*:sources:*</exclude>
+            </excludes>
+        </dependencySet>
+
+        <!-- other libraries -->
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <useProjectArtifact>false</useProjectArtifact>
+            <unpack>false</unpack>
+            <scope>runtime</scope>
+            <excludes>
+                <exclude>com.datastax.cassandra:*</exclude>
+            </excludes>
+        </dependencySet>
+
+        <!-- sources for the OSS driver, DSE driver and DSE Tinkerpop -->
+        <dependencySet>
+            <outputDirectory>src</outputDirectory>
+            <useProjectArtifact>false</useProjectArtifact>
+            <unpack>false</unpack>
+            <includes>
+                <include>com.datastax.cassandra:*:*:sources:*</include>
+            </includes>
+            <outputFileNameMapping>
+                ${artifact.artifactId}-${artifact.version}-src.zip
+            </outputFileNameMapping>
+        </dependencySet>
+
+    </dependencySets>
+
+    <fileSets>
+
+        <fileSet>
+            <directory>..</directory>
+            <outputDirectory>.</outputDirectory>
+            <includes>
+                <include>README*</include>
+                <include>LICENSE*</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>../changelog</directory>
+        </fileSet>
+
+        <fileSet>
+            <directory>../faq</directory>
+        </fileSet>
+
+        <fileSet>
+            <directory>../manual</directory>
+        </fileSet>
+
+        <!-- aggregated javadocs for the OSS driver and DSE driver -->
+        <fileSet>
+            <directory>target/apidocs</directory>
+            <outputDirectory>apidocs</outputDirectory>
+        </fileSet>
+
+    </fileSets>
+
+</assembly>

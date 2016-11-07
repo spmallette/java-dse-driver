@@ -8,7 +8,7 @@ This driver is built on top of the DataStax driver for Apache Cassandra, with sp
   driver;
 * [DSE graph integration](manual/graph/).
 
-[core]: http://datastax.github.io/java-driver/
+[core]: http://docs.datastax.com/en/developer/java-driver/3.1/
 
 Note: since this driver is designed as a complimentary wrapper of the DataStax core driver for Apache Cassandra, a lot
 of underlying concepts in this driver are the same, and to keep this documentation focused we will be linking to the
@@ -26,7 +26,7 @@ The driver is available from Maven central:
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>dse-driver</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 

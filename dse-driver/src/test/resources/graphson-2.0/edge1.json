@@ -1,0 +1,81 @@
+{
+  "@type": "g:Edge",
+  "@value": {
+    "id": {
+      "~type": "battled",
+      "out_vertex": {
+        "~label": "demigod",
+        "community_id": {
+          "@type": "g:Int32",
+          "@value": 587008
+        },
+        "member_id": {
+          "@type": "g:Int32",
+          "@value": 0
+        }
+      },
+      "in_vertex": {
+        "~label": "monster",
+        "community_id": {
+          "@type": "g:Int32",
+          "@value": 587008
+        },
+        "member_id": {
+          "@type": "g:Int32",
+          "@value": 0
+        }
+      },
+      "local_id": {
+        "@type": "g:UUID",
+        "@value": "6d22fc00-a1e9-11e6-b88f-fb393acbbc47"
+      }
+    },
+    "label": "battled",
+    "inVLabel": "monster",
+    "outVLabel": "demigod",
+    "inV": {
+      "~label": "monster",
+      "community_id": {
+        "@type": "g:Int32",
+        "@value": 587008
+      },
+      "member_id": {
+        "@type": "g:Int32",
+        "@value": 0
+      }
+    },
+    "outV": {
+      "~label": "demigod",
+      "community_id": {
+        "@type": "g:Int32",
+        "@value": 587008
+      },
+      "member_id": {
+        "@type": "g:Int32",
+        "@value": 0
+      }
+    },
+    "properties": {
+      "time": {
+        "@type": "g:Property",
+        "@value": {
+          "key": "time",
+          "value": {
+            "@type": "gx:Instant",
+            "@value": "1970-01-01T00:00:00.022Z"
+          }
+        }
+      },
+      "place": {
+        "@type": "g:Property",
+        "@value": {
+          "key": "place",
+          "value": {
+            "@type": "dse:Point",
+            "@value": "POINT (39 22)"
+          }
+        }
+      }
+    }
+  }
+}

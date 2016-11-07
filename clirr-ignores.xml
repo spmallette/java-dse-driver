@@ -1,0 +1,37 @@
+<!--
+  Clirr is a tool that checks Java libraries for binary and source compatibility with older releases.
+
+  This file lists known (and accepted) differences with the reference version specified in pom.xml.
+
+  To update this file:
+  * run `mvn clirr:clirr` at the root directory
+  * check the reports in `<module>/target/site/clirr-report.html`
+  * add new differences if needed. Difference types are explained at http://www.mojohaus.org/clirr-maven-plugin/examples/ignored-differences.html
+
+  The formatter introduces line breaks that make Clirr unhappy:
+  @formatter:off
+-->
+<differences>
+
+    <difference>
+        <differenceType>8001</differenceType> <!-- class removed -->
+        <className>com/datastax/shaded/**</className>
+        <justification>These are shaded classes and are not part of the public API</justification>
+    </difference>
+
+    <difference>
+        <differenceType>7005</differenceType> <!-- Method Argument Type changed -->
+        <className>com/datastax/driver/dse/geometry/Geometry</className>
+        <method>Geometry(com.datastax.shaded.esri.ogc.OGCGeometry)</method>
+        <to>Geometry(com.esri.core.geometry.ogc.OGCGeometry)</to>
+        <justification>ESRI library was accidentally leaking through this method signature</justification>
+    </difference>
+
+    <difference>
+        <differenceType>7009</differenceType> <!-- Method is now Less Accessible -->
+        <className>com/datastax/driver/dse/geometry/Geometry</className>
+        <method>Geometry(com.datastax.shaded.esri.ogc.OGCGeometry)</method>
+        <justification>ESRI library was accidentally leaking through this method signature</justification>
+    </difference>
+
+</differences>
