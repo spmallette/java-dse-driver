@@ -240,7 +240,7 @@ class Frame {
                     Message.Response.Type.fromOpcode(theFrame.header.opcode);
                     return theFrame;
                 } catch (CorruptedFrameException e) {
-                    throw new DriverInternalError(e);
+                    throw new DriverInternalError(e.getMessage());
                 } catch (TooLongFrameException e) {
                     int streamId = protocolVersion > 2 ?
                             buffer.getShort(curIndex + 2) :
