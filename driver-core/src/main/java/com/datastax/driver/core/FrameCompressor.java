@@ -207,57 +207,44 @@ abstract class FrameCompressor {
 
         @Override
         public Frame compress(Frame frame) throws IOException {
-            ByteBuf input = frame.body;
-            // Using internalNioBuffer(...) as we only hold the reference in this method and so can
-            // reduce Object allocations.
-            ByteBuffer in = inputNioBuffer(input, input.readerIndex(), input.readableBytes());
+            byte[] input = CBUtil.readRawBytes(frame.body);
 
-            int maxCompressedLength = compressor.maxCompressedLength(in.remaining());
-            ByteBuf output = input.alloc().directBuffer(INTEGER_BYTES + maxCompressedLength);
+            int maxCompressedLength = compressor.maxCompressedLength(input.length);
+            byte[] output = new byte[INTEGER_BYTES + maxCompressedLength];
+
+            output[0] = (byte) (input.length >>> 24);
+            output[1] = (byte) (input.length >>> 16);
+            output[2] = (byte) (input.length >>> 8);
+            output[3] = (byte) (input.length);
+
             try {
-                output.writeInt(in.remaining());
-                // Using internalNioBuffer(...) as we only hold the reference in this method and so can
-                // reduce Object allocations.
-                ByteBuffer out = output.internalNioBuffer(output.writerIndex(), output.writableBytes());
-                int written = compressor.compress(in, in.position(), in.remaining(), out, out.position(), out.remaining());
-                // Set the writer index so the amount of written bytes is reflected
-                output.writerIndex(output.writerIndex() + written);
-                return frame.with(output);
+                int written = compressor.compress(input, 0, input.length, output, INTEGER_BYTES, maxCompressedLength);
+                return frame.with(Unpooled.wrappedBuffer(output, 0, INTEGER_BYTES + written));
             } catch (Exception e) {
-                // release output buffer so we not leak and rethrow exception.
-                output.release();
                 throw new IOException(e);
             }
         }
 
         @Override
         public Frame decompress(Frame frame) throws IOException {
-            ByteBuf input = frame.body;
-            int readable = input.readableBytes();
-            int uncompressedLength = input.readInt();
-            ByteBuffer in = inputNioBuffer(input, input.readerIndex(), input.readableBytes());
-            input.readerIndex(input.writerIndex());
-            ByteBuf output = input.alloc().directBuffer(uncompressedLength);
+            byte[] input = CBUtil.readRawBytes(frame.body);
+
+            int uncompressedLength = ((input[0] & 0xFF) << 24)
+                    | ((input[1] & 0xFF) << 16)
+                    | ((input[2] & 0xFF) << 8)
+                    | ((input[3] & 0xFF));
+
+            byte[] output = new byte[uncompressedLength];
+
             try {
-                ByteBuffer out = output.internalNioBuffer(output.writerIndex(), output.writableBytes());
-                int read = decompressor.decompress(in, in.position(), out, out.position(), out.remaining());
-                if (read != readable - INTEGER_BYTES)
+                int read = decompressor.decompress(input, INTEGER_BYTES, output, 0, uncompressedLength);
+                if (read != input.length - INTEGER_BYTES)
                     throw new IOException("Compressed lengths mismatch");
 
-                // Set the writer index so the amount of written bytes is reflected
-                output.writerIndex(output.writerIndex() + uncompressedLength);
-                return frame.with(output);
+                return frame.with(Unpooled.wrappedBuffer(output));
             } catch (Exception e) {
-                // release output buffer so we not leak and rethrow exception.
-                output.release();
                 throw new IOException(e);
             }
-        }
-
-        private static ByteBuffer inputNioBuffer(ByteBuf buf, int index, int len) {
-            // Using internalNioBuffer(...) as we only hold the reference in this method and so can
-            // reduce Object allocations.
-            return buf.nioBufferCount() == 1 ? buf.internalNioBuffer(index, len) : buf.nioBuffer(index, len);
         }
     }
 }
