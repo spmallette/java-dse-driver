@@ -1,0 +1,140 @@
+{
+  "@type": "g:Vertex",
+  "@value": {
+    "id": {
+      "~label": "god",
+      "community_id": {
+        "@type": "g:Int32",
+        "@value": 950424
+      },
+      "member_id": {
+        "@type": "g:Int32",
+        "@value": 0
+      }
+    },
+    "label": "god",
+    "properties": {
+      "name": [
+        {
+          "@type": "g:VertexProperty",
+          "@value": {
+            "id": {
+              "~type": "name",
+              "out_vertex": {
+                "~label": "god",
+                "community_id": {
+                  "@type": "g:Int32",
+                  "@value": 251269760
+                },
+                "member_id": {
+                  "@type": "g:Int64",
+                  "@value": 2
+                }
+              },
+              "local_id": {
+                "@type": "g:UUID",
+                "@value": "00000000-0000-7fff-0000-000000000000"
+              }
+            },
+            "value": "neptune",
+            "label": "name"
+          }
+        }
+      ],
+      "nicknames": [
+        {
+          "@type": "g:VertexProperty",
+          "@value": {
+            "id": {
+              "~type": "nicknames",
+              "out_vertex": {
+                "~label": "god",
+                "community_id": {
+                  "@type": "g:Int32",
+                  "@value": 251269760
+                },
+                "member_id": {
+                  "@type": "g:Int64",
+                  "@value": 2
+                }
+              },
+              "local_id": {
+                "@type": "g:UUID",
+                "@value": "6d0513c0-a1e9-11e6-b88f-fb393acbbc47"
+              }
+            },
+            "value": "Neppy",
+            "label": "nicknames",
+            "properties": {
+              "time": {
+                "@type": "gx:Instant",
+                "@value": "1970-01-01T00:00:00.022Z"
+              }
+            }
+          }
+        },
+        {
+          "@type": "g:VertexProperty",
+          "@value": {
+            "id": {
+              "~type": "nicknames",
+              "out_vertex": {
+                "~label": "god",
+                "community_id": {
+                  "@type": "g:Int32",
+                  "@value": 251269760
+                },
+                "member_id": {
+                  "@type": "g:Int64",
+                  "@value": 2
+                }
+              },
+              "local_id": {
+                "@type": "g:UUID",
+                "@value": "6d053ad0-a1e9-11e6-b88f-fb393acbbc47"
+              }
+            },
+            "value": "Flipper",
+            "label": "nicknames",
+            "properties": {
+              "time": {
+                "@type": "gx:Instant",
+                "@value": "1970-01-01T00:00:00.025Z"
+              }
+            }
+          }
+        }
+      ],
+      "age": [
+        {
+          "@type": "g:VertexProperty",
+          "@value": {
+            "id": {
+              "~type": "age",
+              "out_vertex": {
+                "~label": "god",
+                "community_id": {
+                  "@type": "g:Int32",
+                  "@value": 251269760
+                },
+                "member_id": {
+                  "@type": "g:Int64",
+                  "@value": 2
+                }
+              },
+              "local_id": {
+                "@type": "g:UUID",
+                "@value": "00000000-0000-8000-0000-000000000000"
+              }
+            },
+            "value": {
+              "@type": "g:Int32",
+              "@value": 4500
+            },
+            "label": "age"
+          }
+        }
+      ]
+    }
+  }
+}
