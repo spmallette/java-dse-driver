@@ -1,38 +1,27 @@
 <!--
 
-         Copyright (C) 2012-2015 DataStax Inc.
+         Copyright (C) 2012-2016 DataStax Inc.
 
-      Licensed under the Apache License, Version 2.0 (the "License");
-      you may not use this file except in compliance with the License.
-      You may obtain a copy of the License at
-
-         http://www.apache.org/licenses/LICENSE-2.0
-
-      Unless required by applicable law or agreed to in writing, software
-      distributed under the License is distributed on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-      See the License for the specific language governing permissions and
-      limitations under the License.
+         This software can be used solely with DataStax Enterprise. Please consult the license at
+         http://www.datastax.com/terms/datastax-dse-driver-license-terms
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <groupId>com.datastax.cassandra</groupId>
-    <artifactId>cassandra-driver-parent</artifactId>
-    <version>3.1.3-SNAPSHOT</version>
+    <artifactId>dse-parent</artifactId>
+    <version>1.1.1-beta2-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>DataStax Java Driver for Apache Cassandra</name>
-    <description>A driver for Apache Cassandra 1.2+ that works exclusively with the Cassandra Query Language version 3
-        (CQL3) and Cassandra's binary protocol.
-    </description>
-    <url>https://github.com/datastax/java-driver</url>
+    <name>DataStax Enterprise Java Driver</name>
+    <url>https://github.com/datastax/java-driver-dse</url>
     <inceptionYear>2012</inceptionYear>
 
     <modules>
@@ -42,11 +31,12 @@
         <module>driver-examples</module>
         <module>driver-tests</module>
         <module>driver-dist</module>
+        <module>dse-driver</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cassandra.version>3.6</cassandra.version>
+        <cassandra.version>5.0.3</cassandra.version>
         <java.version>1.6</java.version>
         <log4j.version>1.2.17</log4j.version>
         <slf4j-log4j12.version>1.7.6</slf4j-log4j12.version>
@@ -73,7 +63,7 @@
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
         <!-- Set default javadoc.opts, overriden by profiles -->
-        <javadoc.opts />
+        <javadoc.opts/>
     </properties>
 
     <profiles>
@@ -142,7 +132,8 @@
                         <configuration>
                             <property>
                                 <name>usedefaultlisteners</name>
-                                <value>false</value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
+                                <value>false
+                                </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
                             </property>
                             <skip>true</skip>
                             <forkCount>1</forkCount>
@@ -151,7 +142,7 @@
                             <!-- This requires includes to be explicitly specified by implementing classes.
                                  This is needed to prevent creating a JVM fork for each test, even those that don't
                                  have the isolated group. -->
-                            <includes />
+                            <includes/>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -383,7 +374,8 @@
                     <properties>
                         <property>
                             <name>usedefaultlisteners</name>
-                            <value>false</value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
+                            <value>false
+                            </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
                         </property>
                         <property>
                             <!-- Don't skip tests after a @Before method throws a SkipException -->
@@ -422,17 +414,17 @@
 
     <licenses>
         <license>
-            <name>Apache 2</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>DataStax DSE Driver License</name>
+            <url>http://www.datastax.com/terms/datastax-dse-driver-license-terms</url>
             <distribution>repo</distribution>
-            <comments>Apache License Version 2.0</comments>
+            <comments/>
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:datastax/java-driver.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/java-driver.git</developerConnection>
-        <url>https://github.com/datastax/java-driver</url>
+        <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
+        <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
+        <url>https://github.com/datastax/java-driver-dse</url>
         <tag>HEAD</tag>
     </scm>
 

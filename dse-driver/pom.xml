@@ -25,6 +25,7 @@
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
+        <apacheds.version>2.0.0-M19</apacheds.version>
     </properties>
 
     <dependencies>
@@ -32,26 +33,31 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-log4j12.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.esri.geometry</groupId>
             <artifactId>esri-geometry-api</artifactId>
+            <version>1.2.1</version>
         </dependency>
 
         <!-- test dependencies -->
@@ -59,72 +65,86 @@
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
+            <version>${project.version}</version>
             <type>test-jar</type>
         </dependency>
 
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.scassandra</groupId>
             <artifactId>java-client</artifactId>
+            <version>${scassandra.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-exec</artifactId>
+            <version>${commons-exec.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j-log4j12.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-core</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-protocol-kerberos</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-interceptor-kerberos</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-protocol-ldap</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-ldif-partition</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-jdbm-partition</artifactId>
+            <version>${apacheds.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.directory.api</groupId>
             <artifactId>api-ldap-codec-standalone</artifactId>
+            <version>1.0.0-M26</version>
         </dependency>
 
     </dependencies>
