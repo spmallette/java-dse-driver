@@ -343,7 +343,6 @@
                                 <include>**/ExtendedPeerCheckDisabledTest.java</include>
                                 <include>**/UUIDsPID*.java</include>
                                 <include>**/FrameLengthTest.java</include>
-                                <include>**/HeapCompressionTest.java</include>
                             </includes>
                         </configuration>
                     </plugin>

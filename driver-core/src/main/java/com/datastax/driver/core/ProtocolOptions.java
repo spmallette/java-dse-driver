@@ -41,7 +41,7 @@ public class ProtocolOptions {
         SNAPPY("snappy") {
             @Override
             FrameCompressor compressor() {
-                return SnappyCompressor.instance;
+                return FrameCompressor.SnappyCompressor.instance;
             }
         },
         /**
@@ -50,7 +50,7 @@ public class ProtocolOptions {
         LZ4("lz4") {
             @Override
             FrameCompressor compressor() {
-                return LZ4Compressor.instance;
+                return FrameCompressor.LZ4Compressor.instance;
             }
         };
 

@@ -135,16 +135,4 @@
         <justification>Introduced more generic parent type PercentileTracker (API was marked as beta and still subject to change)</justification>
     </difference>
 
-    <difference>
-        <differenceType>8001</differenceType> <!-- class removed -->
-        <className>com/datastax/driver/core/FrameCompressor$SnappyCompressor</className>
-        <justification>False positive, the enclosing class is package-private so this was never exposed</justification>
-    </difference>
-
-    <difference>
-        <differenceType>8001</differenceType> <!-- class removed -->
-        <className>com/datastax/driver/core/FrameCompressor$LZ4Compressor</className>
-        <justification>False positive, the enclosing class is package-private so this was never exposed</justification>
-    </difference>
-
 </differences>
