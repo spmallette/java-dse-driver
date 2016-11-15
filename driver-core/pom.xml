@@ -14,7 +14,7 @@
         <artifactId>dse-parent</artifactId>
         <version>1.1.1-beta2-SNAPSHOT</version>
     </parent>
-    <artifactId>cassandra-driver-core</artifactId>
+    <artifactId>dse-driver</artifactId>
     <packaging>bundle</packaging>
     <name>DataStax Enterprise Java Driver - Core</name>
     <description>A driver for DataStax Enterprise clusters (DSE), supporting DSE-specific features such as geospatial
