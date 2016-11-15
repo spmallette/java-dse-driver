@@ -264,36 +264,6 @@
                     <!-- do NOT specify arguments tag here as it would override the arguments tag in this plugin's definition in the parent POM -->
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>clirr-maven-plugin</artifactId>
-                <version>2.7</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <comparisonVersion>3.1.1</comparisonVersion>
-                    <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
-                </configuration>
-                <!--
-                Workaround to make clirr plugin work with Java 8.
-                The bug is actually in the BCEL library,
-                see https://issues.apache.org/jira/browse/BCEL-173.
-                See also https://github.com/RichardWarburton/lambda-behave/issues/31#issuecomment-86052095
-                -->
-                <dependencies>
-                    <dependency>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>bcel-findbugs</artifactId>
-                        <version>6.0</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
             <!--
             To update license headers run:
             mvn license:format
