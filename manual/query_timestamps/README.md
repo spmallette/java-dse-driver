@@ -41,8 +41,8 @@ statement.setDefaultTimestamp(1234567890);
 session.execute(statement);
 ```
 
-[tsg]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/TimestampGenerator.html
-[amtsg]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/AtomicMonotonicTimestampGenerator.html
+[tsg]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/TimestampGenerator.html
+[amtsg]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/AtomicMonotonicTimestampGenerator.html
 
 
 ### Server-side generation

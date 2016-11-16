@@ -203,7 +203,7 @@ String firstName = row.getString("first_name");
     <tr> <td>blob</td> <td>getBytes</td> <td>java.nio.ByteBuffer</td> </tr>
     <tr> <td>boolean</td> <td>getBool</td> <td>boolean</td> </tr>
     <tr> <td>counter</td> <td>getLong</td> <td>long</td> </tr>
-    <tr> <td>date</td> <td>getDate</td> <td><a href="http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/LocalDate.html">LocalDate</a></td> </tr>
+    <tr> <td>date</td> <td>getDate</td> <td><a href="http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/LocalDate.html">LocalDate</a></td> </tr>
     <tr> <td>decimal</td> <td>getDecimal</td> <td>java.math.BigDecimal</td> </tr>
     <tr> <td>double</td> <td>getDouble</td> <td>double</td> </tr>
     <tr> <td>float</td> <td>getFloat</td> <td>float</td> </tr>
@@ -280,16 +280,16 @@ menu on the right hand side to navigate sub-sections. If you're [browsing the so
 github.com](https://github.com/datastax/java-driver-dse/tree/1.x/manual),
 simply navigate to each sub-directory.
 
-[DseCluster]:               http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/dse/DseCluster.html
-[DseCluster.Builder]:       http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/dse/DseCluster.Builder.html
-[DseSession]:               http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/DseSession.html
-[ResultSet]:                http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/ResultSet.html
-[Row]:                      http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Row.html
-[NettyOptions]:             http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/NettyOptions.html
-[QueryOptions]:             http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/QueryOptions.html
-[SocketOptions]:            http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/SocketOptions.html
-[Host.StateListener]:       http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Host.StateListener.html
-[LatencyTracker]:           http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/LatencyTracker.html
-[SchemaChangeListener]:     http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/SchemaChangeListener.html
-[NoHostAvailableException]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/exceptions/NoHostAvailableException.html
-[LocalDate]:                http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/LocalDate.html
+[DseCluster]:               http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/dse/DseCluster.html
+[DseCluster.Builder]:       http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/dse/DseCluster.Builder.html
+[DseSession]:               http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/DseSession.html
+[ResultSet]:                http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/ResultSet.html
+[Row]:                      http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/Row.html
+[NettyOptions]:             http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/NettyOptions.html
+[QueryOptions]:             http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/QueryOptions.html
+[SocketOptions]:            http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/SocketOptions.html
+[Host.StateListener]:       http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/Host.StateListener.html
+[LatencyTracker]:           http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/LatencyTracker.html
+[SchemaChangeListener]:     http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/SchemaChangeListener.html
+[NoHostAvailableException]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/exceptions/NoHostAvailableException.html
+[LocalDate]:                http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/LocalDate.html
