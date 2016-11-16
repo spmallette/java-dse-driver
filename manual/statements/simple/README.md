@@ -14,11 +14,11 @@ When you don't need to customize anything on the `SimpleStatement` object, there
 session.execute("SELECT value FROM application_params WHERE name = 'greeting_message'");
 ```
 
-Each time you execute a simple statement, Cassandra will parse the query string again; nothing is cached (neither on the
+Each time you execute a simple statement, DSE will parse the query string again; nothing is cached (neither on the
 client nor on the server):
 
 ```ditaa
-client                             driver                Cassandra
+client                             driver                 DSE
 --+----------------------------------+---------------------+------
   |                                  |                     |
   | session.execute(SimpleStatement) |                     |
@@ -72,7 +72,7 @@ This syntax has a few advantages:
 
 The number of values must match the query string, and their types must match the database schema. Note that the driver
 does not parse query strings, so it cannot perform those checks on the client side; if you make a mistake, the query
-will be sent anyway, and the error will be caught by Cassandra (`InvalidQueryException` is a server-side error):
+will be sent anyway, and the error will be caught by DSE (`InvalidQueryException` is a server-side error):
 
 ```java
 session.execute(

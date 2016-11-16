@@ -1,6 +1,6 @@
 ## Compression
 
-Cassandra's binary protocol supports optional compression of
+DSE's binary protocol supports optional compression of
 transport-level requests and responses, for example:
 
 * a query with its serialized parameters;
@@ -38,7 +38,7 @@ for the `lz4.version` property.
 Driver configuration:
 
 ```java
-cluster = Cluster.builder()
+cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withCompression(ProtocolOptions.Compression.LZ4)
     .build();
@@ -79,10 +79,10 @@ for the `snappy.version` property.
 Driver configuration:
 
 ```java
-cluster = Cluster.builder()
+cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withCompression(ProtocolOptions.Compression.SNAPPY)
     .build();
 ```
 
-[pom]: https://repo1.maven.org/maven2/com/datastax/cassandra/cassandra-driver-parent/3.1.2/cassandra-driver-parent-3.1.2.pom
+[pom]: https://repo1.maven.org/maven2/com/datastax/cassandra/dse-parent/1.1.1-beta1/dse-parent-3.1.2.pom

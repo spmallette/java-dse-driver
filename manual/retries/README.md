@@ -31,7 +31,7 @@ user code. You can use its [getErrors()] method to find out what went wrong on e
 when initializing the cluster:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withRetryPolicy(new MyCustomPolicy())
         .build();
@@ -64,7 +64,7 @@ But, for some reason, one or several replicas were too slow to answer within the
 error.
 
 This could be due to a temporary overloading of these replicas, or even
-that they just failed or were turned off. During reads, Cassandra doesn't request data from every replica to minimize
+that they just failed or were turned off. During reads, DSE doesn't request data from every replica to minimize
 internal network traffic; instead, some replicas are only asked for a checksum of the data. A read timeout may occur
 even if enough replicas responded to fulfill the consistency level, but only checksum responses were received (the
 method's `dataRetrieved` parameter allow you to check if you're in that situation).
@@ -89,12 +89,12 @@ This gets called for any other error occurring after the request was sent.
 The method receives the exception as a parameter, so that implementations can refine their decision based on what
 happened. The possible exceptions are:
 
-* [ServerError]: thrown by the coordinator when an unexpected error occurs. This is generally a Cassandra bug;
+* [ServerError]: thrown by the coordinator when an unexpected error occurs. This is generally a DSE bug;
 * [OperationTimedOutException]: thrown by the client when it didn't hear back from the coordinator within the
   [driver read timeout];
 * [ConnectionException]: thrown by the client for any network issue while or after the request was written;
 * [OverloadedException]: thrown by the coordinator when replicas are down and the number of hinted handoffs gets too
-  high; the coordinator temporarily refuses writes for these replicas (see [hinted handoffs] in the Cassandra
+  high; the coordinator temporarily refuses writes for these replicas (see [hinted handoffs] in the DSE
   documentation).
 
 ### Hard-coded rules

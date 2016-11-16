@@ -1,10 +1,10 @@
 ## Metadata
 
-The driver maintains global information about the Cassandra cluster it
+The driver maintains global information about the DSE cluster it
 is connected to. It is available via
-[Cluster#getMetadata()][getMetadata].
+[DseCluster#getMetadata()][getMetadata].
 
-[getMetadata]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Cluster.html#getMetadata--
+[getMetadata]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/dse/DseCluster.html#getMetadata--
 
 ### Schema metadata
 
@@ -23,9 +23,9 @@ Schema metadata gets refreshed in the following circumstances:
   schema-altering query (ex: `CREATE TABLE`), the driver waits for
   schema agreement (see below), then refreshes the schema.
 * **third-party schema changes**: if another client (cqlsh, other driver
-  instance...) changes the schema, the driver gets notified by Cassandra
+  instance...) changes the schema, the driver gets notified by DSE
   via a push notification. It refreshes the schema directly (there is no
-  need to wait for schema agreement since Cassandra has already done it).
+  need to wait for schema agreement since DSE has already done it).
 
 #### Subscribing to schema changes
 
@@ -62,7 +62,7 @@ requests (which might get routed to different nodes) see an up-to-date
 version of the schema.
 
 ```ditaa
- Application             Driver           Cassandra
+ Application             Driver              DSE
 ------+--------------------+------------------+-----
       |                    |                  |
       |  CREATE TABLE...   |                  |
@@ -100,7 +100,7 @@ will give up waiting.  The default timeout is 10 seconds, it can be
 customized when building your cluster:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withMaxSchemaAgreementWaitSeconds(20)
     .build();

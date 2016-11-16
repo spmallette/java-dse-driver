@@ -1,6 +1,6 @@
 ## Address resolution
 
-Each node in the Cassandra cluster is uniquely identified by an IP address that the driver will use to establish
+Each node in the DSE cluster is uniquely identified by an IP address that the driver will use to establish
 connections.
 
 * for contact points, these are provided as part of configuring the `Cluster` object;
@@ -9,12 +9,12 @@ connections.
   by gossip.
 
 
-### Cassandra-side configuration
+### DSE-side configuration
 
-The address that each Cassandra node shares with clients is the **broadcast RPC address**; it is controlled by various
+The address that each DSE node shares with clients is the **broadcast RPC address**; it is controlled by various
 properties in [cassandra.yaml]:
 
-* [rpc_address] or [rpc_interface] is the address that the Cassandra process *binds to*. You must set one or the other,
+* [rpc_address] or [rpc_interface] is the address that the DSE process *binds to*. You must set one or the other,
   not both (for more details, see the inline comments in the default `cassandra.yaml` that came with your installation);
 * [broadcast_rpc_address] \(introduced in Cassandra 2.1) is the address to share with clients, if it is different than
   the previous one (the reason for having a separate property is if the bind address is not public to clients, because
@@ -23,7 +23,7 @@ properties in [cassandra.yaml]:
 If `broadcast_rpc_address` is not set, it defaults to `rpc_address`/`rpc_interface`. If `rpc_address`/`rpc_interface`
 is 0.0.0.0 (all interfaces), then `broadcast_rpc_address` *must* be set.
 
-If you're not sure which address a Cassandra node is broadcasting, launch cqlsh locally on the node, execute the
+If you're not sure which address a DSE node is broadcasting, launch cqlsh locally on the node, execute the
 following query and take node of the result:
 
 ```
@@ -50,7 +50,7 @@ will run.
 
 ### Driver-side address translation
 
-Sometimes it's not possible for Cassandra nodes to broadcast addresses that will work for each and every client; for
+Sometimes it's not possible for DSE nodes to broadcast addresses that will work for each and every client; for
 instance, they might broadcast private IPs because most clients are in the same network, but a particular client could
 be on another network and go through a router.
 
@@ -71,12 +71,12 @@ Cluster cluster = Cluster.builder()
 ```
 
 Note: the contact points provided while creating the `Cluster` are not translated, only
-addresses retrieved from or sent by Cassandra nodes are.
+addresses retrieved from or sent by DSE nodes are.
 
 ### EC2 multi-region
 
-If you deploy both Cassandra and client applications on Amazon EC2, and your cluster spans multiple regions, you'll have
-to configure your Cassandra nodes to broadcast public RPC addresses.
+If you deploy both DSE and client applications on Amazon EC2, and your cluster spans multiple regions, you'll have
+to configure your DSE nodes to broadcast public RPC addresses.
 
 However, this is not always the most cost-effective: if a client and a node are in the same region, it would be cheaper
 to connect over the private IP. Ideally, you'd want to pick the best address in each case.
@@ -91,7 +91,7 @@ Cluster cluster = Cluster.builder()
 ```
 
 With this configuration, you keep broadcasting public RPC addresses. But each time the driver connects to a new
-Cassandra node:
+DSE node:
 
 * if the node is *in the same EC2 region*, the public IP will be translated to the intra-region private IP;
 * otherwise, it will not be translated.

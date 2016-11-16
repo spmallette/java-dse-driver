@@ -9,11 +9,11 @@ into *pages* which get returned as they are needed.
 The *fetch size* specifies how many rows will be returned at once by
 Cassandra (in other words, it's the size of each page).
 
-You can set a default fetch size globally for a `Cluster` instance:
+You can set a default fetch size globally for a `DseCluster` instance:
 
 ```java
 // At initialization:
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withQueryOptions(new QueryOptions().setFetchSize(2000))
     .build();
@@ -43,7 +43,7 @@ page; if you iterate past that, the driver will run background queries
 to fetch subsequent pages. Here's an example with a fetch size of 20:
 
 ```ditaa
-    client         Session                          Cassandra
+    client         Session                            DSE
     --+--------------+---------------------------------+-----
       |execute(query)|                                 |
       |------------->|                                 |
@@ -160,7 +160,7 @@ if (requestedPage != null) {
 ResultSet rs = session.execute(st);
 PagingState nextPage = rs.getExecutionInfo().getPagingState();
 
-// Note that we don't rely on RESULTS_PER_PAGE, since Cassandra might
+// Note that we don't rely on RESULTS_PER_PAGE, since DSE might
 // have not respected it, or we might be at the end of the result set
 int remaining = rs.getAvailableWithoutFetching();
 for (Row row : rs) {
@@ -184,12 +184,10 @@ Due to internal implementation details, `PagingState` instances are not
 portable across [native protocol](../native_protocol/) versions. This
 could become a problem in the following scenario:
 
-* you're using the driver 2.0.x and Cassandra 2.0.x, and therefore
-  native protocol v2;
+* you're using the driver with DSE 4.x, and therefore native protocol v3;
 * a user bookmarks a link to your web service that contains a serialized
   paging state;
-* you upgrade your server stack to use the driver 2.1.x and Cassandra
-  2.1.x, so you're now using protocol v3;
+* you upgrade your server stack to use DSE 5, so you're now using protocol v4;
 * the user tries to reload their bookmark, but the paging state was
   serialized with protocol v2, so trying to reuse it will fail.
 
@@ -207,7 +205,7 @@ manipulate a raw `byte[]` instead of a `PagingState` object:
 These low-level methods perform no validation on their arguments;
 therefore nothing protects you from reusing a paging state that was
 generated from a different statement, or altered in any way. This could
-result in sending a corrupt paging state to Cassandra, with
+result in sending a corrupt paging state to DSE, with
 unpredictable consequences (ranging from wrong results to a query
 failure).
 
@@ -228,11 +226,11 @@ Saving the paging state works well when you only let the user move from
 one page to the next. But it doesn't allow random jumps (like "go
 directly to page 10"), because you can't fetch a page unless you have
 the paging state of the previous one. Such a feature would require
-*offset queries*, but they are not natively supported by Cassandra (see
+*offset queries*, but they are not natively supported by DSE (see
 [CASSANDRA-6511](https://issues.apache.org/jira/browse/CASSANDRA-6511)).
 The rationale is that offset queries are inherently inefficient (the
 performance will always be linear in the number of rows skipped), so the
-Cassandra team doesn't want to encourage their use.
+DSE team doesn't want to encourage their use.
 
 If you really want offset queries, you can emulate them client-side.
 You'll still get linear performance, but maybe that's acceptable for

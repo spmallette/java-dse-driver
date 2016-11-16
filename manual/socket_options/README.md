@@ -1,11 +1,11 @@
 ## Socket options
 
-[SocketOptions] controls various low-level parameters related to TCP connections between the driver and Cassandra.
+[SocketOptions] controls various low-level parameters related to TCP connections between the driver and DSE.
 
 You can provide these when initializing the cluster:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withSocketOptions(
                 new SocketOptions()
@@ -29,7 +29,7 @@ socketOptions.setConnectTimeoutMillis(3000);
 
 ### TCP options
 
-[setConnectTimeoutMillis] defines how long the driver waits to establish a new connection to a Cassandra node before
+[setConnectTimeoutMillis] defines how long the driver waits to establish a new connection to a DSE node before
 giving up.
 
 Other options control the usual low-level TCP parameters (refer to their individual javadoc for details):
@@ -40,10 +40,10 @@ connections).
 
 ### Driver read timeout
 
-[setReadTimeoutMillis] controls how long the driver waits for a response *from a given Cassandra node* before
+[setReadTimeoutMillis] controls how long the driver waits for a response *from a given DSE node* before
 considering it unresponsive.
 
-Cassandra normally provides a guaranteed response time for each type of query, as shown by these parameters in
+DSE normally provides a guaranteed response time for each type of query, as shown by these parameters in
 `cassandra.yaml` (here with their default values):
 
 ```yaml
@@ -102,7 +102,7 @@ multiple nodes in parallel. This way you won't have to wait for the full timeout
 
 #### Driver read timeout vs. server read timeout
 
-Unfortunately, the term "read timeout" clashes with another concept that is not directly related: a Cassandra node may
+Unfortunately, the term "read timeout" clashes with another concept that is not directly related: a DSE node may
 reply with a [READ_TIMEOUT](../retries/#on-read-timeout) error when it didn't hear back from enough replicas during a
 read query.
 

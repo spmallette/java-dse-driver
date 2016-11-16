@@ -11,8 +11,8 @@ package name:
 ```xml
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
-  <artifactId>cassandra-driver-core</artifactId>
-  <version>3.1.2</version>
+  <artifactId>dse-driver</artifactId>
+  <version>1.1.1-beta1</version>
   <classifier>shaded</classifier>
   <!-- Because the shaded JAR uses the original POM, you still need
        to exclude this dependency explicitly: -->
@@ -20,35 +20,6 @@ package name:
     <exclusion>
       <groupId>io.netty</groupId>
       <artifactId>*</artifactId>
-    </exclusion>
-  </exclusions>
-</dependency>
-```
-
-If you also use the mapper, you need to remove its dependency to the
-non-shaded JAR:
-
-```xml
-<dependency>
-  <groupId>com.datastax.cassandra</groupId>
-  <artifactId>cassandra-driver-core</artifactId>
-  <version>3.1.2</version>
-  <classifier>shaded</classifier>
-  <exclusions>
-    <exclusion>
-      <groupId>io.netty</groupId>
-      <artifactId>*</artifactId>
-    </exclusion>
-  </exclusions>
-</dependency>
-<dependency>
-  <groupId>com.datastax.cassandra</groupId>
-  <artifactId>cassandra-driver-mapping</artifactId>
-  <version>3.1.2</version>
-  <exclusions>
-    <exclusion>
-      <groupId>com.datastax.cassandra</groupId>
-      <artifactId>cassandra-driver-core</artifactId>
     </exclusion>
   </exclusions>
 </dependency>

@@ -11,6 +11,9 @@ asynchronously:
 ```java
 import com.google.common.util.concurrent.*;
 
+// For historical reasons, this returns a Future of Session, not DseSession. But you can safely cast to DseSession in
+// your callbacks if you need to access DSE-specific features. Here it doesn't really matter because we only use CQL
+// features.
 ListenableFuture<Session> session = cluster.connectAsync();
 
 // Use transform with an AsyncFunction to chain an async operation after another:
@@ -32,7 +35,7 @@ ListenableFuture<String> version = Futures.transform(resultSet,
 // Use a callback to perform an action once the future is complete:
 Futures.addCallback(version, new FutureCallback<String>() {
     public void onSuccess(String version) {
-        System.out.printf("Cassandra version: %s%n", version);
+        System.out.printf("DSE version: %s%n", version);
     }
 
     public void onFailure(Throwable t) {
@@ -126,7 +129,7 @@ ListenableFuture<ResultSet> resultSet = Futures.transform(session,
 There are still a few places where the driver will block internally
 (mainly for historical reasons):
 
-* [Cluster#init][init] performs blocking I/O operations. To avoid
+* [DseCluster#init][init] performs blocking I/O operations. To avoid
   issues, you should create your `Cluster` instances while bootstrapping
   your application, and call `init` immediately. If you need to create new
   instances at runtime, make sure this does not happen on an I/O thread.
@@ -134,5 +137,5 @@ There are still a few places where the driver will block internally
   hasn't been fetched already.
 
 [ListenableFuture]: https://code.google.com/p/guava-libraries/wiki/ListenableFutureExplained
-[init]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Cluster.html#init--
+[init]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/dse/DseCluster.html#init--
 [query trace]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/QueryTrace.html

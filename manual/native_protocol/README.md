@@ -1,9 +1,9 @@
 ## Native protocol
 
 The native protocol defines the format of the binary messages exchanged
-between the driver and Cassandra over TCP. As a driver user, you don't
+between the driver and DSE over TCP. As a driver user, you don't
 need to know the fine details (although the protocol spec is [in the
-Cassandra codebase][native_spec] if you're curious); the most visible
+DSE codebase][native_spec] if you're curious); the most visible
 aspect is that some features are only available with specific protocol
 versions.
 
@@ -12,25 +12,13 @@ versions.
 ### Compatibility matrix
 
 By default, the protocol version is negotiated between the driver and
-Cassandra when the first connection is established. Both sides are
+DSE when the first connection is established. Both sides are
 backward-compatible with older versions:
 
 <table border="1" style="text-align:center; width:100%;margin-bottom:1em;">
-<tr><td>&nbsp;</td><td>Cassandra: 1.2.x<br/>(DSE 3.2)</td><td>2.0.x<br/>(DSE 4.0 to 4.6)</td><td>2.1.x<br/>(DSE 4.7)</td><td>2.2.x</td><td>3.0.x</td></tr>
-<tr><td>Driver: 1.0.x</td> <td>v1</td> <td>v1</td>  <td>v1</td> <td>v1</td>  <td>Unsupported <i>(1)</i></td> </tr>
-<tr><td>2.0.x to 2.1.1</td> <td>v1</td> <td>v2</td>  <td>v2</td> <td>v2</td> <td>Unsupported <i>(1)</i></td> </tr>
-<tr><td>2.1.2 to 2.1.x</td> <td>v1</td> <td>v2</td>  <td>v3</td> <td>v3</td> <td>Unsupported <i>(2)</i></td> </tr>
-<tr><td>3.x</td> <td>v1</td> <td>v2</td>  <td>v3</td> <td>v4</td> <td>v4</td> </tr>
+<tr><td>&nbsp;</td><td>DSE: 3.2</td><td>4.0 to 4.6</td><td>4.7 to 4.8</td><td>5.0</td></tr>
+<tr><td>Driver: 1.x</td> <td>v1</td> <td>v2</td>  <td>v3</td> <td>v4</td> </tr>
 </table>
-
-*(1) Cassandra 3.0 does not support protocol versions v1 and v2*
-
-*(2) There is a matching protocol version (v3), but the driver 2.1.x can't read the new system table format of Cassandra 3.0*
-
-For example, if you use version 2.1.5 of the driver to connect to
-Cassandra 2.0.9, the maximum version you can use (and the one you'll get
-by default) is protocol v2 (third row, second column). If you use the
-same version to connect to Cassandra 2.1.4, you can use protocol v3.
 
 ### Controlling the protocol version
 
@@ -47,14 +35,14 @@ The protocol version can not be changed at runtime. However, you can
 force a given version at initialization:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withProtocolVersion(ProtocolVersion.V2)
     .build();
 ```
 
 If you specify a version that is not compatible with your current
-driver/Cassandra combination, you'll get an error:
+driver/DSE combination, you'll get an error:
 
 ```
 Exception in thread "main" com.datastax.driver.core.exceptions.NoHostAvailableException:
@@ -68,25 +56,24 @@ All host(s) tried for query failed
 #### Protocol version with mixed clusters
 
 If you have a cluster with mixed versions (for example, while doing a
-rolling upgrade of Cassandra), note that **the protocol version will be
+rolling upgrade of DSE), note that **the protocol version will be
 negotiated with the first host the driver connects to**.
 
-This could lead to the following situation (assuming you use driver
-2.1.2+):
+This could lead to the following situation (assuming you use driver 1.x):
 
-* the first contact point is a 2.1 host, so the driver negotiates
-  protocol v3;
-* while connecting to the rest of the cluster, the driver contacts a 2.0
+* the first contact point is a DSE 5 host, so the driver negotiates
+  protocol v4;
+* while connecting to the rest of the cluster, the driver contacts a 4.8
   host using protocol v3, which fails; an error is logged and this host
   will be permanently ignored.
 
 To avoid this issue, you can use one the following workarounds:
 
-* always force a protocol version at startup. You keep it at v2 while
-  the rolling upgrade is happening, and only switch to v3 when the whole
-  cluster has switched to Cassandra 2.1;
+* always force a protocol version at startup. You keep it at v3 while
+  the rolling upgrade is happening, and only switch to v4 when the whole
+  cluster has switched to DSE 5;
 * ensure that the list of initial contact points only contains hosts
-  with the oldest version (2.0 in this example).
+  with the oldest version (4.8 in this example).
 
 
 ### New features by protocol version

@@ -151,11 +151,11 @@ As you can see, the easiest way to do so is to access the `Cluster`'s `CodecRegi
 By default, `Cluster` instances will use `CodecRegistry.DEFAULT_INSTANCE`, 
 which should be adequate for most users.
 
-It is however possible to create a `Cluster` using a different `CodecRegistry`:
+It is however possible to create a `DseCluster` using a different `CodecRegistry`:
 
 ```java
 CodecRegistry myCodecRegistry = new CodecRegistry();
-Cluster cluster = new Cluster.builder().withCodecRegistry(myCodecRegistry).build();
+DseCluster cluster = DseCluster.builder().withCodecRegistry(myCodecRegistry).build();
 ```
 
 Note: when you instantiate a new `CodecRegistry`, it automatically registers all the default codecs used by the driver.
@@ -169,8 +169,8 @@ a `MyPojo` instance when executing queries, or when you ask it to retrieve a `My
 For example, here is how to save a `MyPojo` object:
 
 ```java
-Cluster cluster = ...
-Session session = ...
+DseCluster cluster = ...
+DseSession session = ...
 MyPojo myPojo = ...
 // Using SimpleStatement
 Statement stmt = new SimpleStatement("INSERT INTO t (id, json) VALUES (?, ?)", 42, myPojo));

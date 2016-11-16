@@ -26,11 +26,11 @@ public class MyCustomDateCodec extends TypeCodec<MyCustomDate> {
 
 ### Pre-registered codecs
 
-If you register your codec with the mapper's underlying `Cluster`, it
+If you register your codec with the mapper's underlying `DseCluster`, it
 will be automatically available to the mapper:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withCodecRegistry(
         new CodecRegistry().register(new MyCustomDateCodec())
@@ -68,10 +68,10 @@ interface UserAccessor {
 
 Sometimes you might want to use your codec only for one particular
 column/field. In that case you won't register it when initializing the
-`Cluster`:
+`DseCluster`:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .build();
 
@@ -98,9 +98,9 @@ instance (one per column) and cache it for future use.
 
 This also works with [@Field][field] and [@Param][param] annotations.
 
-[column]:http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/mapping/annotations/Column.html
-[field]:http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/mapping/annotations/Field.html
-[param]:http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/mapping/annotations/Param.html
+[column]:http://docs.datastax.com/en/drivers/java/3.1/com/datastax/driver/mapping/annotations/Column.html
+[field]:http://docs.datastax.com/en/drivers/java/3.1/com/datastax/driver/mapping/annotations/Field.html
+[param]:http://docs.datastax.com/en/drivers/java/3.1/com/datastax/driver/mapping/annotations/Param.html
 
 
 ## Implicit UDT codecs
@@ -110,7 +110,7 @@ you register an [entity](../using/#entity-mappers), the mapper inspects
 the type of all fields to find classes annotated with
 [@UDT](../creating/#mapping-user-types) (this works recursively with
 nested UDTs and collections). For each class, the mapper creates a codec
-and registers it with the underlying `Cluster`.
+and registers it with the underlying `DseCluster`.
 
 ```java
 @UDT(name = "address")

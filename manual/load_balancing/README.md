@@ -1,6 +1,6 @@
 ## Load balancing
 
-A Cassandra cluster is typically composed of multiple hosts; the [LoadBalancingPolicy] \(sometimes abbreviated LBP) is a
+A DSE cluster is typically composed of multiple hosts; the [LoadBalancingPolicy] \(sometimes abbreviated LBP) is a
 central component that determines:
 
 * which hosts the driver will communicate with;
@@ -72,7 +72,7 @@ The next sections describe the implementations that are provided with the driver
 ### [RoundRobinPolicy]
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withLoadBalancingPolicy(new RoundRobinPolicy())
         .build();
@@ -96,7 +96,7 @@ to switch to a DC-aware policy.
 ### [DCAwareRoundRobinPolicy]
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withLoadBalancingPolicy(
                 DCAwareRoundRobinPolicy.builder()
@@ -136,7 +136,7 @@ are not included for local CLs).
 ### [TokenAwarePolicy]
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withLoadBalancingPolicy(new TokenAwarePolicy(anotherPolicy))
         .build();
@@ -262,7 +262,7 @@ setting it to `false` might increase the effectiveness of caching, since data wi
 ### [LatencyAwarePolicy]
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
         .addContactPoint("127.0.0.1")
         .withLoadBalancingPolicy(
                 LatencyAwarePolicy.builder(anotherPolicy)
@@ -317,15 +317,15 @@ studying the existing implementations first: `RoundRobinPolicy` is a good place 
 complex ones like `DCAwareRoundRobinPolicy`.
 
 
-[LoadBalancingPolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/LoadBalancingPolicy.html
-[RoundRobinPolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/RoundRobinPolicy.html
+[LoadBalancingPolicy]:     http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/LoadBalancingPolicy.html
+[RoundRobinPolicy]:        http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/RoundRobinPolicy.html
 [DCAwareRoundRobinPolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/DCAwareRoundRobinPolicy.html
-[TokenAwarePolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/TokenAwarePolicy.html
-[LatencyAwarePolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/LatencyAwarePolicy.html
-[HostFilterPolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/HostFilterPolicy.html
-[WhiteListPolicy]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/WhiteListPolicy.html
-[HostDistance]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/HostDistance.html
-[refreshConnectedHosts]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/PoolingOptions.html#refreshConnectedHosts--
-[setMetadataEnabled]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/QueryOptions.html#setMetadataEnabled-boolean-
-[Statement#getKeyspace]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Statement.html#getKeyspace--
+[TokenAwarePolicy]:        http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/TokenAwarePolicy.html
+[LatencyAwarePolicy]:      http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/LatencyAwarePolicy.html
+[HostFilterPolicy]:        http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/HostFilterPolicy.html
+[WhiteListPolicy]:         http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/WhiteListPolicy.html
+[HostDistance]:            http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/HostDistance.html
+[refreshConnectedHosts]:   http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/PoolingOptions.html#refreshConnectedHosts--
+[setMetadataEnabled]:      http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/QueryOptions.html#setMetadataEnabled-boolean-
+[Statement#getKeyspace]:   http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Statement.html#getKeyspace--
 [Statement#getRoutingKey]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/Statement.html#getRoutingKey--

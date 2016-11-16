@@ -1,6 +1,6 @@
 ## Speculative query execution
 
-Sometimes a Cassandra node might be experiencing difficulties (ex: long
+Sometimes a DSE node might be experiencing difficulties (ex: long
 GC pause) and take longer than usual to reply. Queries sent to that node
 will experience bad latency.
 
@@ -67,7 +67,7 @@ there is no way to guarantee that only one node will apply the mutation.
 
 Speculative executions are controlled by an instance of
 [SpeculativeExecutionPolicy][sep] provided when initializing the
-`Cluster`.  This policy defines the threshold after which a new
+`DseCluster`.  This policy defines the threshold after which a new
 speculative execution will be triggered.
 
 [sep]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/policies/SpeculativeExecutionPolicy.html
@@ -79,7 +79,7 @@ Two implementations are provided with the driver:
 This simple policy uses a constant threshold:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withSpeculativeExecutionPolicy(
         new ConstantSpeculativeExecutionPolicy(
@@ -105,9 +105,6 @@ way:
 This policy sets the threshold at a given latency percentile for the
 current host, based on recent statistics.
 
-**As of 2.1.6, this class is provided as a beta preview: it hasn't been
-extensively tested yet, and the API is still subject to change.**
-
 First and foremost, make sure that the [HdrHistogram][hdr] library (used
 under the hood to collect latencies) is in your classpath. It's defined
 as an optional dependency in the driver's POM, so you'll need to
@@ -122,7 +119,7 @@ explicitly depend on it:
 ```
 
 Then create an instance of [PerHostPercentileTracker][phpt] that will collect
-latency statistics for your `Cluster`:
+latency statistics for your `DseCluster`:
 
 ```java
 // There are more options than shown here, please refer to the API docs
@@ -142,7 +139,7 @@ PercentileSpeculativeExecutionPolicy policy =
         99.0,     // percentile
         2);       // maximum number of executions
 
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .addContactPoint("127.0.0.1")
     .withSpeculativeExecutionPolicy(policy)
     .build();
@@ -239,14 +236,14 @@ one. If requests are often cancelled, so will see connections being
 recycled at a high rate.
 
 One way to detect this is to monitor open connections per host
-([Session.getState().getOpenConnections(host)][session_state]) against
+([DseSession.getState().getOpenConnections(host)][session_state]) against
 TCP connections at the OS level. If open connections stay constant but
 you see many TCP connections in closing states, you might be running
 into this issue. Try raising the speculative execution threshold.
 
 This problem is more likely to happen with version 2 of the native
 protocol, because each TCP connection only has 128 stream ids. With
-version 3 (driver 2.1.2 or above with Cassandra 2.1 or above), there are
+version 3 (DSE 4.7 or above), there are
 32K stream ids per connection, so higher cancellation rates can be
 sustained. If you're unsure of which native protocol version you're
 using, you can check with

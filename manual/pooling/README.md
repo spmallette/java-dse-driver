@@ -2,7 +2,7 @@
 
 ### Basics
 
-The driver communicates with Cassandra over TCP, using the Cassandra
+The driver communicates with DSE over TCP, using the DSE
 binary protocol. This protocol is asynchronous, which allows each TCP
 connection to handle multiple simultaneous requests:
 
@@ -14,7 +14,7 @@ connection to handle multiple simultaneous requests:
   back a [ResultSetFuture][result_set_future]).
   Once the request has been written to the
   connection, we say that it is *in flight*;
-* at some point, Cassandra will send back a response on the connection.
+* at some point, DSE will send back a response on the connection.
   This response also contains the stream id, which allows the driver to
   trigger a callback that will complete the corresponding query (this is
   the point where your `ResultSetFuture` will get completed).
@@ -32,22 +32,22 @@ described in the next section).  The number of stream ids depends on the
 * protocol v3 or above: up to 32768 stream ids per connection.
 
 ```ditaa
-+-------+1   n+-------+1   n+----+1   n+----------+1   128/32K+-------+
-|Cluster+-----+Session+-----+Pool+-----+Connection+-----------+Request+
-+-------+     +-------+     +----+     +----------+           +-------+
++----------+1   n+----------+1   n+----+1   n+----------+1   128/32K+-------+
+|DseCluster+-----+DseSession+-----+Pool+-----+Connection+-----------+Request+
++----------+     +----------+     +----+     +----------+           +-------+
 ```
 
 ### Configuring the connection pool
 
 Connections pools are configured with a [PoolingOptions][pooling_options] object, which 
-is global to a `Cluster` instance. You can pass that object when
+is global to a `DseCluster` instance. You can pass that object when
 building the cluster:
 
 ```java
 PoolingOptions poolingOptions = new PoolingOptions();
 // customize options...
 
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
     .withContactPoints("127.0.0.1")
     .withPoolingOptions(poolingOptions)
     .build();
@@ -91,7 +91,7 @@ The default settings are:
 * protocol v2:
   * `LOCAL` hosts: core = 2, max = 8
   * `REMOTE` hosts: core = 1, max = 2
-* protocol v3:
+* protocol v3 and above:
   * `LOCAL` hosts: core = max = 1
   * `REMOTE` hosts: core = max = 1
 

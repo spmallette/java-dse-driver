@@ -1,5 +1,19 @@
 ## Authentication
 
-*Coming soon... In the meantime, see the javadoc for [AuthProvider].*
+For clients connecting to a DSE cluster secured with `DseAuthenticator`, two authentication providers are included:
 
-[AuthProvider]: http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/AuthProvider.html
+* `DsePlainTextAuthProvider`: plain-text authentication;
+* `DseGSSAPIAuthProvider`: GSSAPI authentication.
+
+To configure a provider, pass it when initializing the cluster:
+
+```java
+import com.datastax.driver.dse.auth.DseGSSAPIAuthProvider;
+
+DseCluster dseCluster = DseCluster.builder()
+        .addContactPoint("127.0.0.1")
+        .withAuthProvider(new DseGSSAPIAuthProvider())
+        .build();
+```
+
+See the Javadocs of each implementation for more details.

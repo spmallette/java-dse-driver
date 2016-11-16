@@ -1,17 +1,24 @@
 # Object Mapper
 
-The driver provides a simple object mapper, which
+The Cassandra driver provides a simple object mapper, which
 avoids most of the boilerplate when converting your domain classes to
 and from query results. It handles basic CRUD operations in Cassandra tables
 containing UDTs, collections and all native CQL types.
 
-The mapper is published as a separate Maven artifact:
+To use this module with the DSE driver, import the dependency but exclude the Cassandra driver (you're using the DSE
+driver which is a drop-in replacement):
 
 ```xml
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>cassandra-driver-mapping</artifactId>
   <version>3.1.2</version>
+  <exclusions>
+    <exclusion>
+      <groupId>com.datastax.cassandra</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
+    </exclusion>
+  </exclusions>
 </dependency>
 ```
 

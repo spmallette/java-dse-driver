@@ -12,11 +12,11 @@ session.execute(bound);
 session.execute(prepared.bind("987274", "Keyboard"));
 ```
 
-When you prepare the statement, Cassandra will parse the query string, cache the result and return a unique identifier
+When you prepare the statement, DSE will parse the query string, cache the result and return a unique identifier
 (the `PreparedStatement` object keeps an internal reference to that identifier):
 
 ```ditaa
-client                   driver           Cassandra
+client                   driver            DSE
 --+------------------------+----------------+------
   |                        |                |
   | session.prepare(query) |                |
@@ -35,11 +35,11 @@ client                   driver           Cassandra
   |<-----------------------|                |
 ```
 
-When you bind and execute a prepared statement, the driver will only send the identifier, which allows Cassandra to
+When you bind and execute a prepared statement, the driver will only send the identifier, which allows DSE to
 skip the parsing phase:
 
 ```ditaa
-client                            driver                Cassandra
+client                            driver                 DSE
 --+---------------------------------+---------------------+------
   |                                 |                     |
   | session.execute(BoundStatement) |                     |
@@ -97,7 +97,7 @@ BoundStatement bound = ps2.bind()
 ```
 
 You can use named setters even if the query uses anonymous parameters;
-Cassandra will name the parameters after the column they apply to:
+DSE will name the parameters after the column they apply to:
 
 ```java
 BoundStatement bound = ps1.bind()
@@ -158,7 +158,7 @@ Also, make sure you don't accidentally reuse parameters from previous executions
 
 ### Preparing on multiple nodes
 
-Cassandra does not replicate prepared statements across the cluster. It is the
+DSE does not replicate prepared statements across the cluster. It is the
 driver's responsibility to ensure that each node's cache is up to
 date. It uses a number of strategies to achieve this:
 
@@ -243,9 +243,9 @@ explanations.
 
 ### Avoid preparing 'SELECT *' queries
 
-Both the driver and Cassandra maintain a mapping of `PreparedStatement` queries to their
+Both the driver and DSE maintain a mapping of `PreparedStatement` queries to their
 metadata.  When a change is made to a table, such as a column being added or dropped, there
-is currently no mechanism for Cassandra to invalidate the existing metadata.  Because of this,
+is currently no mechanism for DSE to invalidate the existing metadata.  Because of this,
 the driver is not able to properly react to these changes and will improperly read rows after
 a schema change is made.
 
@@ -254,7 +254,7 @@ for 'SELECT *' queries if you plan on making schema changes involving
 adding or dropping columns. Alternatively you should list all columns of interest
 in your statement, i.e.: `SELECT a, b, c FROM tbl`.
 
-This will be addressed in a future release of both Cassandra and the driver.  Follow
+This will be addressed in a future release of both DSE and the driver.  Follow
 [CASSANDRA-10786] and [JAVA-1196] for more information.
 
 [PreparedStatement]:    http://docs.datastax.com/en/drivers/java/3.0/com/datastax/driver/core/PreparedStatement.html

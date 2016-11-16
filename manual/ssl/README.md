@@ -1,15 +1,15 @@
 ## SSL
 
-You can secure traffic between the driver and Cassandra with SSL. There
+You can secure traffic between the driver and DSE with SSL. There
 are two aspects to that:
 
 * **client-to-node encryption**, where the traffic is encrypted, and the
-  client verifies the identity of the Cassandra nodes it connects to;
-* optionally, **client certificate authentication**, where Cassandra
+  client verifies the identity of the DSE nodes it connects to;
+* optionally, **client certificate authentication**, where DSE
   nodes also verify the identity of the client.
 
 This section describes the driver-side configuration; it assumes that
-you've already configured SSL in Cassandra:
+you've already configured SSL in DSE:
 
 * [the Cassandra documentation](http://docs.datastax.com/en/cassandra/2.0/cassandra/security/secureSSLClientToNode_t.html)
   covers a basic approach with self-signed certificates, which is fine
@@ -56,7 +56,7 @@ keytool -genkey -keyalg RSA -alias client -keystore client.keystore
 ```
 
 If you're using self-signed certificates, extract the public part of the
-client certificate, and import it in the truststore of each Cassandra
+client certificate, and import it in the truststore of each DSE
 node:
 
 ```
@@ -80,7 +80,7 @@ instance, or the provided subclasses, might be enough for your needs.
 `withSSL()` gives you a basic JSSE configuration:
 
 ```java
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
   .addContactPoint("127.0.0.1")
   .withSSL()
   .build();
@@ -110,7 +110,7 @@ JdkSSLOptions sslOptions = JdkSSLOptions.builder()
   .withSSLContext(context)
   .build();
 
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
   .addContactPoint("127.0.0.1")
   .withSSL(sslOptions)
   .build();
@@ -180,7 +180,7 @@ SslContextBuilder builder = SslContextBuilder
 
 SSLOptions sslOptions = new NettySSLOptions(builder.build());
 
-Cluster cluster = Cluster.builder()
+DseCluster cluster = DseCluster.builder()
   .addContactPoint("127.0.0.1")
   .withSSL(sslOptions)
   .build();

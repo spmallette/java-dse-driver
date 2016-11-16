@@ -2,7 +2,7 @@
 
 ### Setup
 
-DataStax Java driver uses the popular [SLF4J](http://www.slf4j.org) library to emit log messages; 
+The driver uses the popular [SLF4J](http://www.slf4j.org) library to emit log messages;
 SLF4J has the advantage of providing a logging API that is entirely decoupled from concrete
 implementations, letting client applications free to seamlessly connect SLF4J to their preferred logging backend.
 
@@ -121,7 +121,7 @@ threshold in milliseconds.
 To turn on this feature, you first need to instantiate and register a `QueryLogger` instance:
 
 ```java
-Cluster cluster = ...
+DseCluster cluster = ...
 QueryLogger queryLogger = QueryLogger.builder()
     .withConstantThreshold(...)
     .withMaxQueryStringLength(...)
