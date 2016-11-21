@@ -143,6 +143,40 @@ public class MaterializedViewMetadata extends AbstractTableMetadata {
         return baseTable;
     }
 
+    /**
+     * Returns a single CQL statement representing this materialized view.
+     * <p/>
+     * This method returns a single {@code CREATE MATERIALIZED VIEW} statement with the options
+     * corresponding to the materialized view definition.
+     * <p/>
+     * Note that the returned String is formatted to be human readable (for
+     * some definition of human readable at least).
+     *
+     * @return the {@code CREATE MATERIALIZED VIEW} statement corresponding to this view.
+     * @see #asCQLQuery
+     */
+    @Override
+    public String exportAsString() {
+        return super.exportAsString();
+    }
+
+    /**
+     * Returns a single CQL statement representing this materialized view.
+     * <p/>
+     * This method returns a single {@code CREATE MATERIALIZED VIEW} statement with the options
+     * corresponding to the materialized view definition.
+     * <p/>
+     * Note that the returned string is a single line; the returned statement
+     * is not formatted in any way.
+     *
+     * @return the {@code CREATE MATERIALIZED VIEW} statement corresponding to this view.
+     * @see #exportAsString
+     */
+    @Override
+    public String asCQLQuery() {
+        return super.asCQLQuery();
+    }
+
     @Override
     protected String asCQLQuery(boolean formatted) {
 
