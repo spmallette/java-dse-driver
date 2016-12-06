@@ -8,22 +8,14 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.OperationTimedOutException;
+import com.datastax.driver.core.utils.DseVersion;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-
+@DseVersion(major = 5.0)
 public class GraphTimeoutsTests extends CCMGraphTestsSupport {
-
-    // 30 seconds
-    final static long GRAPH_OLTP_DEFAULT_TIMEOUT_MS = 30000L;
-
-    // 'PT3M', or 3 minutes
-    final static long GRAPH_SYSTEM_DEFAULT_TIMEOUT_MS = 180000L;
-
-    // 'PT168H', or 7 days
-    final static long GRAPH_OLAP_DEFAULT_TIMEOUT_MS = 604800000L;
 
     @Override
     public void onTestContextInitialized() {
@@ -31,7 +23,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
         executeGraph(GraphFixtures.modern);
     }
 
-    @Test
+    @Test(groups = "short")
     public void should_wait_indefinitely_by_default() {
         long desiredTimeout = 1000L;
 
@@ -48,7 +40,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
         }
     }
 
-    @Test
+    @Test(groups = "short")
     public void should_not_take_into_account_request_timeout_if_more_than_server_timeout() {
         long desiredTimeout = 1000L;
         int clientTimeout = 32000;
@@ -64,7 +56,7 @@ public class GraphTimeoutsTests extends CCMGraphTestsSupport {
         }
     }
 
-    @Test
+    @Test(groups = "short")
     public void should_take_into_account_request_timeout_if_less_than_server_timeout() {
         long serverTimeout = 10000L;
         int desiredTimeout = 1000;

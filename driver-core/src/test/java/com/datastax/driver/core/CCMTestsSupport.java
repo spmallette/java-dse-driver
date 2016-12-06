@@ -262,12 +262,12 @@ public class CCMTestsSupport {
         }
 
         @SuppressWarnings("SimplifiableIfStatement")
-        private boolean dse() {
+        private Boolean dse() {
             for (CCMConfig ann : annotations) {
                 if (ann != null && ann.dse().length > 0)
                     return ann.dse()[0];
             }
-            return false;
+            return null;
         }
 
         @SuppressWarnings("SimplifiableIfStatement")
@@ -421,8 +421,14 @@ public class CCMTestsSupport {
                 }
                 if (version() != null)
                     ccmBuilder.withVersion(version());
-                if (dse())
-                    ccmBuilder.withDSE();
+                Boolean dse = dse();
+                if (dse != null) {
+                    if (dse) {
+                        ccmBuilder.withDSE();
+                    } else {
+                        ccmBuilder.withoutDSE();
+                    }
+                }
                 if (ssl())
                     ccmBuilder.withSSL();
                 if (auth())
@@ -903,6 +909,12 @@ public class CCMTestsSupport {
                 fail(e.getMessage());
             }
             LOGGER.debug("Using {}", ccm);
+        }
+
+        // Check to ensure binary protocol is listening before proceeding.
+        for (InetSocketAddress node : getContactPointsWithPorts()) {
+            LOGGER.debug("Waiting for binary protocol to show up for {}", node);
+            TestUtils.waitUntilPortIsUp(node);
         }
     }
 

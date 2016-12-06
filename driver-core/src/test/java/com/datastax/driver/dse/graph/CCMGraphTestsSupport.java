@@ -13,7 +13,6 @@ import com.datastax.driver.core.TestUtils;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.CCMDseTestsSupport;
 import com.datastax.driver.dse.DseCluster;
-import com.datastax.driver.dse.DseSession;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -27,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static com.datastax.driver.core.CCMAccess.Workload.graph;
 import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
 
-@CCMConfig(createKeyspace = false, dse = true)
+@CCMConfig(createKeyspace = false, dse = true, ccmProvider = "configureCCM")
 @DseVersion(major = 5.0)
 public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
@@ -54,23 +53,13 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
      *
      * @param rf Replication factor for the graph's data and system keyspaces.
      */
-    void createAndSetGraphConfig(int rf) {
+    public void createAndSetGraphConfig(int rf) {
         String replicationConfig = "{'class': 'SimpleStrategy', 'replication_factor' : " + rf + "}";
         session().executeGraph("system.graph(name).option('graph.replication_config')" +
                         ".set(replicationConfig).option('graph.system_replication_config')" +
                         ".set(replicationConfig).ifNotExists().create()",
                 ImmutableMap.<String, Object>of("name", graphName, "replicationConfig", replicationConfig));
         cluster().getConfiguration().getGraphOptions().setGraphName(graphName);
-    }
-
-    @Override
-    public DseSession session() {
-        return (DseSession) super.session();
-    }
-
-    @Override
-    public DseCluster cluster() {
-        return (DseCluster) super.cluster();
     }
 
     /**
@@ -115,9 +104,8 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
         }
     }
 
-    @Override
     public CCMBridge.Builder configureCCM() {
-        return super.configureCCM().withWorkload(1, graph)
+        return CCMBridge.builder().withWorkload(1, graph)
                 .withDSEConfiguration("graph.gremlin_server.port", RANDOM_PORT);
     }
 

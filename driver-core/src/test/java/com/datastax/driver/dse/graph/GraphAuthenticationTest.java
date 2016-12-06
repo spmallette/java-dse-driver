@@ -7,11 +7,13 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMBridge;
+import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.DseCluster;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DseVersion(major = 5.0)
 public class GraphAuthenticationTest extends CCMGraphTestsSupport {
     @Override
     public void onTestContextInitialized() {
@@ -31,7 +33,7 @@ public class GraphAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups="short")
+    @Test(groups = "short")
     public void should_be_able_to_make_graph_query() {
         int count = session().executeGraph("g.V().count()").one().asInt();
         assertThat(count).isEqualTo(6);

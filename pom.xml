@@ -368,6 +368,7 @@
                         <ipprefix>${ipprefix}</ipprefix>
                         <dse>${dse}</dse>
                         <com.datastax.driver.NEW_NODE_DELAY_SECONDS>60</com.datastax.driver.NEW_NODE_DELAY_SECONDS>
+                        <dse>true</dse>
                     </systemPropertyVariables>
                     <classpathDependencyExcludes>
                         <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>
@@ -397,6 +398,7 @@
                         <cassandra.version>${cassandra.version}</cassandra.version>
                         <ipprefix>${ipprefix}</ipprefix>
                         <com.datastax.driver.NEW_NODE_DELAY_SECONDS>60</com.datastax.driver.NEW_NODE_DELAY_SECONDS>
+                        <dse>true</dse>
                     </systemPropertyVariables>
                     <classpathDependencyExcludes>
                         <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>
