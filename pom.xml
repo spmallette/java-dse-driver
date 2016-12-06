@@ -62,6 +62,7 @@
         <main.basedir>${project.basedir}</main.basedir>
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
+        <oss-driver.version>3.1.2</oss-driver.version>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts/>
     </properties>
