@@ -78,6 +78,35 @@
             </activation>
         </profile>
 
+        <!--
+        This profile excludes all JDK 8 dependent classes from
+        tests in the core module,
+        thus allowing tests to be run with legacy JDKs (6 or 7).
+        It is automatically activated when a legacy JDK is in use.
+        Note that running tests with a legacy JDK require
+        that you provide a non-legacy JDK for CCM through the
+        system property ccm.java.home.
+        -->
+        <profile>
+            <id>legacy-jdks</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Jdk8*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>doclint-java8-disable</id>
             <activation>
