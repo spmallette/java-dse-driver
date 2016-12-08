@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.0-eap2 (in progress)
+
+- [improvement] JAVA-1335: Show Row-Level Access Control in DSE CQL metadata.
+
+
 ### 1.1.1-beta1
 
 - [improvement] JAVA-1250: Provide a Fluent API for DSE Graph.

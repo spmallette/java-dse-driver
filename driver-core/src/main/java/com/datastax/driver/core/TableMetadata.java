@@ -356,18 +356,19 @@ public class TableMetadata extends AbstractTableMetadata {
     }
 
     /**
-     * Returns a {@code String} containing CQL queries representing this
-     * table and the index on it.
+     * Returns a {@code String} containing CQL statements representing this
+     * table and all of its derived resources, such as secondary indexes
+     * or materialized views.
      * <p/>
-     * In other words, this method returns the queries that would allow you to
-     * recreate the schema of this table, along with the indexes and views defined on
-     * this table, if any.
+     * In other words, this method returns the statements that would allow you to
+     * recreate the complete schema of this table, along with the secondary indexes
+     * and materialized views defined on it, if any.
      * <p/>
      * Note that the returned String is formatted to be human readable (for
      * some definition of human readable at least).
      *
-     * @return the CQL queries representing this table schema as a {code
-     * String}.
+     * @return the CQL statements representing this table as a {@code String}.
+     * @see #asCQLQuery
      */
     @Override
     public String exportAsString() {
@@ -384,6 +385,23 @@ public class TableMetadata extends AbstractTableMetadata {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Returns a single CQL statement representing this table.
+     * <p/>
+     * This method returns a single {@code CREATE TABLE} statement with the options
+     * corresponding to this table definition.
+     * <p/>
+     * Note that the returned string is a single line; the returned statement
+     * is not formatted in any way.
+     *
+     * @return the {@code CREATE TABLE} statement corresponding to this table.
+     * @see #exportAsString
+     */
+    @Override
+    public String asCQLQuery() {
+        return super.asCQLQuery();
     }
 
     @Override

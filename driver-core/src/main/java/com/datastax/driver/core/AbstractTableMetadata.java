@@ -7,6 +7,8 @@
 package com.datastax.driver.core;
 
 
+import com.datastax.driver.core.utils.Bytes;
+import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
@@ -30,6 +32,8 @@ public abstract class AbstractTableMetadata {
             return o == ClusteringOrder.ASC;
         }
     };
+
+    private static final String DSE_RLACA = "DSE_RLACA";
 
     protected final KeyspaceMetadata keyspace;
     protected final String name;
@@ -187,37 +191,42 @@ public abstract class AbstractTableMetadata {
     }
 
     /**
-     * Returns a {@code String} containing CQL queries representing this
-     * table and the index on it.
+     * Returns a {@code String} containing CQL statements representing this
+     * table or materialized view and all of its derived resources, such as secondary indexes
+     * or – in the case of a table – its own materialized views.
      * <p/>
-     * In other words, this method returns the queries that would allow you to
-     * recreate the schema of this table, along with the indexes and views defined on
-     * this table, if any.
+     * In other words, this method returns the statements that would allow you to
+     * recreate the complete schema of this table or view, along with the secondary indexes
+     * and materialized views defined on it, if any.
      * <p/>
      * Note that the returned String is formatted to be human readable (for
      * some definition of human readable at least).
      *
-     * @return the CQL queries representing this table schema as a {code
+     * @return the CQL statements representing this table or view as a {@code
      * String}.
+     * @see #asCQLQuery
      */
     public String exportAsString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append(asCQLQuery(true));
 
+        maybeAppendRLAC(sb);
+
         return sb.toString();
     }
 
     /**
-     * Returns a CQL query representing this table.
+     * Returns a single CQL statement representing this table or materialized view.
      * <p/>
-     * This method returns a single 'CREATE TABLE' query with the options
-     * corresponding to this table definition.
+     * This method returns a single {@code CREATE TABLE} or
+     * {@code CREATE MATERIALIZED VIEW} statement with the options
+     * corresponding to this table or view definition.
      * <p/>
-     * Note that the returned string is a single line; the returned query
+     * Note that the returned string is a single line; the returned statement
      * is not formatted in any way.
      *
-     * @return the 'CREATE TABLE' query corresponding to this table.
+     * @return the {@code CREATE TABLE} or {@code CREATE MATERIALIZED VIEW} statement corresponding to this table or view.
      * @see #exportAsString
      */
     public String asCQLQuery() {
@@ -276,6 +285,24 @@ public abstract class AbstractTableMetadata {
             sb.append(clusteringColumns.get(i).getName()).append(' ').append(clusteringOrder.get(i));
         }
         return sb.append(')');
+    }
+
+    /**
+     * Append a row-level access control (RLAC) statement, if applicable.
+     * <p>
+     * See JAVA-1335.
+     */
+    private void maybeAppendRLAC(StringBuilder sb) {
+        if (getOptions().getExtensions().containsKey(DSE_RLACA)) {
+            newLine(sb, true);
+            sb.append("RESTRICT ROWS ON ")
+                    .append(Metadata.escapeId(keyspace.getName()))
+                    .append('.')
+                    .append(Metadata.escapeId(name))
+                    .append(" USING ")
+                    .append(new String(Bytes.getArray(getOptions().getExtensions().get(DSE_RLACA)), Charsets.UTF_8))
+                    .append(';');
+        }
     }
 
     private static String formatOptionMap(Map<String, String> m) {
