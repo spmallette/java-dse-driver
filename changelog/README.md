@@ -5,6 +5,7 @@
 - [improvement] JAVA-1335: Show Row-Level Access Control in DSE CQL metadata.
 - [bug] JAVA-1330: Add un/register for SchemaChangeListener in DelegatingCluster
 - [bug] JAVA-1351: Include Custom Payload in Request.copy.
+- [improvement] JAVA-1264: Provide support for ProxyAuthentication.
 
 
 ### 1.1.1-beta1

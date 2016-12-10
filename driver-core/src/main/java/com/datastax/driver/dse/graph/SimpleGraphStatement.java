@@ -34,6 +34,8 @@ public class SimpleGraphStatement extends RegularGraphStatement {
 
     private volatile int readTimeoutMillis = Integer.MIN_VALUE;
 
+    private String authorizationId;
+
     public SimpleGraphStatement(String query) {
         this(query, new HashMap<String, Object>());
     }
@@ -112,6 +114,13 @@ public class SimpleGraphStatement extends RegularGraphStatement {
         return statement;
     }
 
+    @Override
+    public GraphStatement executingAs(String userOrRole) {
+        this.authorizationId = userOrRole;
+        needsRebuild = true;
+        return this;
+    }
+
     private void maybeRebuildCache() {
         if (needsRebuild) {
             if (valuesMap.isEmpty()) {
@@ -126,6 +135,9 @@ public class SimpleGraphStatement extends RegularGraphStatement {
                 statement.setDefaultTimestamp(defaultTimestamp);
             if (getReadTimeoutMillis() != Integer.MIN_VALUE)
                 statement.setReadTimeoutMillis(readTimeoutMillis);
+            if (this.authorizationId != null)
+                statement.executingAs(authorizationId);
+
             needsRebuild = false;
         }
     }

@@ -334,6 +334,19 @@ public abstract class GraphStatement {
     public abstract GraphStatement setReadTimeoutMillis(int readTimeoutMillis);
 
     /**
+     * Allows this statement to be executed as a different user/role
+     * than the one currently authenticated (a.k.a. proxy execution).
+     * <p/>
+     * This feature is only available in DSE 5.1+.
+     *
+     * @param userOrRole The user or role name to act as when executing this statement.
+     */
+    public GraphStatement executingAs(String userOrRole) {
+        throw new UnsupportedOperationException("This method is concrete only for backward compatibility; " +
+                "it must be implemented in subclasses");
+    }
+
+    /**
      * "Unwraps" the current graph statement, that is,
      * returns an executable {@link Statement} object corresponding to this graph statement.
      * <p/>

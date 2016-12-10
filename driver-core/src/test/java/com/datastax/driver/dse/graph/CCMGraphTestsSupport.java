@@ -33,6 +33,8 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);
 
+    private final String graphName = TestUtils.generateIdentifier("graph_");
+
     @Override
     public DseCluster.Builder createClusterBuilder() {
         return super.createClusterBuilder()
@@ -52,8 +54,7 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
      *
      * @param rf Replication factor for the graph's data and system keyspaces.
      */
-    public void createAndSetGraphConfig(int rf) {
-        String graphName = TestUtils.generateIdentifier("graph_");
+    void createAndSetGraphConfig(int rf) {
         String replicationConfig = "{'class': 'SimpleStrategy', 'replication_factor' : " + rf + "}";
         session().executeGraph("system.graph(name).option('graph.replication_config')" +
                         ".set(replicationConfig).option('graph.system_replication_config')" +
@@ -118,5 +119,9 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
     public CCMBridge.Builder configureCCM() {
         return super.configureCCM().withWorkload(1, graph)
                 .withDSEConfiguration("graph.gremlin_server.port", RANDOM_PORT);
+    }
+
+    public String graphName() {
+        return graphName;
     }
 }

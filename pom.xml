@@ -36,6 +36,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cassandra.version>5.0.3</cassandra.version>
+        <dse>true</dse>
         <java.version>1.6</java.version>
         <log4j.version>1.2.17</log4j.version>
         <slf4j-log4j12.version>1.7.6</slf4j-log4j12.version>
@@ -335,6 +336,7 @@
                     <systemPropertyVariables>
                         <cassandra.version>${cassandra.version}</cassandra.version>
                         <ipprefix>${ipprefix}</ipprefix>
+                        <dse>${dse}</dse>
                         <com.datastax.driver.NEW_NODE_DELAY_SECONDS>60</com.datastax.driver.NEW_NODE_DELAY_SECONDS>
                     </systemPropertyVariables>
                     <classpathDependencyExcludes>

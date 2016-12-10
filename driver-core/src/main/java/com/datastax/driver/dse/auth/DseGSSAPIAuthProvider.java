@@ -103,7 +103,7 @@ import java.util.Map;
  * If a non-null SASL protocol name is provided to the aforementioned constructors, that name takes precedence over
  * the contents of the {@code dse.sasl.protocol} system property.
  *
- * @see <a href="https://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/sec/secUsingKerberos.html">Authenticating a DSE cluster with Kerberos</a>
+ * @see <a href="http://docs.datastax.com/en/latest-dse/datastax_enterprise/sec/kerberosConfigDSE.html">Authenticating a DSE cluster with Kerberos</a>
  */
 public class DseGSSAPIAuthProvider implements AuthProvider {
 
@@ -121,12 +121,59 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
 
     private final String saslProtocol;
 
+    private final String authorizationId;
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private Configuration loginConfiguration;
+
+        private String saslProtocol;
+
+        private String authorizationId;
+
+        private Builder() {
+        }
+
+        /**
+         * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
+         */
+        public Builder withLoginConfiguration(Configuration loginConfiguration) {
+            this.loginConfiguration = loginConfiguration;
+            return this;
+        }
+
+        /**
+         * @param saslProtocol The SASL protocol name to use; should match the username of the
+         *                     Kerberos service principal used by the DSE server.
+         */
+        public Builder withSaslProtocol(String saslProtocol) {
+            this.saslProtocol = saslProtocol;
+            return this;
+        }
+
+        /**
+         * @param authorizationId The authorization ID (allows proxy authentication).
+         */
+        public Builder withAuthorizationId(String authorizationId) {
+            this.authorizationId = authorizationId;
+            return this;
+        }
+
+        public DseGSSAPIAuthProvider build() {
+            return new DseGSSAPIAuthProvider(loginConfiguration, saslProtocol, authorizationId);
+        }
+    }
+
     /**
      * Creates an instance of {@code DseGSSAPIAuthProvider} with default login configuration options and default
      * SASL protocol name ({@value #DEFAULT_SASL_PROTOCOL_NAME}).
      */
     public DseGSSAPIAuthProvider() {
-        this(null, null);
+        this(null, null, null);
     }
 
     /**
@@ -136,7 +183,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
      */
     public DseGSSAPIAuthProvider(Configuration loginConfiguration) {
-        this(loginConfiguration, null);
+        this(loginConfiguration, null, null);
     }
 
     /**
@@ -147,7 +194,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *                     Kerberos service principal used by the DSE server.
      */
     public DseGSSAPIAuthProvider(String saslProtocol) {
-        this(null, saslProtocol);
+        this(null, saslProtocol, null);
     }
 
     /**
@@ -159,13 +206,18 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *                           Kerberos service principal used by the DSE server.
      */
     public DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol) {
+        this(loginConfiguration, saslProtocol, null);
+    }
+
+    private DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol, String authorizationId) {
         this.loginConfiguration = loginConfiguration;
         this.saslProtocol = saslProtocol;
+        this.authorizationId = authorizationId;
     }
 
     @Override
     public Authenticator newAuthenticator(InetSocketAddress host, String authenticator) throws AuthenticationException {
-        return new GSSAPIAuthenticator(authenticator, host, loginConfiguration, saslProtocol);
+        return new GSSAPIAuthenticator(authenticator, authorizationId, host, loginConfiguration, saslProtocol);
     }
 
     private static class GSSAPIAuthenticator extends BaseDseAuthenticator {
@@ -182,7 +234,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
         private final Subject subject;
         private final SaslClient saslClient;
 
-        private GSSAPIAuthenticator(String authenticator, InetSocketAddress host, Configuration loginConfiguration, String saslProtocol) {
+        private GSSAPIAuthenticator(String authenticator, String authorizationId, InetSocketAddress host, Configuration loginConfiguration, String saslProtocol) {
             super(authenticator);
             try {
                 String protocol = saslProtocol;
@@ -193,7 +245,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
                 login.login();
                 subject = login.getSubject();
                 saslClient = Sasl.createSaslClient(SUPPORTED_MECHANISMS,
-                        null,
+                        authorizationId,
                         protocol,
                         host.getAddress().getCanonicalHostName(),
                         DEFAULT_PROPERTIES,
@@ -205,14 +257,17 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
             }
         }
 
+        @Override
         public byte[] getMechanism() {
             return MECHANISM.clone();
         }
 
+        @Override
         public byte[] getInitialServerChallenge() {
             return SERVER_INITIAL_CHALLENGE.clone();
         }
 
+        @Override
         public byte[] evaluateChallenge(byte[] challenge) {
             if (Arrays.equals(SERVER_INITIAL_CHALLENGE, challenge)) {
                 if (!saslClient.hasInitialResponse()) {
@@ -223,6 +278,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
             final byte[] internalChallenge = challenge;
             try {
                 return Subject.doAs(subject, new PrivilegedExceptionAction<byte[]>() {
+                    @Override
                     public byte[] run() throws SaslException {
                         return saslClient.evaluateChallenge(internalChallenge);
                     }

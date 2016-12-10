@@ -10,6 +10,7 @@ import com.datastax.driver.core.exceptions.PagingStateException;
 import com.datastax.driver.core.exceptions.UnsupportedProtocolVersionException;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.querybuilder.BuiltStatement;
+import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
@@ -31,6 +32,8 @@ public abstract class Statement {
      * to denote a null value in a payload map.
      */
     public static final ByteBuffer NULL_PAYLOAD_VALUE = ByteBuffer.allocate(0);
+
+    private static final String PROXY_EXECUTE = "ProxyExecute";
 
     // An exception to the RegularStatement, BoundStatement or BatchStatement rule above. This is
     // used when preparing a statement and for other internal queries. Do not expose publicly.
@@ -61,6 +64,7 @@ public abstract class Statement {
     private volatile ByteBuffer pagingState;
     protected volatile Boolean idempotent;
     private volatile Map<String, ByteBuffer> outgoingPayload;
+    private String authorizationId;
 
     // We don't want to expose the constructor, because the code relies on this being only sub-classed by RegularStatement, BoundStatement and BatchStatement
     Statement() {
@@ -572,6 +576,7 @@ public abstract class Statement {
      */
     public Statement setOutgoingPayload(Map<String, ByteBuffer> payload) {
         this.outgoingPayload = payload == null ? null : ImmutableMap.copyOf(payload);
+        rebuildOutgoingPayload();
         return this;
     }
 
@@ -587,4 +592,30 @@ public abstract class Statement {
         }
         return (hasNullIdempotentStatements) ? null : true;
     }
+
+    /**
+     * Allows this statement to be executed as a different user/role
+     * than the one currently authenticated (a.k.a. proxy execution).
+     * <p/>
+     * This feature is only available in DSE 5.1+.
+     *
+     * @param userOrRole The user or role name to act as when executing this statement.
+     */
+    public Statement executingAs(String userOrRole) {
+        this.authorizationId = userOrRole;
+        rebuildOutgoingPayload();
+        return this;
+    }
+
+    private void rebuildOutgoingPayload() {
+        if (authorizationId == null)
+            return;
+        ByteBuffer proxyExecute = ByteBuffer.wrap(authorizationId.getBytes(Charsets.UTF_8));
+        ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
+        builder.put(PROXY_EXECUTE, proxyExecute).build();
+        if (outgoingPayload != null)
+            builder.putAll(outgoingPayload);
+        outgoingPayload = builder.build();
+    }
+
 }
