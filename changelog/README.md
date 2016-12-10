@@ -3,6 +3,8 @@
 ### 1.2.0-eap2 (in progress)
 
 - [improvement] JAVA-1335: Show Row-Level Access Control in DSE CQL metadata.
+- [bug] JAVA-1330: Add un/register for SchemaChangeListener in DelegatingCluster
+- [bug] JAVA-1351: Include Custom Payload in Request.copy.
 
 
 ### 1.1.1-beta1
