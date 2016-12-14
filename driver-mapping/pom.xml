@@ -13,11 +13,11 @@
         <artifactId>dse-parent</artifactId>
         <version>1.2.0-eap2-SNAPSHOT</version>
     </parent>
-    <artifactId>cassandra-driver-mapping</artifactId>
+    <artifactId>dse-driver-mapping</artifactId>
     <packaging>bundle</packaging>
-    <name>DataStax Java Driver for Apache Cassandra - Object Mapping</name>
+    <name>DataStax Enterprise Driver - Object Mapping</name>
     <description>Object mapper for the DataStax CQL Java Driver.</description>
-    <url>https://github.com/datastax/java-driver</url>
+    <url>https://github.com/datastax/java-driver-dse</url>
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>

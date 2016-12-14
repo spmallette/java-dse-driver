@@ -40,7 +40,7 @@
 
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-extras</artifactId>
+            <artifactId>dse-driver-extras</artifactId>
             <version>${project.parent.version}</version>
             <optional>true</optional>
         </dependency>

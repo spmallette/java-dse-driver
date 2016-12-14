@@ -14,11 +14,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>cassandra-driver-extras</artifactId>
+    <artifactId>dse-driver-extras</artifactId>
     <packaging>bundle</packaging>
-    <name>DataStax Java Driver for Apache Cassandra - Extras</name>
+    <name>DataStax Enterprise Driver - Extras</name>
     <description>Extended functionality for the Java driver.</description>
-    <url>https://github.com/datastax/java-driver</url>
+    <url>https://github.com/datastax/java-driver-dse</url>
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
@@ -71,7 +71,7 @@
 
         <dependency>
             <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-mapping</artifactId>
+            <artifactId>dse-driver-mapping</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
