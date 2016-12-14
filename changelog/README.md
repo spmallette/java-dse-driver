@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0-eap2 (in progress)
+### 1.2.0-eap2
 
 - [improvement] JAVA-1335: Show Row-Level Access Control in DSE CQL metadata.
 - [bug] JAVA-1330: Add un/register for SchemaChangeListener in DelegatingCluster
