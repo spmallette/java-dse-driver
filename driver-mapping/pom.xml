@@ -205,17 +205,17 @@
 
     <licenses>
         <license>
-            <name>Apache 2</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <name>DataStax DSE Driver License</name>
+            <url>http://www.datastax.com/terms/datastax-dse-driver-license-terms</url>
             <distribution>repo</distribution>
-            <comments>Apache License Version 2.0</comments>
+            <comments/>
         </license>
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:datastax/java-driver.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/java-driver.git</developerConnection>
-        <url>https://github.com/datastax/java-driver</url>
+        <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
+        <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
+        <url>https://github.com/datastax/java-driver-dse</url>
         <tag>HEAD</tag>
     </scm>
 

@@ -65,6 +65,7 @@
         <oss-driver.version>3.1.2</oss-driver.version>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts/>
+        <github_repo>java-driver-dse</github_repo>
     </properties>
 
     <profiles>
@@ -425,9 +426,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
-        <url>https://github.com/datastax/java-driver-dse</url>
+        <connection>scm:git:git@github.com:datastax/${github_repo}.git</connection>
+        <developerConnection>scm:git:git@github.com:datastax/${github_repo}.git</developerConnection>
+        <url>https://github.com/datastax/${github_repo}</url>
         <tag>HEAD</tag>
     </scm>
 
