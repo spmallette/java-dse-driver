@@ -6,29 +6,11 @@
  */
 package com.datastax.driver.dse;
 
-import com.datastax.driver.core.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.datastax.driver.core.CCMTestsSupport;
+import com.datastax.driver.core.CodecRegistry;
+import com.datastax.driver.core.TestUtils;
 
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-
-import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
-
-@CCMConfig(ccmProvider = "configureCCM")
 public class CCMDseTestsSupport extends CCMTestsSupport {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CCMDseTestsSupport.class);
-
-    @Override
-    protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
-        super.initTestContext(testInstance, testMethod);
-        // TODO remove this once DSE startup stabilizes.
-        for (InetSocketAddress node : getContactPointsWithPorts()) {
-            LOGGER.debug("Waiting for binary protocol to show up for {}", node);
-            TestUtils.waitUntilPortIsUp(node);
-        }
-    }
 
     @Override
     public DseCluster.Builder createClusterBuilder() {
@@ -37,15 +19,13 @@ public class CCMDseTestsSupport extends CCMTestsSupport {
                 .withQueryOptions(TestUtils.nonDebouncingQueryOptions());
     }
 
-    public CCMBridge.Builder configureCCM() {
-        CCMBridge.Builder builder = CCMBridge.builder();
-        // Acquire a unique port for the netty lease port.
-        if (VersionNumber.parse(CCMBridge.getDSEVersion()).getMajor() >= 5) {
-            builder = builder.withDSEConfiguration("lease_netty_server_port", RANDOM_PORT)
-                    .withDSEConfiguration("internode_messaging_options.port", RANDOM_PORT);
-        }
-        return builder;
+    @Override
+    public DseSession session() {
+        return (DseSession) super.session();
     }
 
-
+    @Override
+    public DseCluster cluster() {
+        return (DseCluster) super.cluster();
+    }
 }

@@ -36,7 +36,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
 
         // Wait for master to come online before altering keyspace as it needs to meet LOCAL_QUORUM CL to start, and
         // that can't be met with 1/NUM_NODES available.
-        InetSocketAddress masterHttpPort = new InetSocketAddress("localhost", 7080);
+        InetSocketAddress masterHttpPort = new InetSocketAddress(TestUtils.ipOfNode(1), 7080);
         LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
         TestUtils.waitUntilPortIsUp(masterHttpPort);
         // Set the dse_leases keyspace to RF of NUM_NODES, this will prevent election of new job tracker until all nodes
@@ -74,7 +74,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
         ConditionChecker.check().that(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                URL masterHome = new URL("http://localhost:7080");
+                URL masterHome = new URL(String.format("http://%s:7080", TestUtils.ipOfNode(1)));
                 HttpURLConnection connection = (HttpURLConnection) masterHome.openConnection();
                 connection.setRequestMethod("GET");
                 BufferedReader rd = null;

@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.fail;
  * Tests for proxy authentication (JAVA-1264)
  */
 @CreateCCM(PER_METHOD)
+@CCMConfig(ccmProvider = "configureCCM")
 @DseVersion(major = 5.1)
 public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
 
@@ -71,9 +72,8 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
         adsServer.stop();
     }
 
-    @Override
     public CCMBridge.Builder configureCCM() {
-        return super.configureCCM()
+        return CCMBridge.builder()
                 .withCassandraConfiguration("authorizer", "com.datastax.bdp.cassandra.auth.DseAuthorizer")
                 .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
                 .withDSEConfiguration("authentication_options.enabled", true)

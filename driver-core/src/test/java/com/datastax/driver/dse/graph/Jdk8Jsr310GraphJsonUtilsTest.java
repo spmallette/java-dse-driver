@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.dse.IgnoreJDK6Requirement;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Verifies that supported JSR 310 temporal types can be serialized and deserialized
  * with GraphJsonUtils.
  */
+@IgnoreJDK6Requirement
 @SuppressWarnings("Since15")
 public class Jdk8Jsr310GraphJsonUtilsTest {
 

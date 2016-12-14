@@ -7,8 +7,10 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.utils.DseVersion;
+import com.datastax.driver.dse.IgnoreJDK6Requirement;
 import org.testng.annotations.DataProvider;
 
+@IgnoreJDK6Requirement
 @SuppressWarnings("Since15")
 @DseVersion(major = 5.0)
 public class Jdk8Jsr310GraphDataTypeIntegrationTest extends GraphDataTypeIntegrationTest {

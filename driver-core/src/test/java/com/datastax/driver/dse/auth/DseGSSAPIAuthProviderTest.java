@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unused")
 @CreateCCM(PER_METHOD)
-@CCMConfig(createCluster = false, dirtiesContext = true)
+@CCMConfig(createCluster = false, dirtiesContext = true, ccmProvider = "configureCCM")
 @DseVersion
 public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
 
@@ -77,9 +77,8 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
         adsServer.stop();
     }
 
-    @Override
     public CCMBridge.Builder configureCCM() {
-        return super.configureCCM()
+        return CCMBridge.builder()
                 .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.KerberosAuthenticator")
                 .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
                 .withDSEConfiguration("kerberos_options.service_principal", servicePrincipal)

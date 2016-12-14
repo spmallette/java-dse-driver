@@ -305,7 +305,7 @@
                                 <comparisonArtifact>
                                     <groupId>com.datastax.cassandra</groupId>
                                     <artifactId>cassandra-driver-core</artifactId>
-                                    <version>3.1.2</version>
+                                    <version>${oss-driver.version}</version>
                                 </comparisonArtifact>
                             </comparisonArtifacts>
                             <includes>
@@ -354,7 +354,7 @@
                 -->
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.datastax.driver.core</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>com.datastax.driver.dse</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <_include>-osgi.bnd</_include>
                         <Import-Package>
@@ -368,6 +368,9 @@
                                 !org.codehaus.jackson.*,
                                 ,*
                             ]]></Import-Package>
+                        <Export-Package>
+                            com.datastax.driver.core.*;version=${oss-driver.version},com.datastax.driver.dse.*
+                        </Export-Package>
                         <Private-Package>com.datastax.shaded.*</Private-Package>
                     </instructions>
                     <supportedProjectTypes>

@@ -62,6 +62,7 @@
         <main.basedir>${project.basedir}</main.basedir>
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
+        <oss-driver.version>3.1.2</oss-driver.version>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts/>
     </properties>
@@ -76,6 +77,35 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+        </profile>
+
+        <!--
+        This profile excludes all JDK 8 dependent classes from
+        tests in the core module,
+        thus allowing tests to be run with legacy JDKs (6 or 7).
+        It is automatically activated when a legacy JDK is in use.
+        Note that running tests with a legacy JDK require
+        that you provide a non-legacy JDK for CCM through the
+        system property ccm.java.home.
+        -->
+        <profile>
+            <id>legacy-jdks</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Jdk8*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
@@ -338,6 +368,7 @@
                         <ipprefix>${ipprefix}</ipprefix>
                         <dse>${dse}</dse>
                         <com.datastax.driver.NEW_NODE_DELAY_SECONDS>60</com.datastax.driver.NEW_NODE_DELAY_SECONDS>
+                        <dse>true</dse>
                     </systemPropertyVariables>
                     <classpathDependencyExcludes>
                         <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>
@@ -367,6 +398,7 @@
                         <cassandra.version>${cassandra.version}</cassandra.version>
                         <ipprefix>${ipprefix}</ipprefix>
                         <com.datastax.driver.NEW_NODE_DELAY_SECONDS>60</com.datastax.driver.NEW_NODE_DELAY_SECONDS>
+                        <dse>true</dse>
                     </systemPropertyVariables>
                     <classpathDependencyExcludes>
                         <classpathDependencyExcludes>io.netty:netty-transport-native-epoll</classpathDependencyExcludes>

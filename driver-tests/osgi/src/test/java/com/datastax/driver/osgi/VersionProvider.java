@@ -47,4 +47,17 @@ public class VersionProvider {
     public static String projectVersion() {
         return PROJECT_VERSION;
     }
+
+
+    public static String getVersion(String propertyName) {
+        String value = System.getProperty(propertyName);
+        if (value == null) {
+            throw new IllegalArgumentException(propertyName + " system property is not set.");
+        }
+        return value;
+    }
+
+    public static String ossDriverVersion() {
+        return getVersion("oss-driver.version");
+    }
 }

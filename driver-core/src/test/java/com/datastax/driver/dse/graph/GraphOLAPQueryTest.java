@@ -8,6 +8,7 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ExecutionInfo;
 import com.datastax.driver.core.Host;
+import com.datastax.driver.core.utils.DseVersion;
 import com.google.common.collect.Lists;
 import org.testng.annotations.Test;
 
@@ -15,6 +16,7 @@ import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DseVersion(major = 5.0)
 public class GraphOLAPQueryTest extends CCMGraphTestsOLAPSupport {
 
     private Collection<Host> executeOLAPQuery(int times, String graphSource) {
