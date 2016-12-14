@@ -6,6 +6,7 @@
 - [bug] JAVA-1330: Add un/register for SchemaChangeListener in DelegatingCluster
 - [bug] JAVA-1351: Include Custom Payload in Request.copy.
 - [improvement] JAVA-1264: Provide support for ProxyAuthentication.
+- [bug] JAVA-1341: Handle null row in GraphSON 2.0 results
 
 
 ### 1.1.1-beta1
