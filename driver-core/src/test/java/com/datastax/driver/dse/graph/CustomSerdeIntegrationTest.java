@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.geometry.Point;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -196,7 +197,7 @@ public class CustomSerdeIntegrationTest extends CCMGraphTestsSupport {
     @Override
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
-        executeGraph(gods);
+        executeGraph(gods(CCMBridge.getDSEVersion()));
     }
 
     @Test(groups = "short")

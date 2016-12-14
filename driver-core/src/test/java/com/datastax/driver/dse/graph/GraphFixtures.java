@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import java.util.Collection;
@@ -49,80 +50,87 @@ public class GraphFixtures {
                     "josh.addEdge('created', lop, 'weight', 0.4f);\n" +
                     "peter.addEdge('created', lop, 'weight', 0.2f);");
 
+    private static String pointType(String dseVersion) {
+        Preconditions.checkNotNull(dseVersion);
+        return dseVersion.startsWith("5.0") ? "Point()" : "Point().withGeoBounds()";
+    }
+
     /**
      * Builds the Graph of the Gods example graph.
      * see com.datastax.bdp.graph.example.GraphOfTheGodsFactory.
      */
-    public static Collection<String> gods = Lists.newArrayList(
+    public static Collection<String> gods(String dseVersion) {
+        return Lists.newArrayList(
 
-            makeStrict,
+                makeStrict,
 
-            allowScans,
+                allowScans,
 
-            // schema - properties
-            "schema.propertyKey('name').Text().ifNotExists().create();\n" +
-                    "schema.propertyKey('age').Int().ifNotExists().create();\n" +
-                    "schema.propertyKey('time').Timestamp().ifNotExists().create();\n" +
-                    "schema.propertyKey('reason').Text().ifNotExists().create();\n" +
-                    "schema.propertyKey('nicknames').Text().multiple().properties('time').ifNotExists().create();\n" +
-                    "schema.propertyKey('place').Point().ifNotExists().create();",
+                // schema - properties
+                "schema.propertyKey('name').Text().ifNotExists().create();\n" +
+                        "schema.propertyKey('age').Int().ifNotExists().create();\n" +
+                        "schema.propertyKey('time').Timestamp().ifNotExists().create();\n" +
+                        "schema.propertyKey('reason').Text().ifNotExists().create();\n" +
+                        "schema.propertyKey('nicknames').Text().multiple().properties('time').ifNotExists().create();\n" +
+                        "schema.propertyKey('place')." + pointType(dseVersion) + ".ifNotExists().create();",
 
-            // schema - vertices
-            "schema.vertexLabel('titan').properties('name', 'age').ifNotExists().create();\n" +
-                    "schema.vertexLabel('location').properties('name').ifNotExists().create();\n" +
-                    "schema.vertexLabel('god').properties('name', 'age', 'nicknames').ifNotExists().create();\n" +
-                    "schema.vertexLabel('demigod').properties('name', 'age').ifNotExists().create();\n" +
-                    "schema.vertexLabel('human').properties('name', 'age').ifNotExists().create();\n" +
-                    "schema.vertexLabel('monster').properties('name').ifNotExists().create();",
+                // schema - vertices
+                "schema.vertexLabel('titan').properties('name', 'age').ifNotExists().create();\n" +
+                        "schema.vertexLabel('location').properties('name').ifNotExists().create();\n" +
+                        "schema.vertexLabel('god').properties('name', 'age', 'nicknames').ifNotExists().create();\n" +
+                        "schema.vertexLabel('demigod').properties('name', 'age').ifNotExists().create();\n" +
+                        "schema.vertexLabel('human').properties('name', 'age').ifNotExists().create();\n" +
+                        "schema.vertexLabel('monster').properties('name').ifNotExists().create();",
 
-            // schema - edges
-            "schema.edgeLabel('father').connection('god','god').connection('god','titan').connection('demigod','god').ifNotExists().create();\n" +
-                    "schema.edgeLabel('mother').connection('demigod','human').ifNotExists().create();\n" +
-                    "schema.edgeLabel('battled').properties('time', 'place').connection('god','god').connection('demigod','monster').ifNotExists().create();\n" +
-                    "schema.edgeLabel('lives').properties('reason').connection('god','location').connection('monster','location').ifNotExists().create();\n" +
-                    "schema.edgeLabel('pet').connection('god','monster').ifNotExists().create();\n" +
-                    "schema.edgeLabel('brother').connection('god','god').ifNotExists().create();\n",
+                // schema - edges
+                "schema.edgeLabel('father').connection('god','god').connection('god','titan').connection('demigod','god').ifNotExists().create();\n" +
+                        "schema.edgeLabel('mother').connection('demigod','human').ifNotExists().create();\n" +
+                        "schema.edgeLabel('battled').properties('time', 'place').connection('god','god').connection('demigod','monster').ifNotExists().create();\n" +
+                        "schema.edgeLabel('lives').properties('reason').connection('god','location').connection('monster','location').ifNotExists().create();\n" +
+                        "schema.edgeLabel('pet').connection('god','monster').ifNotExists().create();\n" +
+                        "schema.edgeLabel('brother').connection('god','god').ifNotExists().create();\n",
 
-            // indices
-            "schema.vertexLabel('god').index('godsByName').secondary().by('name').add();\n" +
-                    "schema.vertexLabel('god').index('godsByAge').secondary().by('age').add();\n" +
-                    "schema.vertexLabel('demigod').index('battlesByTime').outE('battled').by('time').add();\n" +
-                    "schema.vertexLabel('titan').index('titansByName').secondary().by('name').add();",
+                // indices
+                "schema.vertexLabel('god').index('godsByName').secondary().by('name').add();\n" +
+                        "schema.vertexLabel('god').index('godsByAge').secondary().by('age').add();\n" +
+                        "schema.vertexLabel('demigod').index('battlesByTime').outE('battled').by('time').add();\n" +
+                        "schema.vertexLabel('titan').index('titansByName').secondary().by('name').add();",
 
-            // objects
-            "Vertex saturn = graph.addVertex(T.label, 'titan', 'name', 'saturn', 'age', 10000);\n" +
-                    "Vertex sky = graph.addVertex(T.label, 'location', 'name', 'sky');\n" +
-                    "Vertex sea = graph.addVertex(T.label, 'location', 'name', 'sea');\n" +
-                    "Vertex jupiter = graph.addVertex(T.label, 'god', 'name', 'jupiter', 'age', 5000);\n" +
-                    "Vertex neptune = graph.addVertex(T.label, 'god', 'name', 'neptune', 'age', 4500);\n" +
-                    "Vertex hercules = graph.addVertex(T.label, 'demigod', 'name', 'hercules', 'age', 30);\n" +
-                    "Vertex alcmene = graph.addVertex(T.label, 'human', 'name', 'alcmene', 'age', 45);\n" +
-                    "Vertex pluto = graph.addVertex(T.label, 'god', 'name', 'pluto', 'age', 4000);\n" +
-                    "Vertex nemean = graph.addVertex(T.label, 'monster', 'name', 'nemean');\n" +
-                    "Vertex hydra = graph.addVertex(T.label, 'monster', 'name', 'hydra');\n" +
-                    "Vertex cerberus = graph.addVertex(T.label, 'monster', 'name', 'cerberus');\n" +
-                    "Vertex tartarus = graph.addVertex(T.label, 'location', 'name', 'tartarus');\n" +
-                    "jupiter.addEdge('father', saturn);\n" +
-                    "jupiter.addEdge('lives', sky, 'reason', 'loves fresh breezes');\n" +
-                    "jupiter.addEdge('brother', neptune);\n" +
-                    "jupiter.addEdge('brother', pluto);\n" +
-                    "neptune.addEdge('lives', sea).property('reason', 'loves waves');\n" +
-                    "neptune.addEdge('brother', jupiter);\n" +
-                    "neptune.addEdge('brother', pluto);\n" +
-                    "neptune.addEdge('battled', neptune).property('time', Instant.ofEpochMilli(5));\n" +  //self-edge
-                    "neptune.property('nicknames','Neppy','time', Instant.ofEpochMilli(22));\n" +
-                    "neptune.property('nicknames','Flipper','time', Instant.ofEpochMilli(25));\n" +
-                    "hercules.addEdge('father', jupiter);\n" +
-                    "hercules.addEdge('mother', alcmene);\n" +
-                    "hercules.addEdge('battled', nemean, 'time', Instant.ofEpochMilli(1), 'place', 'POINT(38.1 23.7)');\n" +
-                    "hercules.addEdge('battled', hydra, 'time', Instant.ofEpochMilli(2), 'place', 'POINT(37.7 23.9)');\n" +
-                    "hercules.addEdge('battled', cerberus, 'time', Instant.ofEpochMilli(12), 'place', 'POINT(39 22)');\n" +
-                    "pluto.addEdge('brother', jupiter);\n" +
-                    "pluto.addEdge('brother', neptune);\n" +
-                    "pluto.addEdge('lives', tartarus, 'reason', 'no fear of death');\n" +
-                    "pluto.addEdge('pet', cerberus);\n" +
-                    "cerberus.addEdge('lives', tartarus);"
-    );
+                // objects
+                "Vertex saturn = graph.addVertex(T.label, 'titan', 'name', 'saturn', 'age', 10000);\n" +
+                        "Vertex sky = graph.addVertex(T.label, 'location', 'name', 'sky');\n" +
+                        "Vertex sea = graph.addVertex(T.label, 'location', 'name', 'sea');\n" +
+                        "Vertex jupiter = graph.addVertex(T.label, 'god', 'name', 'jupiter', 'age', 5000);\n" +
+                        "Vertex neptune = graph.addVertex(T.label, 'god', 'name', 'neptune', 'age', 4500);\n" +
+                        "Vertex hercules = graph.addVertex(T.label, 'demigod', 'name', 'hercules', 'age', 30);\n" +
+                        "Vertex alcmene = graph.addVertex(T.label, 'human', 'name', 'alcmene', 'age', 45);\n" +
+                        "Vertex pluto = graph.addVertex(T.label, 'god', 'name', 'pluto', 'age', 4000);\n" +
+                        "Vertex nemean = graph.addVertex(T.label, 'monster', 'name', 'nemean');\n" +
+                        "Vertex hydra = graph.addVertex(T.label, 'monster', 'name', 'hydra');\n" +
+                        "Vertex cerberus = graph.addVertex(T.label, 'monster', 'name', 'cerberus');\n" +
+                        "Vertex tartarus = graph.addVertex(T.label, 'location', 'name', 'tartarus');\n" +
+                        "jupiter.addEdge('father', saturn);\n" +
+                        "jupiter.addEdge('lives', sky, 'reason', 'loves fresh breezes');\n" +
+                        "jupiter.addEdge('brother', neptune);\n" +
+                        "jupiter.addEdge('brother', pluto);\n" +
+                        "neptune.addEdge('lives', sea).property('reason', 'loves waves');\n" +
+                        "neptune.addEdge('brother', jupiter);\n" +
+                        "neptune.addEdge('brother', pluto);\n" +
+                        "neptune.addEdge('battled', neptune).property('time', Instant.ofEpochMilli(5));\n" +  //self-edge
+                        "neptune.property('nicknames','Neppy','time', Instant.ofEpochMilli(22));\n" +
+                        "neptune.property('nicknames','Flipper','time', Instant.ofEpochMilli(25));\n" +
+                        "hercules.addEdge('father', jupiter);\n" +
+                        "hercules.addEdge('mother', alcmene);\n" +
+                        "hercules.addEdge('battled', nemean, 'time', Instant.ofEpochMilli(1), 'place', 'POINT(38.1 23.7)');\n" +
+                        "hercules.addEdge('battled', hydra, 'time', Instant.ofEpochMilli(2), 'place', 'POINT(37.7 23.9)');\n" +
+                        "hercules.addEdge('battled', cerberus, 'time', Instant.ofEpochMilli(12), 'place', 'POINT(39 22)');\n" +
+                        "pluto.addEdge('brother', jupiter);\n" +
+                        "pluto.addEdge('brother', neptune);\n" +
+                        "pluto.addEdge('lives', tartarus, 'reason', 'no fear of death');\n" +
+                        "pluto.addEdge('pet', cerberus);\n" +
+                        "cerberus.addEdge('lives', tartarus);"
+        );
+    }
 
     /**
      * Builds a simple schema that provides for a vertex with a property with sub properties.
@@ -149,19 +157,21 @@ public class GraphFixtures {
     /**
      * A schema representing an address book with search enabled on name, description, and coordinates.
      */
-    public static Collection<String> addressBook = Lists.newArrayList(
-            makeStrict,
-            allowScans,
-            "schema.propertyKey('full_name').Text().create()\n" +
-                    "schema.propertyKey('coordinates').Point().create()\n" +
-                    "schema.propertyKey('city').Text().create()\n" +
-                    "schema.propertyKey('state').Text().create()\n" +
-                    "schema.propertyKey('description').Text().create()\n" +
-                    "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description').create()\n" +
-                    "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().add()",
-            "g.addV('user').property('full_name', 'Paul Thomas Joe').property('city', 'Rochester').property('state', 'MN').property('coordinates', Geo.point(-92.46295, 44.0234)).property('description', 'Lives by the hospital')",
-            "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.093333)).property('description', 'A cold dude')",
-            "g.addV('user').property('full_name', 'James Paul Smith').property('city', 'Chicago').property('state', 'IL').property('coordinates', Geo.point(-87.684722, 41.836944)).property('description', 'Likes to hang out')",
-            "g.addV('user').property('full_name', 'Jill Alice').property('city', 'Atlanta').property('state', 'GA').property('coordinates', Geo.point(-84.39, 33.755)).property('description', 'Enjoys a nice cold coca cola')"
-    );
+    public static Collection<String> addressBook(String dseVersion) {
+        return Lists.newArrayList(
+                makeStrict,
+                allowScans,
+                "schema.propertyKey('full_name').Text().create()\n" +
+                        "schema.propertyKey('coordinates')." + pointType(dseVersion) + ".create()\n" +
+                        "schema.propertyKey('city').Text().create()\n" +
+                        "schema.propertyKey('state').Text().create()\n" +
+                        "schema.propertyKey('description').Text().create()\n" +
+                        "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description').create()\n" +
+                        "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().add()",
+                "g.addV('user').property('full_name', 'Paul Thomas Joe').property('city', 'Rochester').property('state', 'MN').property('coordinates', Geo.point(-92.46295, 44.0234)).property('description', 'Lives by the hospital')",
+                "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.093333)).property('description', 'A cold dude')",
+                "g.addV('user').property('full_name', 'James Paul Smith').property('city', 'Chicago').property('state', 'IL').property('coordinates', Geo.point(-87.684722, 41.836944)).property('description', 'Likes to hang out')",
+                "g.addV('user').property('full_name', 'Jill Alice').property('city', 'Atlanta').property('state', 'GA').property('coordinates', Geo.point(-84.39, 33.755)).property('description', 'Enjoys a nice cold coca cola')"
+        );
+    }
 }

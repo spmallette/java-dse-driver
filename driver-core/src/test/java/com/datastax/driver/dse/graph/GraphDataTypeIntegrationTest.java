@@ -6,12 +6,15 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.dse.geometry.LineString;
 import com.datastax.driver.dse.geometry.Polygon;
 import com.google.common.base.Charsets;
 import com.google.common.net.InetAddresses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -20,12 +23,16 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.datastax.driver.dse.geometry.Utils.p;
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 @DseVersion(major = 5.0)
 public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
+
+    Logger logger = LoggerFactory.getLogger(GraphDataTypeIntegrationTest.class);
 
     AtomicInteger schemaCounter = new AtomicInteger(0);
 
@@ -70,15 +77,19 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 {"Decimal()", new BigDecimal("8675309.9998")},
                 {"Varint()", new BigInteger("8675309")},
                 // Geospatial types
-                {"Point()", p(0, 1)},
-                {"Point()", p(-5, 20)},
-                {"Linestring()", new LineString(p(30, 10), p(10, 30), p(40, 40))},
-                {"Polygon()", Polygon.builder()
+                {"Point().withBounds(-2, -2, 2, 2)", p(0, 1)},
+                {"Point().withBounds(-40, -40, 40, 40)", p(-5, 20)},
+                {"Linestring().withGeoBounds()", new LineString(p(30, 10), p(10, 30), p(40, 40))},
+                {"Polygon().withGeoBounds()", Polygon.builder()
                         .addRing(p(35, 10), p(45, 45), p(15, 40), p(10, 20), p(35, 10))
                         .addRing(p(20, 30), p(35, 35), p(30, 20), p(20, 30))
                         .build()}
         };
     }
+
+
+    // Identify geotypes using bounds and capture everything preceding the bounds definition.
+    private static final Pattern withBoundsPattern = Pattern.compile("^(.*\\(\\))\\.with.*Bounds.*$");
 
     /**
      * Validates that a given data sample can be set as a parameter on Statement and interpreted as a given type for a vertex
@@ -95,6 +106,16 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
     @Test(groups = "short", dataProvider = "dataTypeSamples")
     public void should_create_and_retrieve_vertex_property(String type, Object input) {
         int id = schemaCounter.incrementAndGet();
+        // If we're working with a geotype and our version is 5.0, make a special exception and truncate the
+        // withBounds/withGeoBounds qualifiers.
+        String dseVersion = CCMBridge.getDSEVersion();
+        if (dseVersion != null && dseVersion.startsWith("5.0")) {
+            Matcher matcher = withBoundsPattern.matcher(type);
+            if (matcher.matches()) {
+                type = matcher.group(1);
+                logger.warn("Replacing type definition '{}' with '{}' for DSE 5.0", matcher.group(), type);
+            }
+        }
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
         GraphStatement addVertexLabelAndProperty = new SimpleGraphStatement(

@@ -10,7 +10,9 @@ import com.datastax.driver.core.CCMAccess;
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.exceptions.UnavailableException;
 import com.datastax.driver.core.utils.DseVersion;
 import org.testng.annotations.Test;
 
@@ -21,6 +23,13 @@ import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 @CCMConfig(numberOfNodes = 3, dirtiesContext = true)
 @DseVersion(major = 5.0)
 public class GraphConsistencyTest extends CCMGraphTestsSupport {
+
+    private static final boolean isDSE50;
+
+    static {
+        String dseVersion = CCMBridge.getDSEVersion();
+        isDSE50 = dseVersion != null && dseVersion.startsWith("5.0");
+    }
 
     @Override
     public CCMBridge.Builder configureCCM() {
@@ -88,12 +97,16 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
      * @test_category dse:graph
      * @jira_ticket JAVA-1104
      */
-    @Test(groups = "long", expectedExceptions = {InvalidQueryException.class})
+    @Test(groups = "long")
     public void should_not_be_able_to_make_read_query_with_graph_read_cl_all_and_node_down() {
-        session().executeGraph(new SimpleGraphStatement("g.V().limit(1)")
-                .setGraphReadConsistencyLevel(ALL)
-                .setGraphWriteConsistencyLevel(ONE)
-                .setConsistencyLevel(ONE));
+        try {
+            session().executeGraph(new SimpleGraphStatement("g.V().limit(1)")
+                    .setGraphReadConsistencyLevel(ALL)
+                    .setGraphWriteConsistencyLevel(ONE)
+                    .setConsistencyLevel(ONE));
+        } catch (DriverException e) {
+            assertConsistencyException(e);
+        }
     }
 
     /**
@@ -104,10 +117,14 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
      * @test_category dse:graph
      * @jira_ticket JAVA-1104
      */
-    @Test(groups = "long", expectedExceptions = {InvalidQueryException.class})
+    @Test(groups = "long")
     public void should_not_be_able_to_make_read_query_with_cl_all_and_node_down() {
-        session().executeGraph(new SimpleGraphStatement("g.V().limit(1)")
-                .setConsistencyLevel(ALL));
+        try {
+            session().executeGraph(new SimpleGraphStatement("g.V().limit(1)")
+                    .setConsistencyLevel(ALL));
+        } catch (DriverException e) {
+            assertConsistencyException(e);
+        }
     }
 
     /**
@@ -154,12 +171,16 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
      * @test_category dse:graph
      * @jira_ticket JAVA-1104
      */
-    @Test(groups = "long", expectedExceptions = {InvalidQueryException.class})
+    @Test(groups = "long")
     public void should_not_be_able_to_make_write_query_with_graph_write_cl_all_and_node_down() {
-        session().executeGraph(new SimpleGraphStatement("graph.addVertex(label, 'person', 'name', 'joe', 'age', 42)")
-                .setGraphWriteConsistencyLevel(ALL)
-                .setGraphReadConsistencyLevel(ONE)
-                .setConsistencyLevel(ONE));
+        try {
+            session().executeGraph(new SimpleGraphStatement("graph.addVertex(label, 'person', 'name', 'joe', 'age', 42)")
+                    .setGraphWriteConsistencyLevel(ALL)
+                    .setGraphReadConsistencyLevel(ONE)
+                    .setConsistencyLevel(ONE));
+        } catch (DriverException e) {
+            assertConsistencyException(e);
+        }
     }
 
     /**
@@ -170,9 +191,26 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
      * @test_category dse:graph
      * @jira_ticket JAVA-1104
      */
-    @Test(groups = "long", expectedExceptions = {InvalidQueryException.class})
+    @Test(groups = "long")
     public void should_not_be_able_to_make_write_query_with_cl_all_and_node_down() {
-        session().executeGraph(new SimpleGraphStatement("graph.addVertex(label, 'person', 'name', 'joe', 'age', 42)")
-                .setConsistencyLevel(ALL));
+        try {
+            session().executeGraph(new SimpleGraphStatement("graph.addVertex(label, 'person', 'name', 'joe', 'age', 42)")
+                    .setConsistencyLevel(ALL));
+        } catch (DriverException e) {
+            assertConsistencyException(e);
+        }
+    }
+
+    /**
+     * Depending on the version of DSE a different error may be returned when consistency cannot be meant.  In DSE 5.0.x
+     * and InvalidQueryException is expected, otherwise we expect UnavailableException, which is actually the error
+     * happening at the C* level.
+     */
+    private void assertConsistencyException(DriverException e) {
+        if (isDSE50) {
+            assertThat(e).isInstanceOf(InvalidQueryException.class);
+        } else {
+            assertThat(e).isInstanceOf(UnavailableException.class);
+        }
     }
 }
