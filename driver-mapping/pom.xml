@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.datastax.cassandra</groupId>
         <artifactId>dse-parent</artifactId>
-        <version>1.2.0-eap2-SNAPSHOT</version>
+        <version>1.2.0-eap2</version>
     </parent>
     <artifactId>dse-driver-mapping</artifactId>
     <packaging>bundle</packaging>
@@ -208,7 +208,7 @@
             <name>DataStax DSE Driver License</name>
             <url>http://www.datastax.com/terms/datastax-dse-driver-license-terms</url>
             <distribution>repo</distribution>
-            <comments/>
+            <comments />
         </license>
     </licenses>
 
@@ -216,7 +216,7 @@
         <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
         <url>https://github.com/datastax/java-driver-dse</url>
-        <tag>HEAD</tag>
+        <tag>1.2.0-eap2</tag>
     </scm>
 
     <developers>
