@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.datastax.cassandra</groupId>
         <artifactId>dse-parent</artifactId>
-        <version>1.2.0-eap2</version>
+        <version>1.2.0-eap3-SNAPSHOT</version>
     </parent>
     <artifactId>cassandra-driver-dist</artifactId>
 
