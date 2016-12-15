@@ -1,6 +1,6 @@
-title:    Java Driver for Apache Cassandra
-summary:  High performance Java client for Apache Cassandra
-homepage: http://datastax.github.io/java-driver/
+title:    Java Driver for DataStax Enterprise
+summary:  High performance Java client for DataStax Enterprise
+homepage: http://docs.datastax.com/en/developer/java-driver-dse/
 theme: datastax
 sections:
   - title:     Manual
@@ -33,28 +33,15 @@ sections:
         files: 'faq/**/*.md'
 links:
   - title: Code
-    href:  https://github.com/datastax/java-driver/
+    href:  https://github.com/datastax/java-driver-dse/
   - title: Docs
-    href:  http://datastax.github.io/java-driver/
+    href:  http://docs.datastax.com/en/developer/java-driver-dse
   - title: Issues
     href:  https://datastax-oss.atlassian.net/browse/JAVA/
   - title: Mailing List
     href:  https://groups.google.com/a/lists.datastax.com/forum/#!forum/java-driver-user
-  - title: IRC Channel
-    href:  irc://irc.freenode.net/datastax-drivers
-  - title: Releases
-    href:  https://github.com/datastax/java-driver/releases
 api_docs:
-  3.1: http://docs.datastax.com/en/drivers/java/3.1
-  3.0: http://docs.datastax.com/en/drivers/java/3.0
-  2.1: http://docs.datastax.com/en/drivers/java/2.1
-  2.0: http://docs.datastax.com/en/drivers/java/2.0
+  1.1: http://docs.datastax.com/en/drivers/java-dse/1.1
 versions:
-  - name: '3.1'
-    ref: '3.1.0'
-  - name: '3.0'
-    ref: '3.0.3'
-  - name: '2.1'
-    ref: '2.1.10.3'
-  - name: '2.0'
-    ref: '2.0.12.3'
+  - name: '1.2.0-eap2'
+    ref: '1.2.0-eap2'
