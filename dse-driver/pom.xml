@@ -12,7 +12,7 @@
     <parent>
         <groupId>com.datastax.cassandra</groupId>
         <artifactId>dse-parent</artifactId>
-        <version>1.1.1-beta2-SNAPSHOT</version>
+        <version>1.1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>dse-driver</artifactId>
