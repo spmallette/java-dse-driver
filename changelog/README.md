@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.1.2
+
+- [bug] JAVA-1341: Handle null row in GraphSON 2.0 results
+
+
 ### 1.1.1-beta1
 
 - [improvement] JAVA-1250: Provide a Fluent API for DSE Graph.
