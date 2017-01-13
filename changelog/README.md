@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.1.2
+### 1.1.1 (in progress)
 
 - [bug] JAVA-1341: Handle null row in GraphSON 2.0 results
 
