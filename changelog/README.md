@@ -3,6 +3,7 @@
 ### 1.1.1 (in progress)
 
 - [bug] JAVA-1341: Handle null row in GraphSON 2.0 results
+- [bug] JAVA-1358: Add getCenter/getRadius to Distance.
 
 
 ### 1.1.1-beta1
