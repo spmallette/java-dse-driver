@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import static com.datastax.driver.core.ProtocolVersion.V4;
+import static com.datastax.driver.core.ProtocolVersion.V5;
 import static com.datastax.driver.core.SchemaElement.*;
 
 class Responses {
@@ -558,6 +559,7 @@ class Responses {
                         case V2:
                         case V3:
                         case V4:
+                        case V5:
                         case DSE_V1:
                             return Rows.Metadata.decode(body, version, codecRegistry);
                         default:
@@ -612,6 +614,7 @@ class Responses {
                             return new SchemaChange(change, targetType, targetKeyspace, targetName, targetSignature);
                         case V3:
                         case V4:
+                        case V5:
                         case DSE_V1:
                             change = CBUtil.readEnumValue(Change.class, body);
                             targetType = CBUtil.readEnumValue(SchemaElement.class, body);

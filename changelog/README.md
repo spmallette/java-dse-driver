@@ -12,6 +12,10 @@ Merged from OSS 3.1.x:
 
 - [bug] JAVA-1371: Reintroduce connection pool timeout.
 
+Cherry-picked from OSS 3.x:
+
+- [new feature] JAVA-1248: Implement "beta" flag for native protocol v5.
+
 
 ### 1.2.0-eap3
 

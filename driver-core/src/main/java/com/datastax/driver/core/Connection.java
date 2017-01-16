@@ -264,6 +264,7 @@ class Connection {
                             case V2:
                             case V3:
                             case V4:
+                            case V5:
                             case DSE_V1:
                                 return authenticateV2(authenticator, protocolVersion, initExecutor);
                             default:
@@ -1407,6 +1408,7 @@ class Connection {
         private static final Message.ProtocolEncoder messageEncoderV2 = new Message.ProtocolEncoder(ProtocolVersion.V2);
         private static final Message.ProtocolEncoder messageEncoderV3 = new Message.ProtocolEncoder(ProtocolVersion.V3);
         private static final Message.ProtocolEncoder messageEncoderV4 = new Message.ProtocolEncoder(ProtocolVersion.V4);
+        private static final Message.ProtocolEncoder messageEncoderV5 = new Message.ProtocolEncoder(ProtocolVersion.V5);
         private static final Message.ProtocolEncoder messageEncoderDSE_V1 = new Message.ProtocolEncoder(ProtocolVersion.DSE_V1);
         private static final Frame.Encoder frameEncoder = new Frame.Encoder();
 
@@ -1470,6 +1472,8 @@ class Connection {
                     return messageEncoderV3;
                 case V4:
                     return messageEncoderV4;
+                case V5:
+                    return messageEncoderV5;
                 case DSE_V1:
                     return messageEncoderDSE_V1;
                 default:

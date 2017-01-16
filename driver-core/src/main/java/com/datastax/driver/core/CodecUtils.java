@@ -58,6 +58,7 @@ public final class CodecUtils {
                 return getUnsignedShort(input);
             case V3:
             case V4:
+            case V5:
             case DSE_V1:
                 return input.getInt();
             default:
@@ -83,6 +84,7 @@ public final class CodecUtils {
                 break;
             case V3:
             case V4:
+            case V5:
             case DSE_V1:
                 output.putInt(size);
                 break;
@@ -122,6 +124,7 @@ public final class CodecUtils {
                 break;
             case V3:
             case V4:
+            case V5:
             case DSE_V1:
                 if (value == null) {
                     output.putInt(-1);
@@ -208,6 +211,7 @@ public final class CodecUtils {
                 return 2;
             case V3:
             case V4:
+            case V5:
             case DSE_V1:
                 return 4;
             default:
@@ -225,6 +229,7 @@ public final class CodecUtils {
                 return 2 + elemSize;
             case V3:
             case V4:
+            case V5:
             case DSE_V1:
                 return value == null ? 4 : 4 + value.remaining();
             default:

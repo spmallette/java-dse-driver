@@ -21,12 +21,15 @@ public enum ProtocolVersion {
     V2("2.0.0", 2),
     V3("2.1.0", 3),
     V4("2.2.0", 4),
+    V5("3.10.0", 5),
     DSE_V1("3.10.0", 65);
 
     /**
      * The most recent protocol version supported by the driver.
      */
     public static final ProtocolVersion NEWEST_SUPPORTED = DSE_V1;
+
+    public static final ProtocolVersion NEWEST_BETA = V5;
 
     private final VersionNumber minCassandraVersion;
     private final int asInt;
