@@ -123,6 +123,7 @@ class ProtocolEvent {
                     return new SchemaChange(change, targetType, targetKeyspace, targetName, targetSignature);
                 case V3:
                 case V4:
+                case DSE_V1:
                     change = CBUtil.readEnumValue(Change.class, bb);
                     targetType = CBUtil.readEnumValue(SchemaElement.class, bb);
                     targetKeyspace = CBUtil.readString(bb);

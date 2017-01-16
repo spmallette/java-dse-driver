@@ -739,8 +739,10 @@ public abstract class TestUtils {
             return ProtocolVersion.V2;
         } else if (major < 2.2) {
             return ProtocolVersion.V3;
-        } else {
+        } else if (major < 3.10) {
             return ProtocolVersion.V4;
+        } else {
+            return ProtocolVersion.DSE_V1;
         }
     }
 

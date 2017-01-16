@@ -102,6 +102,7 @@ class Frame {
                 return fullFrame.readByte();
             case V3:
             case V4:
+            case DSE_V1:
                 return fullFrame.readShort();
             default:
                 throw version.unsupported();
@@ -144,6 +145,7 @@ class Frame {
                     return 8;
                 case V3:
                 case V4:
+                case DSE_V1:
                     return 9;
                 default:
                     throw version.unsupported();
@@ -268,6 +270,7 @@ class Frame {
                     break;
                 case V3:
                 case V4:
+                case DSE_V1:
                     header.writeShort(streamId);
                     break;
                 default:
