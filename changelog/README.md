@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.0-eap3 (In progress)
+
+- [bug] JAVA-1358: Add getCenter/getRadius to Distance.
+
+
 ### 1.2.0-eap2
 
 - [improvement] JAVA-1335: Show Row-Level Access Control in DSE CQL metadata.
