@@ -606,7 +606,7 @@ public class CCMBridge implements CCMAccess {
     }
 
     @Override
-    public void setWorkload(int node, Workload... workload) {
+    public void setWorkload(int node, String... workload) {
         String workloadStr = Joiner.on(",").join(workload);
         execute(CCM_COMMAND + " node%d setworkload %s", node, workloadStr);
     }
@@ -739,11 +739,11 @@ public class CCMBridge implements CCMAccess {
         private boolean start = true;
         private Boolean isDSE = null;
         private String version = getCassandraVersion();
-        private Set<String> createOptions = new LinkedHashSet<String>(getInstallArguments());
-        private Set<String> jvmArgs = new LinkedHashSet<String>();
+        private final Set<String> createOptions = new LinkedHashSet<String>(getInstallArguments());
+        private final Set<String> jvmArgs = new LinkedHashSet<String>();
         private final Map<String, Object> cassandraConfiguration = Maps.newLinkedHashMap();
         private final Map<String, Object> dseConfiguration = Maps.newLinkedHashMap();
-        private Map<Integer, Workload[]> workloads = new HashMap<Integer, Workload[]>();
+        private final Map<Integer, String[]> workloads = new HashMap<Integer, String[]>();
 
         private Builder() {
             cassandraConfiguration.put("start_rpc", false);
@@ -884,7 +884,7 @@ public class CCMBridge implements CCMAccess {
          * @param workload The workload(s) (e.g. solr, spark, hadoop)
          * @return This builder
          */
-        public Builder withWorkload(int node, Workload... workload) {
+        public Builder withWorkload(int node, String... workload) {
             this.workloads.put(node, workload);
             return this;
         }
@@ -924,7 +924,7 @@ public class CCMBridge implements CCMAccess {
                 if (!dseConfiguration.isEmpty())
                     ccm.updateDSEConfig(dseConfiguration);
             }
-            for (Map.Entry<Integer, Workload[]> entry : workloads.entrySet()) {
+            for (Map.Entry<Integer, String[]> entry : workloads.entrySet()) {
                 ccm.setWorkload(entry.getKey(), entry.getValue());
             }
             if (start)

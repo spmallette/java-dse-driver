@@ -2,7 +2,9 @@
 
 ### 1.2.0-eap3 (In progress)
 
+- [new feature] JAVA-1347: Add support for duration type.
 - [bug] JAVA-1358: Add getCenter/getRadius to Distance.
+- [improvement] JAVA-1354: Expose workload set from DSE node metadata.
 
 
 ### 1.2.0-eap2
@@ -12,7 +14,6 @@
 - [bug] JAVA-1351: Include Custom Payload in Request.copy.
 - [improvement] JAVA-1264: Provide support for ProxyAuthentication.
 - [bug] JAVA-1341: Handle null row in GraphSON 2.0 results
-- [new feature] JAVA-1347: Add support for duration type.
 
 
 ### 1.1.1-beta1

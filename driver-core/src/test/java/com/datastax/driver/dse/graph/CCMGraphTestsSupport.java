@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-import static com.datastax.driver.core.CCMAccess.Workload.graph;
 import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
 
 @CCMConfig(createKeyspace = false, dse = true, ccmProvider = "configureCCM")
@@ -105,7 +104,7 @@ public class CCMGraphTestsSupport extends CCMDseTestsSupport {
     }
 
     public CCMBridge.Builder configureCCM() {
-        return CCMBridge.builder().withWorkload(1, graph)
+        return CCMBridge.builder().withWorkload(1, "graph")
                 .withDSEConfiguration("graph.gremlin_server.port", RANDOM_PORT);
     }
 

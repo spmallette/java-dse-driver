@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.datastax.driver.core.CCMAccess;
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.ConsistencyLevel;
@@ -35,7 +34,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
     public CCMBridge.Builder configureCCM() {
         CCMBridge.Builder builder = super.configureCCM().withNodes(3);
         for (int i = 1; i <= 3; i++) {
-            builder = builder.withWorkload(i, CCMAccess.Workload.graph)
+            builder = builder.withWorkload(i, "graph")
                     .withDSEConfiguration("graph.gremlin_server.port", "0");
         }
         return builder;

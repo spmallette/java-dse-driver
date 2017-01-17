@@ -52,7 +52,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
         for (int i = 1; i <= NUM_NODES; i++) {
             if (i != 1) {
                 this.ccm().add(i);
-                this.ccm().setWorkload(i, CCMAccess.Workload.graph, CCMAccess.Workload.spark);
+                this.ccm().setWorkload(i, "graph", "spark");
                 this.ccm().start(i);
             }
 
@@ -119,7 +119,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
         // Start with 1 node initially, 2 other nodes will be bootstrapped one at a time.
         return super.configureCCM()
                 .withNodes(1)
-                .withWorkload(1, CCMAccess.Workload.graph, CCMAccess.Workload.spark);
+                .withWorkload(1, "graph", "spark");
     }
 
     /**
