@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.dse.graph.TinkerGraphAssertions.assertThat;
 
-@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3")
+@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
 public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
 
     TraversalIntegrationTest() {

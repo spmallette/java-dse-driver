@@ -6,6 +6,7 @@
  */
 package com.datastax.dse.graph.remote;
 
+import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.dse.graph.DataTypeIntegrationTest;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
@@ -14,6 +15,7 @@ import static com.datastax.dse.graph.TinkerGraphAssertions.assertThat;
 /**
  * {@link DataTypeIntegrationTest} implementation using a remote traversal source with the implicit TinkerPop API.
  */
+@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
 public class RemoteDataTypeIntegrationTest extends DataTypeIntegrationTest {
 
     RemoteDataTypeIntegrationTest() {

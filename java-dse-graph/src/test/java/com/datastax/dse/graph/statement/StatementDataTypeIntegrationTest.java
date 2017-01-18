@@ -6,6 +6,7 @@
  */
 package com.datastax.dse.graph.statement;
 
+import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphResultSet;
 import com.datastax.driver.dse.graph.Vertex;
 import com.datastax.driver.dse.graph.VertexAssert;
@@ -22,6 +23,7 @@ import static com.datastax.dse.graph.api.DseGraph.statementFromTraversal;
  * {@link com.datastax.driver.dse.DseSession#executeGraph} and the {@link GraphResultSet} API for
  * consuming results.
  */
+@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
 public class StatementDataTypeIntegrationTest extends DataTypeIntegrationTest {
 
     StatementDataTypeIntegrationTest() {

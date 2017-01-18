@@ -8,6 +8,7 @@ package com.datastax.dse.graph.remote;
 
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.DseSession;
 import com.datastax.driver.dse.graph.CCMGraphTestsOLAPSupport;
 import com.datastax.driver.dse.graph.GraphFixtures;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DseVersion(major = 5.0)
 public class OLAPQueryIntegrationTest extends CCMGraphTestsOLAPSupport {
 
     @Override
