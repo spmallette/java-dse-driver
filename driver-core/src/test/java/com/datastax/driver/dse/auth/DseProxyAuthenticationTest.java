@@ -265,12 +265,8 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
         assertThat(e.getMessage()).isEqualTo(
                 String.format("Either '%s' does not have permission to execute queries as 'alice' " +
                         "or that role does not exist. " +
-                        "Run 'GRANT PROXY.EXECUTE ON ROLE %s TO alice' as an administrator " +
+                        "Run 'GRANT PROXY.EXECUTE ON ROLE 'alice' TO '%s' as an administrator " +
                         "if you wish to allow this.", user, user));
-    }
-
-    private void verifyException(AuthenticationException e) {
-        assertThat(e.getMessage()).startsWith("Authentication error on host");
     }
 
 }
