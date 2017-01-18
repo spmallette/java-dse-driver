@@ -26,9 +26,9 @@ import static com.datastax.driver.core.CreateCCM.TestMode.PER_METHOD;
 import static com.datastax.driver.dse.auth.KerberosUtils.keytabClient;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// TODO: Renable when DSP-11970 is fixed.
 @CreateCCM(PER_METHOD)
 @DseVersion(major = 5.1)
-@Test(enabled = false, description = "These tests do not currently work, see DSP-11970")
 public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
 
     // Realm for the KDC.
@@ -123,7 +123,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long")
+    @Test(groups = "long", enabled = false)
     public void should_make_traversal_using_plain_text_with_proxy_authentication() {
         query(new DsePlainTextAuthProvider("ben", "ben", "guser"));
     }
@@ -133,7 +133,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long")
+    @Test(groups = "long", enabled = false)
     public void should_make_traversal_using_plain_text_with_proxy_execution() {
         queryWithExecuteAs(new DsePlainTextAuthProvider("steve", "steve"));
     }
@@ -143,7 +143,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long")
+    @Test(groups = "long", enabled = false)
     public void should_make_traversal_using_kerberos_with_proxy_authentication() {
         query(DseGSSAPIAuthProvider.builder()
                 .withLoginConfiguration(keytabClient(bobKeytab, bobPrincipal))
@@ -156,7 +156,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long")
+    @Test(groups = "long", enabled = false)
     public void should_make_traversal_using_kerberos_with_proxy_execution() {
         queryWithExecuteAs(new DseGSSAPIAuthProvider(keytabClient(charlieKeytab, charliePrincipal)));
     }
