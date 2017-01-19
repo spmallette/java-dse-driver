@@ -3,6 +3,9 @@
 This section exposes the APIs available through the _DataStax Java driver_ for interacting 
 with a _DataStax Enterprise Graph_ Server.
 
+Note that, as an alternative to those native APIs, the driver also provides an 
+[integration with Apache Tinkerpop](../tinkerpop/).
+
 ### DseSession usage
 
 `DseSession` has dedicated methods to execute graph queries:
