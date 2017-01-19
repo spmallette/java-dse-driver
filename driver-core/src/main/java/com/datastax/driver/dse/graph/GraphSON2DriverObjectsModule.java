@@ -14,10 +14,10 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
-class DriverObjectsModule extends SimpleModule {
+class GraphSON2DriverObjectsModule extends SimpleModule {
 
-    public DriverObjectsModule() {
-        super("graph-graphson2driver");
+    GraphSON2DriverObjectsModule() {
+        super("graph-graphson2driverobjects");
         addSerializer(Element.class, new ElementGraphSON2Serializer());
         addSerializer(ObjectGraphNode.class, new ObjectGraphNodeGraphSON2Serializer());
     }
@@ -25,7 +25,7 @@ class DriverObjectsModule extends SimpleModule {
 
     static final class ElementGraphSON2Serializer extends StdSerializer<Element> {
 
-        protected ElementGraphSON2Serializer() {
+        ElementGraphSON2Serializer() {
             super(Element.class);
         }
 
@@ -42,7 +42,7 @@ class DriverObjectsModule extends SimpleModule {
 
     static final class ObjectGraphNodeGraphSON2Serializer extends StdSerializer<ObjectGraphNode> {
 
-        protected ObjectGraphNodeGraphSON2Serializer() {
+        ObjectGraphNodeGraphSON2Serializer() {
             super(ObjectGraphNode.class);
         }
 

@@ -7,6 +7,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMBridge;
+import com.datastax.driver.core.LocalDate;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.dse.geometry.LineString;
@@ -15,6 +16,7 @@ import com.google.common.base.Charsets;
 import com.google.common.net.InetAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -87,6 +89,15 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         };
     }
 
+    @DataProvider
+    public static Object[][] dataTypeSamples51() {
+        return new Object[][]{
+                {"Date()", LocalDate.fromYearMonthDay(2016, 5, 12)},
+                {"Date()", "1999-07-29"},
+                {"Time()", "18:30:41.554"},
+                {"Time()", "18:30:41.554010034"}
+        };
+    }
 
     // Identify geotypes using bounds and capture everything preceding the bounds definition.
     private static final Pattern withBoundsPattern = Pattern.compile("^(.*\\(\\))\\.with.*Bounds.*$");
@@ -142,8 +153,19 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         validateVertexResult(resultSet, vertexLabel, propertyName, input);
     }
 
+    @Test(groups = "short", dataProvider = "dataTypeSamples51")
+    @DseVersion(major = 5.1)
+    public void should_create_and_retrieve_vertex_property_51(String type, Object input) {
+        if (type.equals("Time()")) {
+            throw new SkipException("Skipping Time() tests until DSP-12318 is resolved");
+        }
+        should_create_and_retrieve_vertex_property(type, input);
+    }
+
+
     @SuppressWarnings("unchecked")
-    private void validateVertexResult(GraphResultSet resultSet, String vertexLabel, String propertyName, Object expectedResult) {
+    private void validateVertexResult(GraphResultSet resultSet, String vertexLabel, String propertyName, Object
+            expectedResult) {
         // Ensure the created vertex is returned and the property value matches what was provided.
         assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
         Vertex v = resultSet.one().asVertex();

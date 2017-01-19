@@ -26,9 +26,9 @@ import java.util.Map;
  * A Jackson Module to use for TinkerPop serialization/deserialization. It extends
  * {@link com.datastax.driver.dse.graph.GraphSON2JacksonModule} because of the specific typing format used in GraphSON.
  */
-class DseGraphDriverModule extends GraphSON2JacksonModule {
+class GraphSON2DseGraphDriverModule extends GraphSON2JacksonModule {
 
-    public DseGraphDriverModule() {
+    GraphSON2DseGraphDriverModule() {
         super("graph-graphson2dsegraph");
         addSerializer(LineString.class, new LineStringGeometrySerializer());
         addSerializer(Distance.class, new DistanceGeometrySerializer());
@@ -58,11 +58,11 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
     }
 
     abstract static class AbstractGeometryJacksonDeserializer<T extends Geometry> extends StdDeserializer<T> {
-        public AbstractGeometryJacksonDeserializer(final Class<T> clazz) {
+        protected AbstractGeometryJacksonDeserializer(final Class<T> clazz) {
             super(clazz);
         }
 
-        public abstract T parse(final String val);
+        protected abstract T parse(final String val);
 
         @Override
         public T deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException {
@@ -72,7 +72,7 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
 
     abstract static class AbstractGeometryJacksonSerializer<T extends Geometry> extends StdScalarSerializer<T> {
 
-        public AbstractGeometryJacksonSerializer(final Class<T> clazz) {
+        protected AbstractGeometryJacksonSerializer(final Class<T> clazz) {
             super(clazz);
         }
 
@@ -83,15 +83,14 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-
-    static class LineStringGeometrySerializer extends AbstractGeometryJacksonSerializer<LineString> {
-        public LineStringGeometrySerializer() {
+    static final class LineStringGeometrySerializer extends AbstractGeometryJacksonSerializer<LineString> {
+        LineStringGeometrySerializer() {
             super(LineString.class);
         }
     }
 
-    static class LineStringGeometryDeserializer extends AbstractGeometryJacksonDeserializer<LineString> {
-        public LineStringGeometryDeserializer() {
+    static final class LineStringGeometryDeserializer extends AbstractGeometryJacksonDeserializer<LineString> {
+        LineStringGeometryDeserializer() {
             super(LineString.class);
         }
 
@@ -101,14 +100,14 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static class PolygonGeometrySerializer extends AbstractGeometryJacksonSerializer<Polygon> {
-        public PolygonGeometrySerializer() {
+    static final class PolygonGeometrySerializer extends AbstractGeometryJacksonSerializer<Polygon> {
+        PolygonGeometrySerializer() {
             super(Polygon.class);
         }
     }
 
-    static class PolygonGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Polygon> {
-        public PolygonGeometryDeserializer() {
+    static final class PolygonGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Polygon> {
+        PolygonGeometryDeserializer() {
             super(Polygon.class);
         }
 
@@ -118,14 +117,14 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static class PointGeometrySerializer extends AbstractGeometryJacksonSerializer<Point> {
-        public PointGeometrySerializer() {
+    static final class PointGeometrySerializer extends AbstractGeometryJacksonSerializer<Point> {
+        PointGeometrySerializer() {
             super(Point.class);
         }
     }
 
-    static class PointGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Point> {
-        public PointGeometryDeserializer() {
+    static final class PointGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Point> {
+        PointGeometryDeserializer() {
             super(Point.class);
         }
 
@@ -135,14 +134,14 @@ class DseGraphDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static class DistanceGeometrySerializer extends AbstractGeometryJacksonSerializer<Distance> {
-        public DistanceGeometrySerializer() {
+    static final class DistanceGeometrySerializer extends AbstractGeometryJacksonSerializer<Distance> {
+        DistanceGeometrySerializer() {
             super(Distance.class);
         }
     }
 
-    static class DistanceGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Distance> {
-        public DistanceGeometryDeserializer() {
+    static final class DistanceGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Distance> {
+        DistanceGeometryDeserializer() {
             super(Distance.class);
         }
 

@@ -19,7 +19,7 @@ import java.util.*;
 
 /**
  * An extension to the standard Jackson {@code ObjectMapper} which automatically registers the standard
- * {@link com.datastax.driver.dse.graph.GremlinDriverModule} for serializing Graph elements.  This class
+ * {@link GraphSON2GremlinDriverModule} for serializing Graph elements.  This class
  * can be used for generalized JSON serialization tasks that require meeting GraphSON standards.
  */
 class GraphSON2Mapper {

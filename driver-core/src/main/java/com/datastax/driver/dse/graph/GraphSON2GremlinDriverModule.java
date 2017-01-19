@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class GremlinDriverModule extends GraphSON2JacksonModule {
+class GraphSON2GremlinDriverModule extends GraphSON2JacksonModule {
 
-    public GremlinDriverModule() {
-        super("graph-graphson2");
+    GraphSON2GremlinDriverModule() {
+        super("graph-graphson2gremlin");
         addSerializer(Integer.class, new IntegerGraphSONSerializer());
         addSerializer(Double.class, new DoubleGraphSONSerializer());
 
@@ -64,7 +64,7 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
 
 
     final static class IntegerGraphSONSerializer extends StdScalarSerializer<Integer> {
-        public IntegerGraphSONSerializer() {
+        IntegerGraphSONSerializer() {
             super(Integer.class);
         }
 
@@ -76,7 +76,7 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
     }
 
     final static class DoubleGraphSONSerializer extends StdScalarSerializer<Double> {
-        public DoubleGraphSONSerializer() {
+        DoubleGraphSONSerializer() {
             super(Double.class);
         }
 
@@ -164,9 +164,9 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
         abstract T createObject(Map<String, Object> data);
     }
 
-    static final class VertexGraphSON2Deserializer extends ParentGremlinGraphSON2Deserializer<Vertex> {
+    final static class VertexGraphSON2Deserializer extends ParentGremlinGraphSON2Deserializer<Vertex> {
 
-        protected VertexGraphSON2Deserializer() {
+        VertexGraphSON2Deserializer() {
             super(Vertex.class);
         }
 
@@ -197,9 +197,9 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static final class VertexPropertyGraphSON2Deserializer extends ParentChildGremlinGraphSON2Deserializer<VertexProperty> {
+    final static class VertexPropertyGraphSON2Deserializer extends ParentChildGremlinGraphSON2Deserializer<VertexProperty> {
 
-        protected VertexPropertyGraphSON2Deserializer() {
+        VertexPropertyGraphSON2Deserializer() {
             super(VertexProperty.class);
         }
 
@@ -239,9 +239,9 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static final class PropertyGraphSON2Deserializer extends ChildGremlinGraphSON2Deserializer<Property> {
+    final static class PropertyGraphSON2Deserializer extends ChildGremlinGraphSON2Deserializer<Property> {
 
-        protected PropertyGraphSON2Deserializer() {
+        PropertyGraphSON2Deserializer() {
             super(Property.class);
         }
 
@@ -257,9 +257,9 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static final class EdgeGraphSON2Deserializer extends ParentGremlinGraphSON2Deserializer<Edge> {
+    final static class EdgeGraphSON2Deserializer extends ParentGremlinGraphSON2Deserializer<Edge> {
 
-        protected EdgeGraphSON2Deserializer() {
+        EdgeGraphSON2Deserializer() {
             super(Edge.class);
         }
 
@@ -298,9 +298,9 @@ class GremlinDriverModule extends GraphSON2JacksonModule {
         }
     }
 
-    static final class PathGraphSON2Deserializer extends AbstractObjectDeserializer<Path> {
+    final static class PathGraphSON2Deserializer extends AbstractObjectDeserializer<Path> {
 
-        protected PathGraphSON2Deserializer() {
+        PathGraphSON2Deserializer() {
             super(Path.class);
         }
 

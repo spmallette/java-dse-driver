@@ -39,7 +39,6 @@ class GraphSONTypeIdResolver implements TypeIdResolver {
 
     @Override
     public String idFromValue(final Object o) {
-        System.out.println("id from value called");
         return idFromValueAndType(o, o.getClass());
     }
 

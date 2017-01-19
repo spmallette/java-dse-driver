@@ -68,23 +68,25 @@ public class GraphJsonUtils {
 
         GRAPHSON1_OBJECT_MAPPER = new ObjectMapper();
         Version dseDriverVersion = dseDriverVersion();
-        GRAPHSON1_OBJECT_MAPPER.registerModule(new DefaultGraphModule("graph-default", dseDriverVersion));
+        GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1DefaultModule("graph-graphson1default", dseDriverVersion));
 
         GraphSON2Mapper.Builder graphSON2MapperBuilder = GraphSON2Mapper.build()
-                .addCustomModule(new GremlinDriverModule())
-                .addCustomModule(new GremlinXDriverModule())
-                .addCustomModule(new GremlinGraphDriverModule())
-                .addCustomModule(new DseGraphDriverModule())
-                .addCustomModule(new TinkerDriverModule())
-                .addCustomModule(new DriverObjectsModule());
+                .addCustomModule(new GraphSON2GremlinDriverModule())
+                .addCustomModule(new GraphSON2GremlinXDriverModule())
+                .addCustomModule(new GraphSON2GremlinGraphDriverModule())
+                .addCustomModule(new GraphSON2DseGraphDriverModule())
+                .addCustomModule(new GraphSON2TinkerDriverModule())
+                .addCustomModule(new GraphSON2DriverObjectsModule());
 
         if (JSR_310_AVAILABLE) {
             LOGGER.debug("JSR 310 found on the classpath, registering serializers for java.time temporal types");
-            GRAPHSON1_OBJECT_MAPPER.registerModule(new Jdk8Jsr310Module("graph-jsr310", dseDriverVersion));
-            graphSON2MapperBuilder.addCustomModule(new GremlinJavaTimeModule());
+            GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1JavaTimeModule("graph-graphson1javatime", dseDriverVersion));
+            GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1DriverTimeModule("graph-graphson1drivertime", dseDriverVersion));
+            graphSON2MapperBuilder.addCustomModule(new GraphSON2JavaTimeModule());
         } else {
             LOGGER.debug("JSR 310 not found on the classpath, not registering serializers for java.time temporal types");
-            graphSON2MapperBuilder.addCustomModule(new GremlinDateTimeModule());
+            GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1DriverTimeModule("graph-graphson1drivertime", dseDriverVersion));
+            graphSON2MapperBuilder.addCustomModule(new GraphSON2DriverTimeModule());
         }
         GRAPHSON2_OBJECT_MAPPER = graphSON2MapperBuilder.create().createMapper();
     }

@@ -218,9 +218,11 @@ in the Java driver.
 <tr><td>float</td><td><tt>Float</tt></td></tr>
 <tr><td>uuid</td><td><tt>UUID</tt></td></tr>
 <tr><td>bigdecimal</td><td><tt>BigDecimal</tt></td></tr>
-<tr><td>duration</td><td><tt>Duration</tt></td></tr>
+<tr><td>duration</td><td><tt>java.time.Duration</tt></td></tr>
 <tr><td>inet</td><td><tt>InetAddress</tt></td></tr>
-<tr><td>timestamp</td><td><tt>Instant</tt></td></tr>
+<tr><td>timestamp</td><td><tt>java.time.Instant</tt></td></tr>
+<tr><td>time</td><td><tt>java.time.LocalTime</tt></td></tr>
+<tr><td>date</td><td><tt>java.time.LocalDate</tt></td></tr>
 <tr><td>smallint</td><td><tt>Short</tt></td></tr>
 <tr><td>varint</td><td><tt>BigInteger</tt></td></tr>
 <tr><td>polygon</td><td><tt>Polygon</tt></td></tr>
@@ -236,9 +238,14 @@ automatically determine whether the application it's used with is running with a
 Java runtime version less than version 6, and will be able to deserialize objects 
 differently accordingly.
 
-If using the driver with Java 8, `java.time` types will be usable when retrieving the data from
-a Traversal. If the driver is used with an inferior version of Java, other classes will
-be usable when deserializing the data returned from the server.
+If using the driver with Java version 8 or higher, `java.time` types will be usable when 
+retrieving the data from a Traversal (see the types matrix above). 
+If the driver is used with an inferior version of Java, other classes will be usable when 
+retrieving the data sent by the server.
+
+For Java versions < 8, the `Duration()` and `Time()` DSE Graph types will be exposed as Strings.
+`Timestamp()` will be exposed as a Java `Date`, and `Date()` as a _DataStax Java Driver_'s
+`LocalDate` (warning: **not** a `java.time.LocalDate` - the Java Driver has a specific one).
 
 ### Parameters
 

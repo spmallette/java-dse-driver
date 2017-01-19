@@ -14,10 +14,10 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-class GremlinXDriverModule extends GraphSON2JacksonModule {
+class GraphSON2GremlinXDriverModule extends GraphSON2JacksonModule {
 
-    public GremlinXDriverModule() {
-        super("graph-graphson2extended");
+    GraphSON2GremlinXDriverModule() {
+        super("graph-graphson2gremlinextended");
     }
 
     @Override

@@ -27,9 +27,9 @@ import java.util.Map;
 /**
  * The default Jackson module used by DSE Graph.
  */
-class DefaultGraphModule extends SimpleModule {
+class GraphSON1DefaultModule extends SimpleModule {
 
-    DefaultGraphModule(String name, Version version) {
+    GraphSON1DefaultModule(String name, Version version) {
         super(name, version, createDeserializers(), createSerializers());
     }
 

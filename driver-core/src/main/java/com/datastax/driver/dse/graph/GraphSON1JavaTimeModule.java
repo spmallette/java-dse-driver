@@ -29,9 +29,9 @@ import java.util.Map;
  */
 @IgnoreJDK6Requirement
 @SuppressWarnings("Since15")
-class Jdk8Jsr310Module extends SimpleModule {
+class GraphSON1JavaTimeModule extends SimpleModule {
 
-    Jdk8Jsr310Module(String name, Version version) {
+    GraphSON1JavaTimeModule(String name, Version version) {
         super(name, version, createDeserializers(), createSerializers());
     }
 
@@ -40,7 +40,8 @@ class Jdk8Jsr310Module extends SimpleModule {
         return ImmutableMap.<Class<?>, JsonDeserializer<?>>builder()
                 .put(java.time.Duration.class, new DurationJacksonDeserializer())
                 .put(java.time.Instant.class, new InstantJacksonDeserializer())
-                .put(java.time.ZonedDateTime.class, new ZonedDateTimeJacksonDeserializer())
+                .put(java.time.LocalDate.class, new LocalDateJacksonDeserializer())
+                .put(java.time.LocalTime.class, new LocalTimeJacksonDeserializer())
                 .build();
     }
 
@@ -48,7 +49,8 @@ class Jdk8Jsr310Module extends SimpleModule {
         return ImmutableList.<JsonSerializer<?>>builder()
                 .add(new DurationJacksonSerializer())
                 .add(new InstantJacksonSerializer())
-                .add(new ZonedDateTimeJacksonSerializer())
+                .add(new LocalDateJacksonSerializer())
+                .add(new LocalTimeJacksonSerializer())
                 .build();
     }
 
@@ -58,7 +60,7 @@ class Jdk8Jsr310Module extends SimpleModule {
     @IgnoreJDK6Requirement
     static abstract class AbstractJavaTimeSerializer<T> extends StdSerializer<T> {
 
-        public AbstractJavaTimeSerializer(final Class<T> clazz) {
+        AbstractJavaTimeSerializer(final Class<T> clazz) {
             super(clazz);
         }
 
@@ -75,11 +77,12 @@ class Jdk8Jsr310Module extends SimpleModule {
      */
     @IgnoreJDK6Requirement
     abstract static class AbstractJavaTimeJacksonDeserializer<T> extends StdDeserializer<T> {
-        public AbstractJavaTimeJacksonDeserializer(final Class<T> clazz) {
+
+        AbstractJavaTimeJacksonDeserializer(final Class<T> clazz) {
             super(clazz);
         }
 
-        public abstract T parse(final String val);
+        abstract T parse(final String val);
 
         @Override
         public T deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException {
@@ -90,14 +93,15 @@ class Jdk8Jsr310Module extends SimpleModule {
     @IgnoreJDK6Requirement
     final static class DurationJacksonSerializer extends AbstractJavaTimeSerializer<java.time.Duration> {
 
-        public DurationJacksonSerializer() {
+        DurationJacksonSerializer() {
             super(java.time.Duration.class);
         }
     }
 
     @IgnoreJDK6Requirement
     final static class DurationJacksonDeserializer extends AbstractJavaTimeJacksonDeserializer<java.time.Duration> {
-        public DurationJacksonDeserializer() {
+
+        DurationJacksonDeserializer() {
             super(java.time.Duration.class);
         }
 
@@ -110,14 +114,15 @@ class Jdk8Jsr310Module extends SimpleModule {
     @IgnoreJDK6Requirement
     final static class InstantJacksonSerializer extends AbstractJavaTimeSerializer<java.time.Instant> {
 
-        public InstantJacksonSerializer() {
+        InstantJacksonSerializer() {
             super(java.time.Instant.class);
         }
     }
 
     @IgnoreJDK6Requirement
     final static class InstantJacksonDeserializer extends AbstractJavaTimeJacksonDeserializer<java.time.Instant> {
-        public InstantJacksonDeserializer() {
+
+        InstantJacksonDeserializer() {
             super(java.time.Instant.class);
         }
 
@@ -127,24 +132,45 @@ class Jdk8Jsr310Module extends SimpleModule {
         }
     }
 
-
     @IgnoreJDK6Requirement
-    final static class ZonedDateTimeJacksonSerializer extends AbstractJavaTimeSerializer<java.time.ZonedDateTime> {
+    final static class LocalDateJacksonSerializer extends AbstractJavaTimeSerializer<java.time.LocalDate> {
 
-        public ZonedDateTimeJacksonSerializer() {
-            super(java.time.ZonedDateTime.class);
+        LocalDateJacksonSerializer() {
+            super(java.time.LocalDate.class);
         }
     }
 
     @IgnoreJDK6Requirement
-    final static class ZonedDateTimeJacksonDeserializer extends AbstractJavaTimeJacksonDeserializer<java.time.ZonedDateTime> {
-        public ZonedDateTimeJacksonDeserializer() {
-            super(java.time.ZonedDateTime.class);
+    final static class LocalDateJacksonDeserializer extends AbstractJavaTimeJacksonDeserializer<java.time.LocalDate> {
+
+        LocalDateJacksonDeserializer() {
+            super(java.time.LocalDate.class);
         }
 
         @Override
-        public java.time.ZonedDateTime parse(final String val) {
-            return java.time.ZonedDateTime.parse(val);
+        public java.time.LocalDate parse(final String val) {
+            return java.time.LocalDate.parse(val);
+        }
+    }
+
+    @IgnoreJDK6Requirement
+    final static class LocalTimeJacksonSerializer extends AbstractJavaTimeSerializer<java.time.LocalTime> {
+
+        LocalTimeJacksonSerializer() {
+            super(java.time.LocalTime.class);
+        }
+    }
+
+    @IgnoreJDK6Requirement
+    final static class LocalTimeJacksonDeserializer extends AbstractJavaTimeJacksonDeserializer<java.time.LocalTime> {
+
+        LocalTimeJacksonDeserializer() {
+            super(java.time.LocalTime.class);
+        }
+
+        @Override
+        public java.time.LocalTime parse(final String val) {
+            return java.time.LocalTime.parse(val);
         }
     }
 }

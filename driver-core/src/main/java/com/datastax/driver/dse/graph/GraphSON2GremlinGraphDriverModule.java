@@ -10,15 +10,9 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-/**
- * We need this module because the TinkerGraph serialized type name is "gremlin:graph"
- * but is likely to change in the next or after DSE version to "tinker:graph" since the
- * change has been done in TinkerPop but we're not sure when DSE will update its TP version.
- * So that way we stay compatible whatever version of DSE is running.
- */
-class TinkerDriverModule extends GraphSON2JacksonModule {
-    public TinkerDriverModule() {
-        super("graph-graphson2tinker");
+class GraphSON2GremlinGraphDriverModule extends GraphSON2JacksonModule {
+    GraphSON2GremlinGraphDriverModule() {
+        super("graph-graphson2gremlingraph");
     }
 
     @Override
@@ -32,6 +26,6 @@ class TinkerDriverModule extends GraphSON2JacksonModule {
 
     @Override
     public String getTypeNamespace() {
-        return "tinker";
+        return "gremlin";
     }
 }

@@ -21,21 +21,17 @@ public class Jdk8Jsr310GraphJsonUtilsTest {
 
     java.time.Instant instant = java.time.Instant.parse("2016-05-12T16:12:23.999Z");
 
-    java.time.ZonedDateTime zonedDateTime = java.time.ZonedDateTime.parse("2016-05-12T16:12:23.999Z");
-
     java.time.Duration duration = java.time.Duration.parse("P2DT3H4M");
 
     @Test(groups = "unit")
     public void should_serialize_supported_types_graphson_1_0() throws Exception {
         assertThat(GraphJsonUtils.writeValueAsString(instant)).isEqualTo("\"" + instant + "\"");
-        assertThat(GraphJsonUtils.writeValueAsString(zonedDateTime)).isEqualTo("\"" + zonedDateTime + "\"");
         assertThat(GraphJsonUtils.writeValueAsString(duration)).isEqualTo("\"" + duration + "\"");
     }
 
     @Test(groups = "unit")
     public void should_deserialize_supported_types_graphson_1_0() throws Exception {
         assertThat(GraphJsonUtils.readStringAsTree("\"" + instant + "\"").as(java.time.Instant.class)).isEqualTo(instant);
-        assertThat(GraphJsonUtils.readStringAsTree("\"" + zonedDateTime + "\"").as(java.time.ZonedDateTime.class)).isEqualTo(zonedDateTime);
         assertThat(GraphJsonUtils.readStringAsTree("\"" + duration + "\"").as(java.time.Duration.class)).isEqualTo(duration);
     }
 

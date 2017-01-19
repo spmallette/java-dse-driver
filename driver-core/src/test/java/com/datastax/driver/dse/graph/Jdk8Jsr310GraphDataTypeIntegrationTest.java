@@ -21,7 +21,17 @@ public class Jdk8Jsr310GraphDataTypeIntegrationTest extends GraphDataTypeIntegra
                 // JDK 8 types
                 {"Duration()", java.time.Duration.parse("P2DT3H4M")},
                 {"Timestamp()", java.time.Instant.parse("2016-05-12T16:12:23.999Z")},
-                {"Timestamp()", java.time.ZonedDateTime.parse("2016-05-12T16:12:23.999Z")}
+        };
+    }
+
+    @DataProvider
+    public static Object[][] dataTypeSamples51() {
+        return new Object[][]{
+                {"Date()", java.time.LocalDate.of(2016, 5, 12)},
+                {"Date()", "1999-07-29"},
+                {"Time()", java.time.LocalTime.of(18, 30, 41, 554000000)},
+                // 18:30:41.554010034
+                {"Time()", java.time.LocalTime.ofNanoOfDay(66641554010034L)}
         };
     }
 
