@@ -540,7 +540,13 @@ public class CCMBridge implements CCMAccess {
     @Override
     public void decommission(int n) {
         logger.debug(String.format("Decommissioning: node %s (%s%s:%s) from %s", n, TestUtils.IP_PREFIX, n, binaryPort, this));
-        execute(CCM_COMMAND + " node%d decommission", n);
+        // Special case for C* 3.12+, DSE 5.1+, force decommission (see CASSANDRA-12510)
+        String cmd = CCM_COMMAND + " node%d decommission";
+        if (getCassandraVersion().compareTo("3.12") >= 0 ||
+                isDSE && getDSEVersion() != null && getDSEVersion().compareTo("5.1") >= 0) {
+            cmd += " --force";
+        }
+        execute(cmd, n);
     }
 
     @Override
