@@ -125,19 +125,24 @@ public class ControlConnectionTest extends CCMTestsSupport {
                 .withPort(ccm().getBinaryPort())
                 .withQueryOptions(nonDebouncingQueryOptions())
                 .build());
-        cluster.init();
 
-        // Ensure the control connection host is that of the first node.
-        InetAddress controlHost = cluster.manager.controlConnection.connectedHost().getAddress();
-        assertThat(controlHost).isEqualTo(firstHost.getAddress());
+        try {
+            cluster.init();
 
-        // Decommission the node.
-        ccm().decommission(1);
+            // Ensure the control connection host is that of the first node.
+            InetAddress controlHost = cluster.manager.controlConnection.connectedHost().getAddress();
+            assertThat(controlHost).isEqualTo(firstHost.getAddress());
 
-        // Ensure that the new control connection is not null and it's host is not equal to the decommissioned node.
-        Host newHost = cluster.manager.controlConnection.connectedHost();
-        assertThat(newHost).isNotNull();
-        assertThat(newHost.getAddress()).isNotEqualTo(controlHost);
+            // Decommission the node.
+            ccm().decommission(1);
+
+            // Ensure that the new control connection is not null and it's host is not equal to the decommissioned node.
+            Host newHost = cluster.manager.controlConnection.connectedHost();
+            assertThat(newHost).isNotNull();
+            assertThat(newHost.getAddress()).isNotEqualTo(controlHost);
+        } finally {
+            cluster.close();
+        }
     }
 
     /**
