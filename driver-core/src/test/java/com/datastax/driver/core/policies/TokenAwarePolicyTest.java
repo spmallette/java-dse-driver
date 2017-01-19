@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Set;
 
 import static com.datastax.driver.core.Assertions.assertThat;
 import static com.datastax.driver.core.CreateCCM.TestMode.PER_METHOD;
@@ -73,8 +74,6 @@ public class TokenAwarePolicyTest extends CCMTestsSupport {
 
         try {
             sCluster.init();
-
-            Session session = cluster.connect();
 
             // given: A routing key that falls in the token range of node 6.
 
@@ -159,6 +158,61 @@ public class TokenAwarePolicyTest extends CCMTestsSupport {
             queryTracker.assertQueried(sCluster, 1, 1, 0);
             queryTracker.assertQueried(sCluster, 1, 2, 0);
             queryTracker.assertQueried(sCluster, 1, 3, 10);
+        } finally {
+            cluster.close();
+            sCluster.stop();
+        }
+    }
+
+    /**
+     * Ensures that {@link TokenAwarePolicy} will properly prioritize replicas if a provided
+     * {@link SimpleStatement} is using an explicitly set keyspace and token range and the
+     * keyspace provided is using SimpleStrategy with a replication factor of 1.  Additionally ensures
+     * that if the routing key is also set that the token range is prioritized over it.
+     *
+     * @test_category load_balancing:token_aware
+     */
+    @Test(groups = "short")
+    public void should_choose_proper_host_based_on_token_range() {
+        // given: A 3 node cluster using TokenAwarePolicy with a replication factor of 1.
+        ScassandraCluster sCluster = ScassandraCluster.builder()
+                .withNodes(3)
+                .withSimpleKeyspace("keyspace", 1)
+                .build();
+        Cluster cluster = Cluster.builder()
+                .addContactPoints(sCluster.address(1).getAddress())
+                .withPort(sCluster.getBinaryPort())
+                .withNettyOptions(nonQuietClusterCloseOptions)
+                .withLoadBalancingPolicy(new TokenAwarePolicy(new RoundRobinPolicy()))
+                .build();
+
+        // when: A query is made with a token range and routing key.
+        try {
+            sCluster.init();
+
+            Session session = cluster.connect();
+
+            // Encodes into murmur hash '4557949199137838892' which should belong be owned by node 3.
+            ByteBuffer routingKey = TypeCodec.varchar().serialize("should_choose_proper_host_based_on_routing_key", ProtocolVersion.NEWEST_SUPPORTED);
+
+            // Set token range to range belonging to host2.
+            Host host2 = TestUtils.findHost(cluster, 2);
+            Set<TokenRange> ranges = cluster.getMetadata().getTokenRanges("keyspace", host2);
+            assertThat(ranges).hasSize(1);
+            TokenRange range = ranges.iterator().next();
+
+            SimpleStatement statement = new SimpleStatement("select * from table where k=5")
+                    .setRoutingKey(routingKey)
+                    .setKeyspace("keyspace")
+                    .setRoutingTokenRange(range);
+
+            queryTracker.query(session, 10, statement);
+
+            // then: The host having that token range should be queried.  The routing key should be ignored since
+            // the token range has precedence.
+            queryTracker.assertQueried(sCluster, 1, 1, 0);
+            queryTracker.assertQueried(sCluster, 1, 2, 10);
+            queryTracker.assertQueried(sCluster, 1, 3, 0);
         } finally {
             cluster.close();
             sCluster.stop();
