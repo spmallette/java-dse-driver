@@ -59,6 +59,7 @@ public class KerberosUtils {
                 Map<String, String> options = ImmutableMap.<String, String>builder()
                         .put("principal", principal)
                         .put("useTicketCache", "true")
+                        .put("refreshKrb5Config", "true")
                         .put("renewTGT", "true").build();
 
                 return new AppConfigurationEntry[]{
@@ -79,6 +80,7 @@ public class KerberosUtils {
                 Map<String, String> options = ImmutableMap.<String, String>builder()
                         .put("principal", principal)
                         .put("useKeyTab", "true")
+                        .put("refreshKrb5Config", "true")
                         .put("keyTab", keytabFile.getAbsolutePath()).build();
 
                 return new AppConfigurationEntry[]{
