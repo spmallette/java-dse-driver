@@ -730,19 +730,35 @@ public abstract class TestUtils {
      * @return The desired target protocol version based on the 'cassandra.version' System property.
      */
     public static ProtocolVersion getDesiredProtocolVersion() {
-        String version = CCMBridge.getCassandraVersion();
-        String[] versionArray = version.split("\\.|-");
-        double major = Double.parseDouble(versionArray[0] + "." + versionArray[1]);
-        if (major < 2.0) {
-            return ProtocolVersion.V1;
-        } else if (major < 2.1) {
-            return ProtocolVersion.V2;
-        } else if (major < 2.2) {
-            return ProtocolVersion.V3;
-        } else if (major < 3.10) {
-            return ProtocolVersion.V4;
+        if (CCMBridge.isDSE()) {
+            String version = CCMBridge.getDSEVersion();
+            String[] versionArray = version.split("\\.|-");
+            double major = Double.parseDouble(versionArray[0] + "." + versionArray[1]);
+            if (major < 4.0) {
+                return ProtocolVersion.V1;
+            } else if (major < 4.7) {
+                return ProtocolVersion.V2;
+            } else if (major < 5.0) {
+                return ProtocolVersion.V3;
+            } else if (major < 5.1) {
+                return ProtocolVersion.V4;
+            } else {
+                return ProtocolVersion.DSE_V1;
+            }
         } else {
-            return ProtocolVersion.DSE_V1;
+            String version = CCMBridge.getCassandraVersion();
+            String[] versionArray = version.split("\\.|-");
+            double major = Double.parseDouble(versionArray[0] + "." + versionArray[1]);
+            if (major < 2.0) {
+                return ProtocolVersion.V1;
+            } else if (major < 2.1) {
+                return ProtocolVersion.V2;
+            } else if (major < 2.2) {
+                return ProtocolVersion.V3;
+            } else {
+                return ProtocolVersion.V4;
+            }
+
         }
     }
 
