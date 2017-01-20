@@ -23,7 +23,7 @@ public class Search {
     }
 
     /**
-     * Search any instance of a certain token prefix withing the text property targeted (case insensitive).
+     * Search any instance of a certain token prefix within the text property targeted (case insensitive).
      *
      * @param value the token to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
@@ -33,7 +33,7 @@ public class Search {
     }
 
     /**
-     * Search any instance of the provided regular expression for the targeted property.
+     * Search any instance of the provided regular expression for the targeted property (case insensitive).
      *
      * @param value the token to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
@@ -43,7 +43,7 @@ public class Search {
     }
 
     /**
-     * Search for a specific prefix at the beginning of the text property targeted (case insensitive).
+     * Search for a specific prefix at the beginning of the text property targeted (case sensitive).
      *
      * @param value the value to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
@@ -53,7 +53,7 @@ public class Search {
     }
 
     /**
-     * Search for this regular expression inside the text property targeted.
+     * Search for this regular expression inside the text property targeted (case sensitive).
      *
      * @param value the value to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
@@ -83,7 +83,7 @@ public class Search {
 
     /**
      * Supports fuzzy searches based on the Levenshtein Distance, or Edit Distance algorithm
-     * (case insensitive).
+     * (case sensitive).
      * <p/>
      * Example: the search expression is {@code fuzzy("david", 1)}
      * <ul>

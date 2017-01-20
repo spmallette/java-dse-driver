@@ -16,7 +16,7 @@ import com.google.common.base.Preconditions;
  */
 public enum GeoPredicate implements DsePredicate {
     /**
-     * Whether one geographic region is completely contains within another
+     * Whether one geographic region is completely containing a Geo entity.
      */
     inside {
         @Override

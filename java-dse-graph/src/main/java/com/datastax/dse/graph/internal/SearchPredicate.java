@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public enum SearchPredicate implements DsePredicate {
     /**
-     * Whether the text contains a given term as a token in the text (case insensitive)
+     * Whether the text contains a given term as a token in the text (case insensitive).
      */
     token {
         @Override
@@ -58,7 +58,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether the text contains a token that starts with a given term (case insensitive)
+     * Whether the text contains a token that starts with a given term (case insensitive).
      */
     tokenPrefix {
         @Override
@@ -87,7 +87,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether the text contains a token that matches a regular expression
+     * Whether the text contains a token that matches a regular expression (case insensitive).
      */
     tokenRegex {
         @Override
@@ -118,7 +118,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether some token in the text is within a given edit distance from the given term.
+     * Whether some token in the text is within a given edit distance from the given term (case insensitive).
      */
     tokenFuzzy {
         @Override
@@ -151,7 +151,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether the text starts with a given prefix (case sensitive)
+     * Whether the text starts with a given prefix (case sensitive).
      */
     prefix {
         @Override
@@ -173,7 +173,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether the text matches a regular expression (case sensitive)
+     * Whether the text matches a regular expression (case sensitive).
      */
     regex {
         @Override
@@ -199,7 +199,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether the text is within a given edit distance from the given term.
+     * Whether the text is within a given edit distance from the given term (case sensitive).
      */
     fuzzy {
         @Override
@@ -223,7 +223,7 @@ public enum SearchPredicate implements DsePredicate {
     },
 
     /**
-     * Whether tokenized text contains a given phrase, optionally within a given proximity.
+     * Whether tokenized text contains a given phrase, optionally within a given proximity (case insensitive).
      */
     phrase {
         @Override
