@@ -24,19 +24,19 @@ public class Geo {
      * @param radius the radius of the distance.
      * @return a predicate to use in TinkerPop on a graph data set.
      */
-    public static P<Distance> inside(double centerX, double centerY, double radius) {
-        return inside(distance(centerX, centerY, radius));
+    public static P inside(double centerX, double centerY, double radius) {
+        return inside(point(centerX, centerY), radius);
     }
 
     /**
      * Graph predicate for finding whether an entity is inside another Geo entity.
      *
-     * @param value the other Geo entity to check inside of.
-     * @param <V> the type of the Geo entity to check.
+     * @param center the center of the area to look into
+     * @param radius the radius of the area to look into
      * @return a predicate to use in TinkerPop on a graph data set.
      */
-    public static <V> P<V> inside(V value) {
-        return new P(GeoPredicate.inside, value);
+    public static P inside(Point center, double radius) {
+        return new P(GeoPredicate.inside, distance(center, radius));
     }
 
     /**
@@ -110,28 +110,15 @@ public class Geo {
 
     /**
      * Create a Distance object that represents a point and its area's radius.
+     * (used internally only).
      *
      * @param center the center point.
      * @param radius the radius of the area.
      * @return the Distance object.
      */
-    public static Distance distance(Point center, double radius) {
+    private static Distance distance(Point center, double radius) {
         Preconditions.checkArgument(center != null, "Invalid center point");
         Preconditions.checkArgument(radius >= 0.0D, "Invalid radius: %s", radius);
         return new Distance(center, radius);
-    }
-
-    /**
-     * Create a Distance object that represents a point and its area's radius. Distance
-     * is often used in a predicate to find a Geo entity within a desired distance.
-     *
-     * @param centerX the coordinate on the x-axis.
-     * @param centerY the coordinate on the y-axis.
-     * @param radius the radius of the area.
-     * @return the Distance object.
-     */
-    public static Distance distance(double centerX, double centerY, double radius) {
-        Preconditions.checkArgument(radius >= 0.0D, "Invalid radius: %s", radius);
-        return distance(point(centerX, centerY), radius);
     }
 }

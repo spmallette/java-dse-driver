@@ -6,6 +6,7 @@
 - [bug] JAVA-1358: Add getCenter/getRadius to Distance.
 - [improvement] JAVA-1354: Expose workload set from DSE node metadata.
 - [new feature] JAVA-1343: Add Time() and Date() types for Graph.
+- [new feature] JAVA-1338: Add new `fuzzy/tokenFuzzy` and `phrase` predicates in Graph.
 
 
 ### 1.2.0-eap2

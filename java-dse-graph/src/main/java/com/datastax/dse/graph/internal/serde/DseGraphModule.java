@@ -13,8 +13,10 @@ import com.datastax.driver.dse.geometry.Point;
 import com.datastax.driver.dse.geometry.Polygon;
 import com.datastax.dse.graph.api.predicates.Geo;
 import com.datastax.dse.graph.api.predicates.Search;
+import com.datastax.dse.graph.internal.EditDistance;
 import com.datastax.dse.graph.internal.GeoPredicate;
 import com.datastax.dse.graph.internal.SearchPredicate;
+import com.google.common.collect.ImmutableMap;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.util.AndP;
 import org.apache.tinkerpop.gremlin.process.traversal.util.ConnectiveP;
@@ -27,7 +29,9 @@ import org.apache.tinkerpop.shaded.jackson.core.JsonParser;
 import org.apache.tinkerpop.shaded.jackson.databind.DeserializationContext;
 import org.apache.tinkerpop.shaded.jackson.databind.SerializerProvider;
 import org.apache.tinkerpop.shaded.jackson.databind.deser.std.StdDeserializer;
+import org.apache.tinkerpop.shaded.jackson.databind.jsontype.TypeSerializer;
 import org.apache.tinkerpop.shaded.jackson.databind.ser.std.StdScalarSerializer;
+import org.apache.tinkerpop.shaded.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -49,6 +53,7 @@ public class DseGraphModule extends TinkerPopJacksonModule {
         addSerializer(Polygon.class, new PolygonGeometrySerializer());
         //override TinkerPop's P predicates because of DSE's Search and Geo predicates
         addSerializer(P.class, new DsePJacksonSerializer());
+        addSerializer(EditDistance.class, new EditDistanceSerializer());
 
         addDeserializer(LineString.class, new LineStringGeometryDeserializer());
         addDeserializer(Point.class, new PointGeometryDeserializer());
@@ -248,17 +253,27 @@ public class DseGraphModule extends TinkerPopJacksonModule {
                             return (P) P.class.getMethod(predicate, Collection.class).invoke(null, (Collection) value);
                     } else {
                         if (predicate.equals(SearchPredicate.prefix.name()))
-                            return Search.prefix(value);
+                            return Search.prefix((String) value);
                         else if (predicate.equals(SearchPredicate.tokenPrefix.name()))
-                            return Search.tokenPrefix(value);
+                            return Search.tokenPrefix((String) value);
                         else if (predicate.equals(SearchPredicate.regex.name()))
-                            return Search.regex(value);
+                            return Search.regex((String) value);
                         else if (predicate.equals(SearchPredicate.tokenRegex.name()))
-                            return Search.tokenRegex(value);
+                            return Search.tokenRegex((String) value);
                         else if (predicate.equals(SearchPredicate.token.name()))
-                            return Search.token(value);
+                            return Search.token((String) value);
+                        else if (predicate.equals(SearchPredicate.fuzzy.name())) {
+                            Map<String, Object> arguments = (Map<String, Object>) value;
+                            return Search.fuzzy((String) arguments.get("query"), (int) arguments.get("distance"));
+                        } else if (predicate.equals(SearchPredicate.tokenFuzzy.name())) {
+                            Map<String, Object> arguments = (Map<String, Object>) value;
+                            return Search.tokenFuzzy((String) arguments.get("query"), (int) arguments.get("distance"));
+                        } else if (predicate.equals(SearchPredicate.phrase.name())) {
+                            Map<String, Object> arguments = (Map<String, Object>) value;
+                            return Search.phrase((String) arguments.get("query"), (int) arguments.get("distance"));
+                        }
                         else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.inside.name()))
-                            return Geo.inside(value);
+                            return Geo.inside(((Distance)value).getCenter(), ((Distance)value).getRadius());
                         else
                             return (P) P.class.getMethod(predicate, Object.class).invoke(null, value);
                     }
@@ -266,6 +281,22 @@ public class DseGraphModule extends TinkerPopJacksonModule {
                     throw new IllegalStateException(e.getMessage(), e);
                 }
             }
+        }
+    }
+
+    public static class EditDistanceSerializer extends StdSerializer<EditDistance> {
+        protected EditDistanceSerializer() {
+            super(EditDistance.class);
+        }
+
+        @Override
+        public void serialize(EditDistance editDistance, JsonGenerator generator, SerializerProvider provider) throws IOException {
+            generator.writeObject(ImmutableMap.of("query", editDistance.query, "distance", editDistance.distance));
+        }
+
+        @Override
+        public void serializeWithType(EditDistance editDistance, JsonGenerator generator, SerializerProvider provider, TypeSerializer serializer) throws IOException {
+            serialize(editDistance, generator, provider);
         }
     }
 

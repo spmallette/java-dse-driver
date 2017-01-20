@@ -166,12 +166,13 @@ public class GraphFixtures {
                         "schema.propertyKey('city').Text().create()\n" +
                         "schema.propertyKey('state').Text().create()\n" +
                         "schema.propertyKey('description').Text().create()\n" +
+                        "schema.propertyKey('alias').Text().create()\n" +
                         "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description').create()\n" +
-                        "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().add()",
-                "g.addV('user').property('full_name', 'Paul Thomas Joe').property('city', 'Rochester').property('state', 'MN').property('coordinates', Geo.point(-92.46295, 44.0234)).property('description', 'Lives by the hospital')",
-                "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.093333)).property('description', 'A cold dude')",
-                "g.addV('user').property('full_name', 'James Paul Smith').property('city', 'Chicago').property('state', 'IL').property('coordinates', Geo.point(-87.684722, 41.836944)).property('description', 'Likes to hang out')",
-                "g.addV('user').property('full_name', 'Jill Alice').property('city', 'Atlanta').property('state', 'GA').property('coordinates', Geo.point(-84.39, 33.755)).property('description', 'Enjoys a nice cold coca cola')"
+                        "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().by('alias').asString().add()",
+                "g.addV('user').property('full_name', 'Paul Thomas Joe').property('city', 'Rochester').property('state', 'MN').property('coordinates', Geo.point(-92.46295, 44.0234)).property('description', 'Lives by the hospital').property('alias', 'mario')",
+                "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.093333)).property('description', 'A cold dude').property('alias', 'wario')",
+                "g.addV('user').property('full_name', 'James Paul Joe').property('city', 'Chicago').property('state', 'IL').property('coordinates', Geo.point(-87.684722, 41.836944)).property('description', 'Likes to hang out').property('alias', 'bowser')",
+                "g.addV('user').property('full_name', 'Jill Alice').property('city', 'Atlanta').property('state', 'GA').property('coordinates', Geo.point(-84.39, 33.755)).property('description', 'Enjoys a very nice cold coca cola').property('alias', 'peach')"
         );
     }
 }

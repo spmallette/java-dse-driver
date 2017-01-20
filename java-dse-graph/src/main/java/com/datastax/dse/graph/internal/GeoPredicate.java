@@ -10,26 +10,30 @@ import com.datastax.driver.dse.geometry.Geometry;
 import com.datastax.dse.graph.api.predicates.Geo;
 import com.google.common.base.Preconditions;
 
-import java.util.function.BiPredicate;
-
 /**
  * List of predicates for geolocation usage with DseGraph and Search indexes.
  * Should not be accessed directly but through the {@link Geo} static methods.
  */
-public enum GeoPredicate implements BiPredicate<Object, Object> {
+public enum GeoPredicate implements DsePredicate {
+    /**
+     * Whether one geographic region is completely contains within another
+     */
     inside {
+        @Override
         public boolean test(Object value, Object condition) {
-            Preconditions.checkArgument(condition instanceof Geometry);
-            if (value == null) {
-                return false;
-            } else {
-                Preconditions.checkArgument(value instanceof Geometry);
-                return ((Geometry) condition).contains((Geometry) value);
-            }
+            preEvaluate(condition);
+            if (value == null) return false;
+            Preconditions.checkArgument(value instanceof Geometry);
+            return ((Geometry) condition).contains((Geometry) value);
         }
 
+        @Override
         public String toString() {
             return "inside";
         }
+    };
+
+    public boolean isValidCondition(Object condition) {
+        return condition != null;
     }
 }

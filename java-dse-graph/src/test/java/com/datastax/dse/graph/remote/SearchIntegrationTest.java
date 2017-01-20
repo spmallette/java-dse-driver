@@ -67,7 +67,25 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
     public void search_by_regex() {
         // Only two people with names containing pattern for Paul.
         GraphTraversal traversal = g.V().has("user", "full_name", Search.regex(".*Paul.*")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Smith");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using a Search fuzzy predicate on a string-search-indexed
+     * property.
+     * <p/>
+     * Finds all 'user' vertices having a 'alias' property matching 'mario' with a fuzzy distance of 1.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    @DseVersion(major = 5.1)
+    public void search_by_fuzzy() {
+        // Alias matches 'mario' fuzzy
+        GraphTraversal traversal = g.V().has("user", "alias", Search.fuzzy("mario", 1)).values("full_name");
+        // Should match 'Paul Thomas Joe' since alias is 'mario'
+        // Should match 'George Bill Steve' since alias is 'wario' watch matches 'mario' within a distance of 1.
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
     }
 
     /**
@@ -81,24 +99,8 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
     @Test(groups = "long")
     public void search_by_distance() {
         // Should only be two people within 2 units of (-92, 44) (Rochester, Minneapolis)
-        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.distance(-92, 44, 2))).values("full_name");
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-92, 44), 2)).values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
-    }
-
-    /**
-     * Validates that a graph traversal can be made by using an 'inside' polygon predicate on a string-search-indexed
-     * property.
-     * <p/>
-     * Finds all 'user' vertices having a 'coordinates' inside a polygon that only Chicago and Rochester fit in.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "long", enabled = false)
-    public void search_by_polygon_area() {
-        // Doesn't seem to work since DSE Graph doesn't support polygonal searches.
-        // An area that only Chicago and Rochester fit in. (Minneapolis is too far west)
-        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.polygon(-85, 40, -92.5, 45, -95, 38, -85, 40)));
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Smith");
     }
 
     /**
@@ -125,7 +127,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
     public void search_by_token_prefix() {
         // Description containing a token starting with h
         GraphTraversal traversal = g.V().has("user", "description", Search.tokenPrefix("h")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Smith");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
     }
 
     /**
@@ -139,6 +141,43 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
         // Description containing nice or hospital
         GraphTraversal traversal = g.V().has("user", "description", Search.tokenRegex("(nice|hospital)")).values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "Jill Alice");
+    }
+
+
+    /**
+     * Validates that a graph traversal can be made by using a Search fuzzy predicate on a text-search-indexed
+     * property.
+     * <p/>
+     * Finds all 'user' vertices having a 'description' property matching 'lives' with a fuzzy distance of 1.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    @DseVersion(major = 5.1)
+    public void search_by_token_fuzzy() {
+        // Description containing 'lives' fuzzy
+        GraphTraversal traversal = g.V().has("user", "description", Search.tokenFuzzy("lives", 1)).values("full_name");
+        // Should match 'Paul Thomas Joe' since description contains 'Lives'
+        // Should match 'James Paul Joe' since description contains 'Likes'
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using a Search phrase predicate on a text-search-indexed
+     * property.
+     * <p/>
+     * Finds all 'user' vertices having a 'description' property matching 'a cold' with a distance of 2.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    @DseVersion(major = 5.1)
+    public void search_by_phrase() {
+        // Full name contains phrase "Paul Joe"
+        GraphTraversal traversal = g.V().has("user", "description", Search.phrase("a cold", 2)).values("full_name");
+        // Should match 'George Bill Steve' since 'A cold dude' is at distance of 0 for 'a cold'.
+        // Should match 'Jill Alice' since 'Enjoys a very nice cold coca cola' is at distance of 2 for 'a cold'.
+        assertThat(traversal.toList()).containsOnly("George Bill Steve", "Jill Alice");
     }
 
 }
