@@ -25,6 +25,7 @@ public class SimpleStatement extends RegularStatement {
     private final Map<String, Object> namedValues;
 
     private volatile ByteBuffer routingKey;
+    private volatile TokenRange routingTokenRange;
     private volatile String keyspace;
 
     /**
@@ -249,6 +250,21 @@ public class SimpleStatement extends RegularStatement {
      */
     public SimpleStatement setRoutingKey(ByteBuffer routingKey) {
         this.routingKey = routingKey;
+        return this;
+    }
+
+    @Override
+    public TokenRange getRoutingTokenRange() {
+        return routingTokenRange;
+    }
+
+    /**
+     * Sets a routing token for this statement.
+     *
+     * @see #getRoutingTokenRange()
+     */
+    public SimpleStatement setRoutingTokenRange(TokenRange routingTokenRange) {
+        this.routingTokenRange = routingTokenRange;
         return this;
     }
 

@@ -551,12 +551,13 @@ class Connection {
     }
 
     ResponseHandler write(ResponseCallback callback) throws ConnectionException, BusyConnectionException {
-        return write(callback, -1, true);
+        return write(callback, -1, true, false);
     }
 
-    ResponseHandler write(ResponseCallback callback, long statementReadTimeoutMillis, boolean startTimeout) throws ConnectionException, BusyConnectionException {
+    ResponseHandler write(ResponseCallback callback, long statementReadTimeoutMillis, boolean startTimeout, boolean multipleResponses)
+            throws ConnectionException, BusyConnectionException {
 
-        ResponseHandler handler = new ResponseHandler(this, statementReadTimeoutMillis, callback);
+        ResponseHandler handler = new ResponseHandler(this, statementReadTimeoutMillis, callback, multipleResponses);
         dispatcher.add(handler);
 
         Message.Request request = callback.request().setStreamId(handler.streamId);
@@ -1040,24 +1041,30 @@ class Connection {
                 return;
             }
 
-            ResponseHandler handler = pending.remove(streamId);
-            streamIdHandler.release(streamId);
+            ResponseHandler handler = pending.get(streamId);
             if (handler == null) {
-                /*
-                 * During normal operation, we should not receive responses for which we don't have a handler. There is
-                 * two cases however where this can happen:
-                 *   1) The connection has been defuncted due to some internal error and we've raced between removing the
-                 *      handler and actually closing the connection; since the original error has been logged, we're fine
-                 *      ignoring this completely.
-                 *   2) This request has timed out. In that case, we've already switched to another host (or errored out
-                 *      to the user). So log it for debugging purpose, but it's fine ignoring otherwise.
-                 */
+                // if there is no handler release the stream id
+                streamIdHandler.release(streamId);
+
+                // During normal operation, we should not receive responses for which we don't have a handler. There is
+                // two cases however where this can happen:
+                //   1) The connection has been defuncted due to some internal error and we've raced between removing the
+                //      handler and actually closing the connection; since the original error has been logged, we're fine
+                //      ignoring this completely.
+                //   2) This request has timed out. In that case, we've already switched to another host (or errored out
+                //      to the user). So log it for debugging purpose, but it's fine ignoring otherwise.
                 streamIdHandler.unmark(streamId);
                 if (logger.isDebugEnabled())
                     logger.debug("{} Response received on stream {} but no handler set anymore (either the request has "
                             + "timed out or it was closed due to another error). Received message is {}", Connection.this, streamId, asDebugString(response));
                 return;
             }
+            // If the handler does not support multiple responses, then release it, otherwise the callback must do so
+            // when the final response is received. Releasing the handler will release the stream id and remove it
+            // as a handler.
+            if (!handler.multipleResponses)
+                handler.release();
+
             handler.cancelTimeout();
             handler.callback.onSet(Connection.this, response, System.nanoTime() - handler.startTime, handler.retryCount);
 
@@ -1319,6 +1326,10 @@ class Connection {
         final int streamId;
         final ResponseCallback callback;
         final int retryCount;
+        /**
+         * This is set to true when we can receive more than one response with the same stream id
+         */
+        private final boolean multipleResponses;
         private final long readTimeoutMillis;
 
         private final long startTime;
@@ -1326,7 +1337,8 @@ class Connection {
 
         private final AtomicBoolean isCancelled = new AtomicBoolean();
 
-        ResponseHandler(Connection connection, long statementReadTimeoutMillis, ResponseCallback callback) throws BusyConnectionException {
+        ResponseHandler(Connection connection, long statementReadTimeoutMillis, ResponseCallback callback, boolean multipleResponses)
+                throws BusyConnectionException {
             this.connection = connection;
             this.readTimeoutMillis = (statementReadTimeoutMillis >= 0) ? statementReadTimeoutMillis : connection.factory.getReadTimeoutMillis();
             this.streamId = connection.dispatcher.streamIdHandler.next();
@@ -1334,6 +1346,7 @@ class Connection {
                 throw new BusyConnectionException(connection.address);
             this.callback = callback;
             this.retryCount = callback.retryCount();
+            this.multipleResponses = multipleResponses;
 
             this.startTime = System.nanoTime();
         }
@@ -1359,12 +1372,25 @@ class Connection {
             return true;
         }
 
+        /**
+         * Remove this handler and release the stream id.
+         */
+        void release() {
+            connection.dispatcher.pending.remove(streamId);
+            connection.dispatcher.streamIdHandler.release(streamId);
+        }
+
         private TimerTask onTimeoutTask() {
             return new TimerTask() {
                 @Override
                 public void run(Timeout timeout) {
-                    if (callback.onTimeout(connection, System.nanoTime() - startTime, retryCount))
+                    if (callback.onTimeout(connection, System.nanoTime() - startTime, retryCount)
+                            // With multiple responses, can't cancel the handler: the first response would release the
+                            // streamId, and the next ones would produce corrupt data if the streamId was reused in the
+                            // meantime.
+                            && !multipleResponses) {
                         cancelHandler();
+                    }
                 }
             };
         }

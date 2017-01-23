@@ -209,34 +209,36 @@ class Requests {
         }
     }
 
-    enum QueryFlag {
-        // The order of that enum matters!!
-        VALUES,
-        SKIP_METADATA,
-        PAGE_SIZE,
-        PAGING_STATE,
-        SERIAL_CONSISTENCY,
-        DEFAULT_TIMESTAMP,
-        VALUE_NAMES;
+    private enum QueryFlag {
+        // public flags
+        VALUES(0),
+        SKIP_METADATA(1),
+        PAGE_SIZE(2),
+        PAGING_STATE(3),
+        SERIAL_CONSISTENCY(4),
+        DEFAULT_TIMESTAMP(5),
+        VALUE_NAMES(6),
 
-        static EnumSet<QueryFlag> deserialize(int flags) {
-            EnumSet<QueryFlag> set = EnumSet.noneOf(QueryFlag.class);
-            QueryFlag[] values = QueryFlag.values();
-            for (int n = 0; n < values.length; n++) {
-                if ((flags & (1 << n)) != 0)
-                    set.add(values[n]);
-            }
-            return set;
+        // private flags
+        PAGE_SIZE_BYTES(30),
+        CONTINUOUS_PAGING(31);
+
+        /**
+         * The position of the bit that must be set to one to indicate a flag is set
+         */
+        private final int pos;
+
+        QueryFlag(int pos) {
+            this.pos = pos;
         }
 
         static void serialize(EnumSet<QueryFlag> flags, ByteBuf dest, ProtocolVersion version) {
             int i = 0;
             for (QueryFlag flag : flags)
-                i |= 1 << flag.ordinal();
+                i |= 1 << flag.pos;
             if (version.compareTo(ProtocolVersion.DSE_V1) >= 0) {
                 dest.writeInt(i);
-            }
-            else {
+            } else {
                 dest.writeByte((byte) i);
             }
         }
@@ -256,7 +258,8 @@ class Requests {
                 false,
                 -1,
                 null,
-                ConsistencyLevel.SERIAL, Long.MIN_VALUE);
+                ConsistencyLevel.SERIAL, Long.MIN_VALUE,
+                null);
 
         private final EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
         private final Message.Request.Type requestType;
@@ -268,6 +271,7 @@ class Requests {
         final ByteBuffer pagingState;
         final ConsistencyLevel serialConsistency;
         final long defaultTimestamp;
+        final ContinuousPagingOptions continuousPagingOptions;
 
         QueryProtocolOptions(Message.Request.Type requestType,
                              ConsistencyLevel consistency,
@@ -277,7 +281,8 @@ class Requests {
                              int pageSize,
                              ByteBuffer pagingState,
                              ConsistencyLevel serialConsistency,
-                             long defaultTimestamp) {
+                             long defaultTimestamp,
+                             ContinuousPagingOptions continuousPagingOptions) {
 
             Preconditions.checkArgument(positionalValues.isEmpty() || namedValues.isEmpty());
 
@@ -290,6 +295,7 @@ class Requests {
             this.pagingState = pagingState;
             this.serialConsistency = serialConsistency;
             this.defaultTimestamp = defaultTimestamp;
+            this.continuousPagingOptions = continuousPagingOptions;
 
             // Populate flags
             if (!positionalValues.isEmpty())
@@ -300,18 +306,26 @@ class Requests {
             }
             if (skipMetadata)
                 flags.add(QueryFlag.SKIP_METADATA);
-            if (pageSize >= 0)
+            if (pageSize >= 0) {
                 flags.add(QueryFlag.PAGE_SIZE);
+                if (continuousPagingOptions != null &&
+                        continuousPagingOptions.getPageUnit() == ContinuousPagingOptions.PageUnit.BYTES)
+                    flags.add(QueryFlag.PAGE_SIZE_BYTES);
+
+            }
             if (pagingState != null)
                 flags.add(QueryFlag.PAGING_STATE);
             if (serialConsistency != ConsistencyLevel.SERIAL)
                 flags.add(QueryFlag.SERIAL_CONSISTENCY);
             if (defaultTimestamp != Long.MIN_VALUE)
                 flags.add(QueryFlag.DEFAULT_TIMESTAMP);
+            if (continuousPagingOptions != null)
+                flags.add(QueryFlag.CONTINUOUS_PAGING);
         }
 
         QueryProtocolOptions copy(ConsistencyLevel newConsistencyLevel) {
-            return new QueryProtocolOptions(requestType, newConsistencyLevel, positionalValues, namedValues, skipMetadata, pageSize, pagingState, serialConsistency, defaultTimestamp);
+            return new QueryProtocolOptions(requestType, newConsistencyLevel, positionalValues, namedValues, skipMetadata,
+                    pageSize, pagingState, serialConsistency, defaultTimestamp, continuousPagingOptions);
         }
 
         void encode(ByteBuf dest, ProtocolVersion version) {
@@ -345,6 +359,10 @@ class Requests {
                         CBUtil.writeConsistencyLevel(serialConsistency, dest);
                     if (version.compareTo(ProtocolVersion.V3) >= 0 && flags.contains(QueryFlag.DEFAULT_TIMESTAMP))
                         dest.writeLong(defaultTimestamp);
+                    if (version.compareTo(ProtocolVersion.DSE_V1) >= 0 && flags.contains(QueryFlag.CONTINUOUS_PAGING)) {
+                        dest.writeInt(continuousPagingOptions.getMaxPages());
+                        dest.writeInt(continuousPagingOptions.getMaxPagesPerSecond());
+                    }
                     break;
                 default:
                     throw version.unsupported();
@@ -379,7 +397,9 @@ class Requests {
                         size += CBUtil.sizeOfValue(pagingState);
                     if (flags.contains(QueryFlag.SERIAL_CONSISTENCY))
                         size += CBUtil.sizeOfConsistencyLevel(serialConsistency);
-                    if (version == ProtocolVersion.V3 && flags.contains(QueryFlag.DEFAULT_TIMESTAMP))
+                    if (version.compareTo(ProtocolVersion.V3) >= 0 && flags.contains(QueryFlag.DEFAULT_TIMESTAMP))
+                        size += 8;
+                    if (version.compareTo(ProtocolVersion.DSE_V1) >= 0 && flags.contains(QueryFlag.CONTINUOUS_PAGING))
                         size += 8;
                     return size;
                 default:
@@ -647,6 +667,51 @@ class Requests {
         @Override
         protected Request copyInternal() {
             return new AuthResponse(token);
+        }
+    }
+
+    static class Cancel extends Message.Request {
+
+        enum OperationType {
+            CONTINUOUS_PAGING(1);
+
+            private final int id;
+
+            OperationType(int id) {
+                this.id = id;
+            }
+        }
+
+        static final Message.Coder<Cancel> coder = new Message.Coder<Cancel>() {
+
+            @Override
+            public void encode(Cancel msg, ByteBuf dest, ProtocolVersion version) {
+                dest.writeInt(msg.operationType.id);
+                dest.writeInt(msg.id);
+            }
+
+            @Override
+            public int encodedSize(Cancel msg, ProtocolVersion version) {
+                return 8;
+            }
+        };
+
+        private final OperationType operationType;
+        private final int id;
+
+        Cancel(OperationType operationType, int id) {
+            super(Type.CANCEL);
+            this.operationType = operationType;
+            this.id = id;
+        }
+
+        @Override
+        protected Request copyInternal() {
+            return new Cancel(operationType, id);
+        }
+
+        static Cancel continuousPaging(int id) {
+            return new Cancel(OperationType.CONTINUOUS_PAGING, id);
         }
     }
 }

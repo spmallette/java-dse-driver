@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutionException;
  * <p/>
  * This is primarly intended to make mocking easier.
  */
-public abstract class AbstractSession implements Session {
+public abstract class AbstractSession implements Session, ContinuousPagingSession {
 
     private static final boolean CHECK_IO_DEADLOCKS = SystemProperties.getBoolean(
             "com.datastax.driver.CHECK_IO_DEADLOCKS", true);
