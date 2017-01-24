@@ -1,5 +1,7 @@
 ## Changelog
 
+### 1.2.0-eap4 (in progress)
+
 ### 1.2.0-eap3
 
 - [new feature] JAVA-1347: Add support for duration type.
