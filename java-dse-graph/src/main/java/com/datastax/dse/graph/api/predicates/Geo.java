@@ -21,7 +21,7 @@ public class Geo {
      *
      * @param centerX the coordinate on the x-axis for the center of the distance.
      * @param centerY the coordinate of the y-axis for the center of the distance.
-     * @param radius the radius of the distance.
+     * @param radius  the radius of the distance.
      * @return a predicate to use in TinkerPop on a graph data set.
      */
     public static P inside(double centerX, double centerY, double radius) {
@@ -37,6 +37,17 @@ public class Geo {
      */
     public static P inside(Point center, double radius) {
         return new P(GeoPredicate.inside, distance(center, radius));
+    }
+
+    /**
+     * Graph predicate for finding whether an entity is inside another Geo entity.
+     *
+     * @param value the other Geo entity to check inside of.
+     * @param <V>   the type of the Geo entity to check.
+     * @return a predicate to use in TinkerPop on a graph data set.
+     */
+    public static <V> P<V> inside(V value) {
+        return new P(GeoPredicate.inside, value);
     }
 
     /**
