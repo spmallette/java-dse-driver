@@ -194,18 +194,19 @@ public abstract class Statement {
     public abstract ByteBuffer getRoutingKey(ProtocolVersion protocolVersion, CodecRegistry codecRegistry);
 
     /**
-     * Returns the routing token range to use for token aware routing of this query.
+     * Returns the routing token to use for token aware routing of this query.
      * <p/>
-     * This is similar to {@link #getRoutingKey(ProtocolVersion, CodecRegistry)}, but intended for analytics clients
-     * wishing to optimize a query by splitting it into chunks, each targeted to a direct replica. Such clients would
-     * typically call {@link Metadata#getTokenRanges()} to get a description of the ring, and then issue a separate
-     * query for each range. Unlike the routing key, the routing token range is never computed automatically.
+     * This is similar to {@link #getRoutingKey(ProtocolVersion, CodecRegistry)}, except that the key is already hashed.
+     * A typical use case would be analytics clients wishing to optimize a query by splitting it into chunks, each
+     * targeted to a direct replica. Such clients could call {@link Metadata#getTokenRanges()} to get a description of
+     * the ring, and then issue a separate query with the end token of each range. Unlike the routing key, the routing
+     * token is never computed automatically.
      * <p/>
-     * If both the routing token range and the routing key are defined, the range is used in priority.
+     * If both the routing key and token are defined, the token is used in priority.
      *
      * @return an optional routing token for this statement or {@code null}.
      */
-    public TokenRange getRoutingTokenRange() {
+    public Token getRoutingToken() {
         return null; // by default, subclasses that support it will override this method
     }
 

@@ -24,6 +24,8 @@ import java.util.Map;
  */
 public abstract class RegularStatement extends Statement {
 
+    private volatile Token routingToken;
+
     /**
      * Creates a new RegularStatement.
      */
@@ -179,6 +181,22 @@ public abstract class RegularStatement extends Statement {
     public boolean hasValues() {
         return hasValues(CodecRegistry.DEFAULT_INSTANCE);
     }
+
+    @Override
+    public Token getRoutingToken() {
+        return routingToken;
+    }
+
+    /**
+     * Sets a routing token for this statement.
+     *
+     * @see #getRoutingToken()
+     */
+    public RegularStatement setRoutingToken(Token routingToken) {
+        this.routingToken = routingToken;
+        return this;
+    }
+
 
     /**
      * Returns this statement as a CQL query string.

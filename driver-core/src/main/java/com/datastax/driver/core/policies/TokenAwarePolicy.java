@@ -109,18 +109,18 @@ public class TokenAwarePolicy implements ChainableLoadBalancingPolicy {
     @Override
     public Iterator<Host> newQueryPlan(final String loggedKeyspace, final Statement statement) {
 
-        TokenRange range = statement.getRoutingTokenRange();
+        Token token = statement.getRoutingToken();
         ByteBuffer partitionKey = statement.getRoutingKey(protocolVersion, codecRegistry);
         String keyspace = statement.getKeyspace();
         if (keyspace == null)
             keyspace = loggedKeyspace;
 
-        if ((range == null && partitionKey == null) || keyspace == null)
+        if ((token == null && partitionKey == null) || keyspace == null)
             return childPolicy.newQueryPlan(keyspace, statement);
 
-        final Set<Host> replicas = range == null ?
+        final Set<Host> replicas = token == null ?
                 clusterMetadata.getReplicas(Metadata.quote(keyspace), partitionKey) :
-                clusterMetadata.getReplicas(Metadata.quote(keyspace), range);
+                clusterMetadata.getReplicas(Metadata.quote(keyspace), token);
 
         if (replicas.isEmpty())
             return childPolicy.newQueryPlan(loggedKeyspace, statement);

@@ -307,12 +307,29 @@ public class Metadata {
      * with {@link QueryOptions#setMetadataEnabled(boolean)}.
      */
     public Set<Host> getReplicas(String keyspace, TokenRange range) {
+        return getReplicas(keyspace, range.getEnd());
+    }
+
+    /**
+     * Returns the set of hosts that are replica for a given token.
+     * <p/>
+     * Note that this information is refreshed asynchronously by the control
+     * connection, when schema or ring topology changes. It might occasionally
+     * be stale (or even empty).
+     *
+     * @param keyspace the name of the keyspace to get replicas for.
+     * @param token    the token.
+     * @return the (immutable) set of replicas for {@code token} as known by the driver.
+     * Note that the result might be stale or empty if metadata was explicitly disabled
+     * with {@link QueryOptions#setMetadataEnabled(boolean)}.
+     */
+    public Set<Host> getReplicas(String keyspace, Token token) {
         keyspace = handleId(keyspace);
         TokenMap current = tokenMap;
         if (current == null) {
             return Collections.emptySet();
         } else {
-            Set<Host> hosts = current.getReplicas(keyspace, range.getEnd());
+            Set<Host> hosts = current.getReplicas(keyspace, token);
             return hosts == null ? Collections.<Host>emptySet() : hosts;
         }
     }

@@ -201,10 +201,10 @@ public class TokenAwarePolicyTest extends CCMTestsSupport {
             assertThat(ranges).hasSize(1);
             TokenRange range = ranges.iterator().next();
 
-            SimpleStatement statement = new SimpleStatement("select * from table where k=5")
+            Statement statement = new SimpleStatement("select * from table where k=5")
                     .setRoutingKey(routingKey)
                     .setKeyspace("keyspace")
-                    .setRoutingTokenRange(range);
+                    .setRoutingToken(range.getEnd());
 
             queryTracker.query(session, 10, statement);
 
