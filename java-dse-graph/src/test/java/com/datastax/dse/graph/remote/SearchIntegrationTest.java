@@ -16,6 +16,7 @@ import com.datastax.dse.graph.api.predicates.Geo;
 import com.datastax.dse.graph.api.predicates.Search;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.testng.annotations.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -101,6 +102,24 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
         // Should only be two people within 2 units of (-92, 44) (Rochester, Minneapolis)
         GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-92, 44), 2)).values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using an 'inside' polygon predicate.
+     * <p/>
+     * Finds all 'user' vertices having a 'coordinates' inside a polygon that only Chicago and Rochester fit in.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    public void search_by_polygon_area() {
+        // 10 clicks from La Crosse, WI should include Chicago, Rochester and Minneapolis, this is needed to filter
+        // down the traversal set using the search index as Geo.inside(polygon) is not supported for search indices.
+        // Filter further by an area that only Chicago and Rochester fit in. (Minneapolis is too far west.
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-91.2, 43.8), 10))
+                .local(__.has("coordinates", Geo.inside(Geo.polygon(-82, 40, -92.5, 45, -95, 38, -82, 40))))
+                .values("full_name");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
     }
 
     /**

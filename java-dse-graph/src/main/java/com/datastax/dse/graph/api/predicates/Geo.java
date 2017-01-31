@@ -17,19 +17,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 public class Geo {
 
     /**
-     * Graph predicate for finding whether an entity is inside a defined distance.
-     *
-     * @param centerX the coordinate on the x-axis for the center of the distance.
-     * @param centerY the coordinate of the y-axis for the center of the distance.
-     * @param radius the radius of the distance.
-     * @return a predicate to use in TinkerPop on a graph data set.
-     */
-    public static P inside(double centerX, double centerY, double radius) {
-        return inside(point(centerX, centerY), radius);
-    }
-
-    /**
-     * Graph predicate for finding whether an entity is inside another Geo entity.
+     * Graph predicate to find whether an entity is inside a defined area.
      *
      * @param center the center of the area to look into
      * @param radius the radius of the area to look into
@@ -40,7 +28,17 @@ public class Geo {
     }
 
     /**
-     * Create a Point object with the given x-axis and y-axis coordinates.
+     * Graph predicate to find whether an entity is inside a defined {@link com.datastax.driver.dse.geometry.Polygon}.
+     *
+     * @param polygon the polygon entity to check inside of.
+     * @return a predicate to use in TinkerPop on a graph data set.
+     */
+    public static P inside(Polygon polygon) {
+        return new P(GeoPredicate.inside, polygon);
+    }
+
+    /**
+     * Create a {@link com.datastax.driver.dse.geometry.Point} object with the given x-axis and y-axis coordinates.
      *
      * @param x the x-axis coordinate.
      * @param y the y-axis coordinate.
@@ -51,12 +49,12 @@ public class Geo {
     }
 
     /**
-     * Create a LineString object with the list of points given in parameter.
+     * Create a {@link com.datastax.driver.dse.geometry.LineString} object with the list of points given in parameter.
      *
      * @param points the points that define the linestring.
      * @return the LineString object.
      */
-    public static LineString linestring(double... points) {
+    public static LineString lineString(double... points) {
         if (points.length % 2 != 0) {
             throw new IllegalArgumentException("lineString() must be passed an even number of arguments");
         } else if (points.length <= 0) {
@@ -80,7 +78,7 @@ public class Geo {
     }
 
     /**
-     * Create a Polygon with the points given in parameters.
+     * Create a {@link com.datastax.driver.dse.geometry.Polygon} with the points given in parameters.
      *
      * @param points the points that define the polygon.
      * @return the Polygon object.

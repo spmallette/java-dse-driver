@@ -2,6 +2,9 @@
 
 ### 1.2.0-eap4 (in progress)
 
+- [bug] JAVA-1374: Reintroduce Geo.inside(V).
+
+
 ### 1.2.0-eap3
 
 - [new feature] JAVA-1347: Add support for duration type.
