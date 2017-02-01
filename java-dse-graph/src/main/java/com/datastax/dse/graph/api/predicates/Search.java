@@ -18,7 +18,7 @@ public class Search {
      * @param value the token to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P token(String value) {
+    public static P<Object> token(String value) {
         return new P(SearchPredicate.token, value);
     }
 
@@ -28,7 +28,7 @@ public class Search {
      * @param value the token to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P tokenPrefix(String value) {
+    public static P<Object> tokenPrefix(String value) {
         return new P(SearchPredicate.tokenPrefix, value);
     }
 
@@ -38,7 +38,7 @@ public class Search {
      * @param value the token to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P tokenRegex(String value) {
+    public static P<Object> tokenRegex(String value) {
         return new P(SearchPredicate.tokenRegex, value);
     }
 
@@ -48,7 +48,7 @@ public class Search {
      * @param value the value to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P prefix(String value) {
+    public static P<Object> prefix(String value) {
         return new P(SearchPredicate.prefix, value);
     }
 
@@ -58,7 +58,7 @@ public class Search {
      * @param value the value to look for.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P regex(String value) {
+    public static P<Object> regex(String value) {
         return new P(SearchPredicate.regex, value);
     }
 
@@ -73,11 +73,12 @@ public class Search {
      * <li>the inserted value "Hello the big wild world" is not found</li>
      * <li>the inserted value "Goodbye world" is not found.</li>
      * </ul>
-     * @param query the string to look for in the value
+     *
+     * @param query    the string to look for in the value
      * @param distance the number of terms allowed between two correct terms to find a value.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P phrase(String query, int distance) {
+    public static P<Object> phrase(String query, int distance) {
         return new P(SearchPredicate.phrase, new EditDistance(query, distance));
     }
 
@@ -93,11 +94,11 @@ public class Search {
      * <li>the inserted value "dewid" is not found</li>
      * </ul>
      *
-     * @param query the string to look for in the value
+     * @param query    the string to look for in the value
      * @param distance the number of "uncertainties" allowed for the Leveinshtein algorithm.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P fuzzy(String query, int distance) {
+    public static P<Object> fuzzy(String query, int distance) {
         return new P(SearchPredicate.fuzzy, new EditDistance(query, distance));
     }
 
@@ -113,11 +114,11 @@ public class Search {
      * <li>the inserted value "dewid" is not found</li>
      * </ul>
      *
-     * @param query the string to look for in the value
+     * @param query    the string to look for in the value
      * @param distance the number of "uncertainties" allowed for the Leveinshtein algorithm.
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
-    public static P tokenFuzzy(String query, int distance) {
+    public static P<Object> tokenFuzzy(String query, int distance) {
         return new P(SearchPredicate.tokenFuzzy, new EditDistance(query, distance));
     }
 }

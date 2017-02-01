@@ -6,11 +6,7 @@
  */
 package com.datastax.dse.graph.internal.serde;
 
-import com.datastax.driver.dse.geometry.Distance;
-import com.datastax.driver.dse.geometry.Geometry;
-import com.datastax.driver.dse.geometry.LineString;
-import com.datastax.driver.dse.geometry.Point;
-import com.datastax.driver.dse.geometry.Polygon;
+import com.datastax.driver.dse.geometry.*;
 import com.datastax.dse.graph.api.predicates.Geo;
 import com.datastax.dse.graph.api.predicates.Search;
 import com.datastax.dse.graph.internal.EditDistance;
@@ -271,9 +267,8 @@ public class DseGraphModule extends TinkerPopJacksonModule {
                         } else if (predicate.equals(SearchPredicate.phrase.name())) {
                             Map<String, Object> arguments = (Map<String, Object>) value;
                             return Search.phrase((String) arguments.get("query"), (int) arguments.get("distance"));
-                        }
-                        else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.inside.name()))
-                            return Geo.inside(((Distance)value).getCenter(), ((Distance)value).getRadius());
+                        } else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.inside.name()))
+                            return Geo.inside(((Distance) value).getCenter(), ((Distance) value).getRadius(), Geo.Unit.DEGREES);
                         else
                             return (P) P.class.getMethod(predicate, Object.class).invoke(null, value);
                     }

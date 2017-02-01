@@ -91,17 +91,64 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
 
     /**
      * Validates that a graph traversal can be made by using an 'inside' distance predicate on a string-search-indexed
-     * property.
+     * property with 'degrees' units.
      * <p/>
-     * Finds all 'user' vertices having a 'coordinates' property 2 units within -94,44.
+     * Finds all 'user' vertices having a 'coordinates' property 2 degrees within -94, 44.
      *
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    public void search_by_distance() {
+    public void search_by_distance_degrees() {
         // Should only be two people within 2 units of (-92, 44) (Rochester, Minneapolis)
-        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-92, 44), 2)).values("full_name");
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-92, 44), 2, Geo.Unit.DEGREES)).values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using an 'inside' distance predicate on a string-search-indexed
+     * property with 'miles' units.
+     * <p/>
+     * Finds all 'user' vertices having a 'coordinates' property 190 nautical miles within -89.39, 43.06.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    public void search_by_distance_miles() {
+        // Should only be two people within 190 miles of Madison, WI (-89.39, 43.06) (Rochester, Chicago)
+        // Minneapolis is too far away (~200 miles).
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-89.39, 43.06), 190, Geo.Unit.MILES)).values("full_name");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using an 'inside' distance predicate on a string-search-indexed
+     * property with 'kilometers' units.
+     * <p/>
+     * Finds all 'user' vertices having a 'coordinates' property 400 kilometers within -93.60, 41.60
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    public void search_by_distance_kilometers() {
+        // Should only be two people within 400 KM of Des Moines, IA (-93.60, 41.60) (Rochester, Minneapolis)
+        // Chicago is too far away (~500 KM)
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-93.60, 41.60), 400, Geo.Unit.KILOMETERS)).values("full_name");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
+    }
+
+    /**
+     * Validates that a graph traversal can be made by using an 'inside' distance predicate on a string-search-indexed
+     * property with 'meters' units.
+     * <p/>
+     * Finds all 'user' vertices having a 'coordinates' property 350000 meters within -93.60, 41.60
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "long")
+    public void search_by_distance_meters() {
+        // Should only be on person within 350,000 M of Des Moines, IA (-93.60, 41.60) (Rochester)
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-93.60, 41.60), 350000, Geo.Unit.METERS)).values("full_name");
+        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe");
     }
 
     /**
@@ -116,7 +163,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
         // 10 clicks from La Crosse, WI should include Chicago, Rochester and Minneapolis, this is needed to filter
         // down the traversal set using the search index as Geo.inside(polygon) is not supported for search indices.
         // Filter further by an area that only Chicago and Rochester fit in. (Minneapolis is too far west.
-        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-91.2, 43.8), 10))
+        GraphTraversal traversal = g.V().has("user", "coordinates", Geo.inside(Geo.point(-91.2, 43.8), 10, Geo.Unit.DEGREES))
                 .local(__.has("coordinates", Geo.inside(Geo.polygon(-82, 40, -92.5, 45, -95, 38, -82, 40))))
                 .values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");

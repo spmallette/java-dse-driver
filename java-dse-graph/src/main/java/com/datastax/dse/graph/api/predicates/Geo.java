@@ -16,15 +16,49 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 
 public class Geo {
 
+    private static final double DEGREES_TO_RADIANS = Math.PI / 180;
+    private static final double EARTH_MEAN_RADIUS_KM = 6371.0087714;
+    private static final double DEG_TO_KM = DEGREES_TO_RADIANS * EARTH_MEAN_RADIUS_KM;
+    private static final double KM_TO_DEG = 1 / DEG_TO_KM;
+    private static final double KM_TO_MILES = 0.621371192;
+    private static final double MILES_TO_KM = 1 / KM_TO_MILES;
+
+    public enum Unit {
+
+        MILES(MILES_TO_KM * KM_TO_DEG),
+        KILOMETERS(KM_TO_DEG),
+        METERS(KM_TO_DEG / 1000.0),
+        DEGREES(1);
+
+        private double multiplier;
+
+
+        Unit(double multiplier) {
+            this.multiplier = multiplier;
+        }
+
+        /**
+         * Convert distance to degrees
+         * (used internally only).
+         *
+         * @param distance the distance to convert.
+         * @return the distance in degrees.
+         */
+        public double toDegrees(double distance) {
+            return distance * multiplier;
+        }
+    }
+
     /**
      * Graph predicate to find whether an entity is inside a defined area.
      *
-     * @param center the center of the area to look into
-     * @param radius the radius of the area to look into
+     * @param center the center of the area to look into.
+     * @param radius the radius of the area to look into.
+     * @param units  the units of the radius.
      * @return a predicate to use in TinkerPop on a graph data set.
      */
-    public static P inside(Point center, double radius) {
-        return new P(GeoPredicate.inside, distance(center, radius));
+    public static P<Object> inside(Point center, double radius, Unit units) {
+        return new P<>(GeoPredicate.inside, distance(center, units.toDegrees(radius)));
     }
 
     /**
@@ -33,8 +67,8 @@ public class Geo {
      * @param polygon the polygon entity to check inside of.
      * @return a predicate to use in TinkerPop on a graph data set.
      */
-    public static P inside(Polygon polygon) {
-        return new P(GeoPredicate.inside, polygon);
+    public static P<Object> inside(Polygon polygon) {
+        return new P<>(GeoPredicate.inside, polygon);
     }
 
     /**
@@ -119,4 +153,5 @@ public class Geo {
         Preconditions.checkArgument(radius >= 0.0D, "Invalid radius: %s", radius);
         return new Distance(center, radius);
     }
+
 }
