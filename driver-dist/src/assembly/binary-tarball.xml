@@ -35,6 +35,12 @@
                         <outputDirectory>lib/dse-driver</outputDirectory>
                         <includes>
                             <include>io.netty:netty-handler</include>
+                            <!--
+                                Explicitly include netty-common because it is a grandchild of netty-handler, but gets
+                                excluded by default as a direct child of netty-transport-native-epoll (which is not
+                                included)
+                            -->
+                            <include>io.netty:netty-common</include>
                             <include>com.google.guava:guava</include>
                             <include>io.dropwizard.metrics:metrics-core</include>
                             <include>com.github.jnr:jnr-ffi</include>
