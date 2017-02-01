@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -132,8 +133,9 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
         if (logger.isTraceEnabled())
             logger.trace("[{}] Querying node {}", id, host);
 
+        PoolingOptions poolingOptions = manager.configuration().getPoolingOptions();
         ListenableFuture<Connection> connectionFuture = pool.borrowConnection(
-                manager.configuration().getPoolingOptions().getMaxQueueSize());
+                poolingOptions.getPoolTimeoutMillis(), TimeUnit.MILLISECONDS, poolingOptions.getMaxQueueSize());
         Futures.addCallback(connectionFuture, new FutureCallback<Connection>() {
             @Override
             public void onSuccess(Connection connection) {
@@ -268,7 +270,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
         };
         ListenableFuture<Void> futureWrite = Futures.transform(
                 // Borrow again, because the cancel request uses a different streamId
-                manager.pools.get(current).borrowConnection(0),
+                manager.pools.get(current).borrowConnection(0, TimeUnit.MILLISECONDS, 0),
                 new Function<Connection, Void>() {
                     @Override
                     public Void apply(Connection c) {

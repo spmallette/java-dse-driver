@@ -8,6 +8,10 @@
 - [improvement] JAVA-1375: Improve error management for continuous queries
 - [bug] JAVA-1383: Add java-dse-graph and dependencies to tarball.
 
+Merged from OSS 3.1.x:
+
+- [bug] JAVA-1371: Reintroduce connection pool timeout.
+
 
 ### 1.2.0-eap3
 

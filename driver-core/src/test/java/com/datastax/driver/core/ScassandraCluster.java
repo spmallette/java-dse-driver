@@ -10,6 +10,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.collect.*;
 import org.scassandra.Scassandra;
 import org.scassandra.ScassandraFactory;
+import org.scassandra.cql.MapType;
 import org.scassandra.http.client.PrimingClient;
 import org.scassandra.http.client.PrimingRequest;
 import org.scassandra.http.client.types.ColumnMetadata;
@@ -25,6 +26,7 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import static com.datastax.driver.core.Assertions.assertThat;
+import static org.scassandra.cql.MapType.map;
 import static org.scassandra.cql.PrimitiveType.*;
 import static org.scassandra.cql.SetType.set;
 import static org.scassandra.http.client.PrimingRequest.then;
@@ -44,16 +46,26 @@ public class ScassandraCluster {
 
     private final List<Map<String, ?>> keyspaceRows;
 
-    private static final java.util.UUID schemaVersion = UUIDs.random();
+    private final String cassandraVersion;
 
+    private static final java.util.UUID schemaVersion = UUIDs.random();
 
     private final Map<Integer, Map<Integer, Map<String, Object>>> forcedPeerInfos;
 
+    private final String keyspaceQuery;
+
+    private final org.scassandra.http.client.types.ColumnMetadata[] keyspaceColumnTypes;
+
     ScassandraCluster(Integer[] nodes, String ipPrefix, int binaryPort, int adminPort,
-                      List<Map<String, ?>> keyspaceRows,
+                      List<Map<String, ?>> keyspaceRows, String cassandraVersion,
                       Map<Integer, Map<Integer, Map<String, Object>>> forcedPeerInfos) {
         this.ipPrefix = ipPrefix;
         this.binaryPort = binaryPort;
+        // If cassandraVersion is not explicitly provided, use 3.0.10 as current version of SCassandra that
+        // supports up to protocol version 4.  Without specifying a newer version, could cause the driver
+        // to think the node doesn't support a protocol version that it indeed does.
+        this.cassandraVersion = cassandraVersion != null ?
+                cassandraVersion : "3.0.10";
         this.forcedPeerInfos = forcedPeerInfos;
 
         int node = 1;
@@ -71,7 +83,30 @@ public class ScassandraCluster {
         }
         instances = instanceListBuilder.build();
         dcNodeMap = dcNodeMapBuilder.build();
-        this.keyspaceRows = keyspaceRows;
+
+        // Prime correct keyspace table based on C* version.
+        String[] versionArray = this.cassandraVersion.split("\\.|-");
+        double major = Double.parseDouble(versionArray[0] + "." + versionArray[1]);
+
+        if (major < 3.0) {
+            this.keyspaceQuery = "SELECT * FROM system.schema_keyspaces";
+            this.keyspaceColumnTypes = SELECT_SCHEMA_KEYSPACES;
+            this.keyspaceRows = Lists.newArrayList(keyspaceRows);
+            // remove replication map as it is not part of the < 3.0 schema.
+            for (Map<String, ?> keyspaceRow : this.keyspaceRows) {
+                keyspaceRow.remove("replication");
+            }
+        } else {
+            this.keyspaceQuery = "SELECT * FROM system_schema.keyspaces";
+            this.keyspaceColumnTypes = SELECT_SCHEMA_KEYSPACES_V3;
+            this.keyspaceRows = Lists.newArrayList(keyspaceRows);
+            // remove strategy options and strategy class as these are not part of the 3.0+ schema.
+            for (Map<String, ?> keyspaceRow : this.keyspaceRows) {
+                keyspaceRow.remove("strategy_class");
+                keyspaceRow.remove("strategy_options");
+            }
+        }
+
     }
 
     public Scassandra node(int node) {
@@ -287,7 +322,7 @@ public class ScassandraCluster {
                     addPeerInfo(row, dc, n + 1, "listen_address", getPeerInfo(dc, n + 1, "listen_address", address));
                     addPeerInfo(row, dc, n + 1, "partitioner", "org.apache.cassandra.dht.Murmur3Partitioner");
                     addPeerInfo(row, dc, n + 1, "rack", getPeerInfo(dc, n + 1, "rack", "rack1"));
-                    addPeerInfo(row, dc, n + 1, "release_version", getPeerInfo(dc, n + 1, "release_version", "2.1.8"));
+                    addPeerInfo(row, dc, n + 1, "release_version", getPeerInfo(dc, n + 1, "release_version", cassandraVersion));
                     addPeerInfo(row, dc, n + 1, "tokens", ImmutableSet.of(tokens.get(n)));
                     addPeerInfo(row, dc, n + 1, "schema_version", schemaVersion);
                     addPeerInfo(row, dc, n + 1, "graph", false);
@@ -312,7 +347,7 @@ public class ScassandraCluster {
                     addPeerInfo(row, dc, n + 1, "rpc_address", address);
                     addPeerInfo(row, dc, n + 1, "data_center", datacenter(dc));
                     addPeerInfo(row, dc, n + 1, "rack", getPeerInfo(dc, n + 1, "rack", "rack1"));
-                    addPeerInfo(row, dc, n + 1, "release_version", getPeerInfo(dc, n + 1, "release_version", "2.1.8"));
+                    addPeerInfo(row, dc, n + 1, "release_version", getPeerInfo(dc, n + 1, "release_version", cassandraVersion));
                     addPeerInfo(row, dc, n + 1, "tokens", ImmutableSet.of(Long.toString(tokens.get(n))));
                     addPeerInfo(row, dc, n + 1, "host_id", UUIDs.random());
                     addPeerInfo(row, dc, n + 1, "schema_version", schemaVersion);
@@ -357,11 +392,11 @@ public class ScassandraCluster {
                         .build())
                 .build());
 
-        // Prime keyspaces
+
         client.prime(PrimingRequest.queryBuilder()
-                .withQuery("SELECT * FROM system.schema_keyspaces")
+                .withQuery(keyspaceQuery)
                 .withThen(then()
-                        .withColumnTypes(SELECT_SCHEMA_KEYSPACES)
+                        .withColumnTypes(keyspaceColumnTypes)
                         .withRows(keyspaceRows)
                         .build())
                 .build());
@@ -444,6 +479,57 @@ public class ScassandraCluster {
             column("strategy_options", TEXT)
     };
 
+    static final org.scassandra.http.client.types.ColumnMetadata[] SELECT_SCHEMA_KEYSPACES_V3 = {
+            column("durable_writes", BOOLEAN),
+            column("keyspace_name", TEXT),
+            column("replication", map(TEXT, TEXT))
+    };
+
+    static final org.scassandra.http.client.types.ColumnMetadata[] SELECT_SCHEMA_COLUMN_FAMILIES = {
+            column("bloom_filter_fp_chance", DOUBLE),
+            column("caching", TEXT),
+            column("cf_id", UUID),
+            column("column_aliases", TEXT),
+            column("columnfamily_name", TEXT),
+            column("comment", TEXT),
+            column("compaction_strategy_class", TEXT),
+            column("compaction_strategy_options", TEXT),
+            column("comparator", TEXT),
+            column("compression_parameters", TEXT),
+            column("default_time_to_live", INT),
+            column("default_validator", TEXT),
+            column("dropped_columns", map(TEXT, BIG_INT)),
+            column("gc_grace_seconds", INT),
+            column("index_interval", INT),
+            column("is_dense", BOOLEAN),
+            column("key_aliases", TEXT),
+            column("key_validator", TEXT),
+            column("keyspace_name", TEXT),
+            column("local_read_repair_chance", DOUBLE),
+            column("max_compaction_threshold", INT),
+            column("max_index_interval", INT),
+            column("memtable_flush_period_in_ms", INT),
+            column("min_compaction_threshold", INT),
+            column("min_index_interval", INT),
+            column("read_repair_chance", DOUBLE),
+            column("speculative_retry", TEXT),
+            column("subcomparator", TEXT),
+            column("type", TEXT),
+            column("value_alias", TEXT)
+    };
+
+    static final org.scassandra.http.client.types.ColumnMetadata[] SELECT_SCHEMA_COLUMNS = {
+            column("column_name", TEXT),
+            column("columnfamily_name", TEXT),
+            column("component_index", INT),
+            column("index_name", TEXT),
+            column("index_options", TEXT),
+            column("index_type", TEXT),
+            column("keyspace_name", TEXT),
+            column("type", TEXT),
+            column("validator", TEXT),
+    };
+
     public static ScassandraClusterBuilder builder() {
         return new ScassandraClusterBuilder();
     }
@@ -454,6 +540,7 @@ public class ScassandraCluster {
         private String ipPrefix = TestUtils.IP_PREFIX;
         private final List<Map<String, ?>> keyspaceRows = Lists.newArrayList();
         private final Map<Integer, Map<Integer, Map<String, Object>>> forcedPeerInfos = Maps.newHashMap();
+        private String cassandraVersion = null;
 
         public ScassandraClusterBuilder withNodes(Integer... nodes) {
             this.nodes = nodes;
@@ -466,36 +553,40 @@ public class ScassandraCluster {
         }
 
         public ScassandraClusterBuilder withSimpleKeyspace(String name, int replicationFactor) {
-            Map<String, Object> simpleKeyspaceRow = ImmutableMap.<String, Object>builder()
-                    .put("durable_writes", false)
-                    .put("keyspace_name", name)
-                    .put("strategy_class", "SimpleStrategy")
-                    .put("strategy_options", "{\"replication_factor\":\"" + replicationFactor + "\"}")
-                    .build();
-
+            Map<String, Object> simpleKeyspaceRow = Maps.newHashMap();
+            simpleKeyspaceRow.put("durable_writes", false);
+            simpleKeyspaceRow.put("keyspace_name", name);
+            simpleKeyspaceRow.put("replication", ImmutableMap.<String, String>builder()
+                    .put("class", "org.apache.cassandra.locator.SimpleStrategy")
+                    .put("replication_factor", "" + replicationFactor).build());
+            simpleKeyspaceRow.put("strategy_class", "SimpleStrategy");
+            simpleKeyspaceRow.put("strategy_options", "{\"replication_factor\":\"" + replicationFactor + "\"}");
             keyspaceRows.add(simpleKeyspaceRow);
             return this;
         }
 
         public ScassandraClusterBuilder withNetworkTopologyKeyspace(String name, Map<Integer, Integer> replicationFactors) {
             StringBuilder strategyOptionsBuilder = new StringBuilder("{");
+            ImmutableMap.Builder<String, String> replicationBuilder = ImmutableMap.builder();
+            replicationBuilder.put("class", "org.apache.cassandra.locator.NetworkTopologyStrategy");
+
             for (Map.Entry<Integer, Integer> dc : replicationFactors.entrySet()) {
                 strategyOptionsBuilder.append("\"");
                 strategyOptionsBuilder.append(datacenter(dc.getKey()));
                 strategyOptionsBuilder.append("\":\"");
                 strategyOptionsBuilder.append(dc.getValue());
                 strategyOptionsBuilder.append("\",");
+                replicationBuilder.put(datacenter(dc.getKey()), "" + dc.getValue());
             }
 
             String strategyOptions = strategyOptionsBuilder.substring(0, strategyOptionsBuilder.length() - 1) + "}";
 
-            Map<String, Object> ntsKeyspaceRow = ImmutableMap.<String, Object>builder()
-                    .put("durable_writes", false)
-                    .put("keyspace_name", name)
-                    .put("strategy_class", "NetworkTopologyStrategy")
-                    .put("strategy_options", strategyOptions)
-                    .build();
-
+            Map<String, Object> ntsKeyspaceRow = Maps.newHashMap();
+            ntsKeyspaceRow.put("durable_writes", false);
+            ntsKeyspaceRow.put("keyspace_name", name);
+            ntsKeyspaceRow.put("strategy_class", "NetworkTopologyStrategy");
+            ntsKeyspaceRow.put("strategy_options", strategyOptions);
+            ntsKeyspaceRow.put("replication", replicationBuilder.build());
             keyspaceRows.add(ntsKeyspaceRow);
             return this;
         }
@@ -515,8 +606,13 @@ public class ScassandraCluster {
             return this;
         }
 
+        public ScassandraClusterBuilder withCassandraVersion(String version) {
+            this.cassandraVersion = version;
+            return this;
+        }
+
         public ScassandraCluster build() {
-            return new ScassandraCluster(nodes, ipPrefix, TestUtils.findAvailablePort(), TestUtils.findAvailablePort(), keyspaceRows, forcedPeerInfos);
+            return new ScassandraCluster(nodes, ipPrefix, TestUtils.findAvailablePort(), TestUtils.findAvailablePort(), keyspaceRows, cassandraVersion, forcedPeerInfos);
         }
     }
 }
