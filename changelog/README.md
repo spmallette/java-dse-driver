@@ -6,6 +6,7 @@
 - [improvement] JAVA-1372: Expose routing token instead of range.
 - [new feature] JAVA-1381: Add Units to Geo.inside() predicates.
 - [improvement] JAVA-1375: Improve error management for continuous queries
+- [bug] JAVA-1383: Add java-dse-graph and dependencies to tarball.
 
 
 ### 1.2.0-eap3
