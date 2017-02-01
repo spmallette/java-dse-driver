@@ -109,7 +109,7 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
             Rows rows = (Rows) response;
             if (rows.metadata.continuousPage.seqNo != state) {
                 fail(new DriverInternalError(String.format("Received page number %d but was expecting %d",
-                        rows.metadata.continuousPage.seqNo, state)));
+                        rows.metadata.continuousPage.seqNo, state)), false);
             } else {
                 if (rows.metadata.continuousPage.last) {
                     logger.debug("Received last page ({})", rows.metadata.continuousPage.seqNo);
@@ -122,14 +122,14 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
                 enqueueOrCompletePending(newResult(rows, info));
             }
         } else if (response.type == ERROR) {
-            fail(((Responses.Error) response).asException(connection.address));
+            fail(((Responses.Error) response).asException(connection.address), true);
         } else {
-            fail(new DriverInternalError("Unexpected response " + response.type));
+            fail(new DriverInternalError("Unexpected response " + response.type), false);
         }
     }
 
     @Override
-    public void onException(final Connection connection, final Exception exception) {
+    public void onException(final Connection connection, final Exception exception, final boolean fromServer) {
         if (connection == null) {
             // This only happens when sending the initial request, if no host was available or if the iterator returned
             // by the LBP threw an exception. In either case the write was not even attempted, so we're sure we're not
@@ -143,21 +143,29 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
                 eventLoop.execute(new Runnable() {
                     @Override
                     public void run() {
-                        onException(connection, exception);
+                        onException(connection, exception, fromServer);
                     }
                 });
             } else if (state > 0) {
-                fail(exception);
+                fail(exception, fromServer);
             }
         }
     }
 
-    private void fail(Exception exception) {
+    private void fail(Exception exception, boolean fromServer) {
         logger.debug("Got failure {} ({})", exception.getClass().getSimpleName(), exception.getMessage());
-        state = STATE_FAILED;
-        // Always try to cancel after an error. At worst the server is aware of the error and already aborted the
-        // request on its side, and will ignore the cancel request.
-        cancel();
+        if (fromServer) {
+            // We can safely assume the server won't send any more responses, so release the streamId
+            state = STATE_FAILED;
+            handler.release();
+            if (connection != null) {
+                // Make sure we don't leave it stuck
+                connection.channel.config().setAutoRead(true);
+            }
+        } else {
+            // Cancel in case the error was purely client-side (server might still be executing the query)
+            cancel();
+        }
         enqueueOrCompletePending(exception);
     }
 
@@ -327,7 +335,7 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
             public void run() {
                 if (state == expectedPage) {
                     fail(new OperationTimedOutException(connection.address,
-                            String.format("Timed out waiting for page %d", expectedPage)));
+                            String.format("Timed out waiting for page %d", expectedPage)), false);
                 } else {
                     // Ignore if the request has moved on. This is simpler than trying to cancel the timeout.
                     logger.trace("Timeout fired for page {} but query already at state {}, skipping",

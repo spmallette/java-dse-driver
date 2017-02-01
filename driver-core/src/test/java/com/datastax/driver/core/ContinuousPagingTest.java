@@ -6,15 +6,21 @@
  */
 package com.datastax.driver.core;
 
+import com.datastax.driver.core.exceptions.ClientWriteException;
+import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.CCMDseTestsSupport;
+import com.datastax.driver.dse.DseCluster;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +38,22 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
     @Override
     public void onTestContextInitialized() {
         execute("CREATE TABLE test (k text, v int, PRIMARY KEY (k, v))");
+        execute("CREATE TABLE test2 (k text, v int, v0 uuid, v1 uuid, PRIMARY KEY (k, v, v0))");
         for (int i = 0; i < 100; i++) {
             execute(String.format("INSERT INTO test (k, v) VALUES ('%s', %d)", KEY, i));
+        }
+
+        // Load enough rows to cause TCP Zero Window.  Default window size is 65535 bytes, each row
+        // is at least 48 bytes, so it would take ~1365 enqueued rows to zero window.
+        // Conservatively load 20k rows.
+        int count = 0;
+        for (int i = 0; i < 200; i++) {
+            BatchStatement batch = new BatchStatement();
+            for (int j = 0; j < 100; j++) {
+                batch.add(new SimpleStatement("INSERT INTO test2 (k, v, v0, v1) VALUES (?, ?, ?, ?)",
+                        KEY, count++, UUID.randomUUID(), UUID.randomUUID()));
+            }
+            session().execute(batch);
         }
     }
 
@@ -259,6 +279,134 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
             fail("Expected a cancellation exception since fuure was cancelled.");
         } catch (CancellationException ce) {
             // expected
+        }
+    }
+
+    /**
+     * Validates that the driver behaves appropriately when the client gets behind while paging rows in a continuous
+     * paging session.  The driver should set autoread to false on the channel for that connection until the client
+     * consumes enough pages, at which point it will reenable autoread and continue reading.
+     * <p>
+     * There is not really a direct way to verify that autoread is disabled, but delaying immediately after executing
+     * a continuous paging query should produce this effect.
+     *
+     * @test_category queries
+     * @jira_ticket JAVA-1375
+     * @since 1.2.0
+     */
+    @Test(groups = "short")
+    public void should_resume_reading_when_client_catches_up() throws Exception {
+        SimpleStatement statement = new SimpleStatement("SELECT * from test2 where k=?", KEY);
+        ContinuousPagingOptions options = ContinuousPagingOptions.builder().withPageSize(100, ROWS).build();
+        ListenableFuture<AsyncContinuousPagingResult> result = cSession().executeContinuouslyAsync(statement, options);
+
+        // Defer consuming of rows for a second, this should cause autoread to be disabled.
+        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+        // Start consuming rows, this should cause autoread to be reenabled once we consume some pages.
+        ListenableFuture<PageStatistics> future = Futures.transform(result, new AsyncContinuousPagingFunction());
+
+        PageStatistics stats = Uninterruptibles.getUninterruptibly(future, 30, TimeUnit.SECONDS);
+
+        // 20k rows in this table.
+        assertThat(stats.rows).isEqualTo(20000);
+        // 200 * 100 = 20k.
+        assertThat(stats.pages).isEqualTo(200);
+    }
+
+    /**
+     * Validates that the driver will mark a channel's autoread attribute as false when data is not being read fast
+     * enough by the client.  This will prevent the driver from reading on that connection's socket, causing a TCP
+     * Zero window condition where DSE stops sending data to the driver.  After ~10 seconds, DSE should time out
+     * enqueuing pages and emit a client write exception.  This should free the stream id associated with the paging
+     * session, causing the channel to go back to autoread and the stream id to be released.
+     *
+     * @test_category queries
+     * @jira_ticket JAVA-1375
+     * @since 1.2.0
+     */
+    @Test(groups = "short")
+    public void should_release_stream_id_when_server_side_error_is_thrown_as_result_of_not_consuming_fast_enough() throws Exception {
+        // Create a separate cluster as we want to make sure we can close cleanly when the server side fails.
+        // Explicitly set receive buffer to 65535 to override system tcp window configuration.
+        DseCluster cluster = ((DseCluster.Builder) this.createClusterBuilder()
+                .addContactPointsWithPorts(ccm().addressOfNode(1)))
+                .withSocketOptions(new SocketOptions().setReceiveBufferSize(65535))
+                .build();
+        ContinuousPagingSession session = null;
+        Host host = null;
+        int pageNumber = 0;
+
+        try {
+            session = (ContinuousPagingSession) cluster.connect(keyspace);
+
+            // submit query using continuous paging
+            SimpleStatement statement = new SimpleStatement("SELECT * from test2 where k=?", KEY);
+            ContinuousPagingOptions options = ContinuousPagingOptions.builder().withPageSize(100, ROWS).build();
+            ListenableFuture<AsyncContinuousPagingResult> future = session.executeContinuouslyAsync(statement, options);
+
+            // There should be one inFlight query for the paging session.
+            host = TestUtils.findHost(cluster, 1);
+            assertThat(session.getState().getInFlightQueries(host)).isEqualTo(1);
+
+            // Defer consuming of rows, this should cause auto read to be disabled and DSE to throw an error.
+            Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
+
+            int rowCount = 0;
+            // Check the first future, should be able to page the received rows until the exception was encountered.
+            AsyncContinuousPagingResult result = Uninterruptibles.getUninterruptibly(future);
+            while (!result.isLast()) {
+                pageNumber = result.pageNumber();
+                rowCount += Iterables.size(result.currentPage());
+                result = Uninterruptibles.getUninterruptibly(result.nextPage());
+            }
+
+            /*
+             * Error condition did not happen as we were able to receive all rows.
+             *
+             * This can happen even with the receive buffer set to a low value, another key configuration is on
+             * the server side as the write buffer should also be tuned there to get DSE into a state where it can
+             * no longer enqueue pages.
+             *
+             * On OS X to tune the write buf size:
+             *   sudo sysctl -w net.inet.tcp.sendspace=65535
+             *
+             * On Linux:
+             *   sudo sysctl -w net.ipv4.tcp_wmem="4096 32768 65535"
+             */
+            // Validate row count and mark the test as skipped.
+            assertThat(rowCount).isEqualTo(20000);
+            throw new SkipException("ClientWriteException was not raised, TCP window scaling is enabled or window " +
+                    "size is larger than default.");
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            assertThat(cause).isInstanceOf(DriverException.class);
+            Throwable clientWriteException = cause.getCause();
+            assertThat(clientWriteException).isInstanceOf(ClientWriteException.class);
+            assertThat(clientWriteException.getMessage()).isEqualTo("Timed out adding page to output queue");
+
+            // Should have enqueued 5 pages before disabling reading, and then got more up to zero windowing.
+            assertThat(pageNumber).isGreaterThanOrEqualTo(5);
+        } finally {
+            boolean closed = false;
+            try {
+                if (host != null) {
+                    // should be able to make a query after paging fails.
+                    session.execute("select * from system.local");
+                    // should be no inFlight queries as stream should be released when session fails.
+                    assertThat(session.getState().getInFlightQueries(host)).isEqualTo(0);
+                }
+                // Cluster should close within 2 seconds as all stream ids should have been released.
+                // Since default netty behavior is to allow up to 2 seconds when shutting down gracefully, we wait a
+                // little longer.
+                closed = true;
+                Uninterruptibles.getUninterruptibly(cluster.closeAsync(), 3, TimeUnit.SECONDS);
+            } finally {
+                // A bit contrived, but close the cluster if we didn't get a chance to because of some other failure.
+                if (!closed) {
+                    cluster.closeAsync();
+                }
+            }
         }
     }
 

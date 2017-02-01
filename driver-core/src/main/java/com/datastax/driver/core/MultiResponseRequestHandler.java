@@ -12,6 +12,8 @@ import com.datastax.driver.core.RequestHandler.QueryPlan;
 import com.datastax.driver.core.RequestHandler.QueryState;
 import com.datastax.driver.core.exceptions.*;
 import com.datastax.driver.core.policies.RetryPolicy;
+import com.datastax.driver.core.utils.MoreFutures;
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -103,7 +105,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
             reportNoMoreHosts();
         } catch (Exception e) {
             // Shouldn't happen really, but if ever the loadbalancing policy returned iterator throws, we don't want to block.
-            setException(null, new DriverInternalError("An unexpected error happened while sending requests", e));
+            setException(null, new DriverInternalError("An unexpected error happened while sending requests", e), false);
         }
     }
 
@@ -231,7 +233,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     }
 
     private void sendCancelRequest() {
-        Connection.ResponseCallback cancelResponseCallback = new Connection.ResponseCallback() {
+        final Connection.ResponseCallback cancelResponseCallback = new Connection.ResponseCallback() {
             @Override
             public Request request() {
                 return callback.getCancelRequest(connectionHandler.streamId);
@@ -240,19 +242,22 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
             @Override
             public void onSet(Connection connection, Message.Response response, long latency, int retryCount) {
                 logger.trace("[{}] Cancelled successfully");
-                release(connection);
+                connection.release(); // for the stream of the cancel request
+                MultiResponseRequestHandler.this.release(); // for the stream of the continuous query
             }
 
             @Override
             public void onException(Connection connection, Exception exception, long latency, int retryCount) {
                 logger.warn("[" + id + "] Cancel request failed. " +
                         "This is not critical (the request will eventually time out server-side).", exception);
+                connection.release();
             }
 
             @Override
             public boolean onTimeout(Connection connection, long latency, int retryCount) {
                 logger.warn("[{}] Cancel request timed out " +
                         "This is not critical (the request will eventually time out server-side).", id);
+                connection.release();
                 return false;
             }
 
@@ -261,13 +266,24 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                 return 0;
             }
         };
-        try {
-            logger.trace("[{}] Sending cancel request" + id);
-            connection.write(cancelResponseCallback, timeoutMillis, true, false);
-        } catch (Exception e) {
-            logger.warn("[" + id + "] Error writing cancel request. " +
-                    "This is not critical (the request will eventually time out server-side).", e);
-        }
+        ListenableFuture<Void> futureWrite = Futures.transform(
+                // Borrow again, because the cancel request uses a different streamId
+                manager.pools.get(current).borrowConnection(0),
+                new Function<Connection, Void>() {
+                    @Override
+                    public Void apply(Connection c) {
+                        logger.trace("[{}] Sending cancel request" + id);
+                        connection.write(cancelResponseCallback, timeoutMillis, true, false);
+                        return null;
+                    }
+                });
+        Futures.addCallback(futureWrite, new MoreFutures.FailureCallback<Void>() {
+            @Override
+            public void onFailure(Throwable t) {
+                logger.warn("[" + id + "] Error writing cancel request. " +
+                        "This is not critical (the request will eventually time out server-side).", t);
+            }
+        });
     }
 
     private void release(Connection connection) {
@@ -338,7 +354,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                                 WriteTimeoutException wte = (WriteTimeoutException) err.infos;
                                 String msg = String.format("Unexpected error for %s, multi-response query are expected to be read-only", id);
                                 logger.error(msg, wte);
-                                setException(connection, new DriverInternalError(msg, wte));
+                                setException(connection, new DriverInternalError(msg, wte), true);
                                 break;
                             case UNAVAILABLE:
                                 release(connection);
@@ -391,7 +407,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                                     release(connection);
                                     msg = String.format("Tried to execute unknown prepared query %s", id);
                                     logger.error(msg);
-                                    setException(connection, new DriverInternalError(msg));
+                                    setException(connection, new DriverInternalError(msg), true);
                                     return;
                                 }
 
@@ -425,7 +441,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                     if (retry == null)
                         setResult(connection, response);
                     else {
-                        processRetryDecision(retry, connection, exceptionToReport);
+                        processRetryDecision(retry, connection, exceptionToReport, true);
                     }
                     break;
                 default:
@@ -434,7 +450,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                     break;
             }
         } catch (Exception e) {
-            setException(connection, e);
+            setException(connection, e, false);
         }
     }
 
@@ -476,7 +492,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
         return decision;
     }
 
-    private void processRetryDecision(RetryPolicy.RetryDecision retryDecision, Connection connection, Exception exceptionToReport) {
+    private void processRetryDecision(RetryPolicy.RetryDecision retryDecision, Connection connection, Exception exceptionToReport, boolean fromServer) {
         switch (retryDecision.getType()) {
             case RETRY:
                 retriesByPolicy++;
@@ -490,7 +506,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                 retry(retryDecision.isRetryCurrent(), retryDecision.getRetryConsistencyLevel());
                 break;
             case RETHROW:
-                setException(connection, exceptionToReport);
+                setException(connection, exceptionToReport, fromServer);
                 break;
             case IGNORE:
                 if (metricsEnabled())
@@ -600,13 +616,15 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
 
             if (!gotFirstPage && (exception instanceof ConnectionException)) {
                 RetryPolicy.RetryDecision decision = computeRetryDecisionOnRequestError((ConnectionException) exception);
-                processRetryDecision(decision, connection, exception);
+                processRetryDecision(decision, connection, exception,
+                        // In practice, onException is never called in response to a server error:
+                        false);
             } else {
-                setException(connection, exception);
+                setException(connection, exception, false);
             }
         } catch (Exception e) {
             // This shouldn't happen, but if it does, we want to signal the callback, not let it hang indefinitely
-            setException(connection, new DriverInternalError("An unexpected error happened while handling exception " + exception, e));
+            setException(connection, new DriverInternalError("An unexpected error happened while handling exception " + exception, e), false);
         }
     }
 
@@ -628,10 +646,10 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
 
             OperationTimedOutException timeoutException = new OperationTimedOutException(connection.address, "Timed out waiting for server response");
             RetryPolicy.RetryDecision decision = computeRetryDecisionOnRequestError(timeoutException);
-            processRetryDecision(decision, connection, timeoutException);
+            processRetryDecision(decision, connection, timeoutException, false);
         } catch (Exception e) {
             // This shouldn't happen, but if it does, we want to signal the callback, not let it hang indefinitely
-            setException(connection, new DriverInternalError("An unexpected error happened while handling timeout", e));
+            setException(connection, new DriverInternalError("An unexpected error happened while handling timeout", e), false);
         }
         return true;
     }
@@ -660,13 +678,13 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
             callback.onResponse(connection, response, info, statement);
         } catch (Exception e) {
             callback.onException(connection, new DriverInternalError(
-                    "Unexpected exception while setting final result from " + response, e));
+                    "Unexpected exception while setting final result from " + response, e), false);
         }
     }
 
-    private void setException(Connection connection, Exception exception) {
+    private void setException(Connection connection, Exception exception, boolean fromServer) {
         logger.trace("[{}] Setting exception", id);
-        callback.onException(connection, exception);
+        callback.onException(connection, exception, fromServer);
     }
 
     private void logError(InetSocketAddress address, Throwable exception) {
@@ -683,7 +701,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
 
     private void reportNoMoreHosts() {
         setException(null, new NoHostAvailableException(
-                errors == null ? Collections.<InetSocketAddress, Throwable>emptyMap() : errors));
+                errors == null ? Collections.<InetSocketAddress, Throwable>emptyMap() : errors), false);
     }
 
     interface Callback {
@@ -695,6 +713,6 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
 
         void onResponse(Connection connection, Message.Response response, ExecutionInfo info, Statement statement);
 
-        void onException(Connection connection, Exception exception);
+        void onException(Connection connection, Exception exception, boolean fromServer);
     }
 }

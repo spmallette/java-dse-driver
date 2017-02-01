@@ -5,6 +5,7 @@
 - [bug] JAVA-1374: Reintroduce Geo.inside(V).
 - [improvement] JAVA-1372: Expose routing token instead of range.
 - [new feature] JAVA-1381: Add Units to Geo.inside() predicates.
+- [improvement] JAVA-1375: Improve error management for continuous queries
 
 
 ### 1.2.0-eap3
