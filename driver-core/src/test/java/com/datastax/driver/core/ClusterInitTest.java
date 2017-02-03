@@ -83,6 +83,10 @@ public class ClusterInitTest {
             // attempts, because pools create their connections in parallel (so 1 pool failure equals multiple connection failures).
             PoolingOptions poolingOptions = new PoolingOptions().setConnectionsPerHost(LOCAL, 1, 1);
 
+            // Use protocol version 4 at latest since Scassandra doesn't support DSE protocol versions and
+            // renegotiation throws off mock counts.
+            ProtocolVersion protocolVersion = TestUtils.getDesiredProtocolVersion(ProtocolVersion.V4);
+
             cluster = Cluster.builder()
                     .withPort(scassandra.getBinaryPort())
                     .addContactPoints(
@@ -91,6 +95,7 @@ public class ClusterInitTest {
                             failingHosts.get(2).address, failingHosts.get(3).address,
                             missingHostAddress
                     )
+                    .withProtocolVersion(protocolVersion)
                     .withSocketOptions(socketOptions)
                     .withReconnectionPolicy(reconnectionPolicy)
                     .withPoolingOptions(poolingOptions)
@@ -260,7 +265,7 @@ public class ClusterInitTest {
                     .put("rpc_address", address)
                     .put("data_center", "datacenter1")
                     .put("rack", "rack1")
-                    .put("release_version", "2.0.1")
+                    .put("release_version", "3.0.10")
                     .put("tokens", ImmutableSet.of(Long.toString(Long.MIN_VALUE + i++)))
                     .put("host_id", UUID.randomUUID())
                     .build());

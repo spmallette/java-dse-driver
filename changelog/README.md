@@ -15,6 +15,7 @@ Merged from OSS 3.1.x:
 Cherry-picked from OSS 3.x:
 
 - [new feature] JAVA-1248: Implement "beta" flag for native protocol v5.
+- [improvement] JAVA-1367: Make protocol negotiation more resilient.
 
 
 ### 1.2.0-eap3

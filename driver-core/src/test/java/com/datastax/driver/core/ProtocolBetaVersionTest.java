@@ -1,17 +1,8 @@
 /*
- *      Copyright (C) 2012-2015 DataStax Inc.
+ *      Copyright (C) 2012-2016 DataStax Inc.
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ *      This software can be used solely with DataStax Enterprise. Please consult the license at
+ *      http://www.datastax.com/terms/datastax-dse-driver-license-terms
  */
 package com.datastax.driver.core;
 
@@ -34,7 +25,7 @@ public class ProtocolBetaVersionTest extends CCMTestsSupport {
      *
      * @jira_ticket JAVA-1248
      */
-    @Test(groups = "short")
+    @Test(groups = "short", enabled = false)
     public void should_not_initialize_when_version_explicitly_required_and_beta_flag_is_set() throws Exception {
         try {
             Cluster.builder()
@@ -54,7 +45,7 @@ public class ProtocolBetaVersionTest extends CCMTestsSupport {
      *
      * @jira_ticket JAVA-1248
      */
-    @Test(groups = "short")
+    @Test(groups = "short", enabled = false)
     public void should_not_initialize_when_beta_flag_is_set_and_version_explicitly_required() throws Exception {
         try {
             Cluster.builder()
@@ -76,7 +67,7 @@ public class ProtocolBetaVersionTest extends CCMTestsSupport {
      *
      * @jira_ticket JAVA-1248
      */
-    @Test(groups = "short")
+    @Test(groups = "short", enabled = false)
     public void should_not_connect_when_beta_version_explicitly_required_and_flag_not_set() throws Exception {
         try {
             Cluster.builder()
@@ -98,16 +89,15 @@ public class ProtocolBetaVersionTest extends CCMTestsSupport {
      *
      * @jira_ticket JAVA-1248
      */
-    @Test(groups = "short")
+    @Test(groups = "short", enabled = false)
     public void should_connect_with_beta_when_no_version_explicitly_required_and_flag_set() throws Exception {
         // Note: when the driver's ProtocolVersion.NEWEST_SUPPORTED will be incremented to V6 or higher
         // a renegotiation will start taking place here and will downgrade the version from V6 to V5,
-        // but the test should remain valid
+        // but the test should remain valid since it's executed against 3.10 exclusively
         Cluster cluster = Cluster.builder()
                 .addContactPoints(getContactPoints())
                 .withPort(ccm().getBinaryPort())
                 .allowBetaProtocolVersion()
-                // no version explicitly required -> renegotiation allowed
                 .build();
         cluster.connect();
         assertThat(cluster.getConfiguration().getProtocolOptions().getProtocolVersion()).isEqualTo(V5);
@@ -121,15 +111,14 @@ public class ProtocolBetaVersionTest extends CCMTestsSupport {
      *
      * @jira_ticket JAVA-1248
      */
-    @Test(groups = "short")
+    @Test(groups = "short", enabled = false)
     public void should_connect_after_renegotiation_when_no_version_explicitly_required_and_flag_not_set() throws Exception {
         // Note: when the driver's ProtocolVersion.NEWEST_SUPPORTED will be incremented to V6 or higher
         // the renegotiation will start downgrading the version from V6 to V4 instead of V5 to V4,
-        // but the test should remain valid
+        // but the test should remain valid since it's executed against 3.10 exclusively
         Cluster cluster = Cluster.builder()
                 .addContactPoints(getContactPoints())
                 .withPort(ccm().getBinaryPort())
-                // no version explicitly required -> renegotiation allowed
                 .build();
         cluster.connect();
         assertThat(cluster.getConfiguration().getProtocolOptions().getProtocolVersion()).isEqualTo(V4);
