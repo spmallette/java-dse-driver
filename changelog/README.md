@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0-eap4 (in progress)
+### 1.2.0-eap4
 
 - [bug] JAVA-1374: Reintroduce Geo.inside(V).
 - [improvement] JAVA-1372: Expose routing token instead of range.
