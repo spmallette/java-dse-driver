@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.2.0-eap5 (in progress)
+
+
 ### 1.2.0-eap4
 
 - [bug] JAVA-1374: Reintroduce Geo.inside(V).
