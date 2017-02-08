@@ -144,6 +144,16 @@ class SessionManager extends AbstractSession {
     public ListenableFuture<AsyncContinuousPagingResult> executeContinuouslyAsync(final Statement statement,
                                                                                   final ContinuousPagingOptions options) {
         Preconditions.checkNotNull(options, "Options must not be null");
+        int maxPagesPerSecond = options.getMaxPagesPerSecond();
+        if (maxPagesPerSecond > 0) {
+            long timeoutMillis = (statement.getReadTimeoutMillis() >= 0) ?
+                    statement.getReadTimeoutMillis() :
+                    configuration().getSocketOptions().getReadTimeoutMillis();
+            if (timeoutMillis < 1000 / maxPagesPerSecond) {
+                logger.warn("Running a query with {} page(s)/second but the read timeout is {} ms, the query will necessarily time out",
+                        maxPagesPerSecond, timeoutMillis);
+            }
+        }
         final SettableFuture<AsyncContinuousPagingResult> result = SettableFuture.create();
         if (isInit) {
             ContinuousPagingQueue queue = new ContinuousPagingQueue(makeRequestMessage(statement, null, options), result);

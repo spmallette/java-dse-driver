@@ -154,19 +154,20 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
 
     private void fail(Exception exception, boolean fromServer) {
         logger.debug("Got failure {} ({})", exception.getClass().getSimpleName(), exception.getMessage());
-        if (fromServer) {
-            // We can safely assume the server won't send any more responses, so release the streamId
+        if (state >= 0) {
             state = STATE_FAILED;
-            handler.release();
+            if (fromServer) {
+                // We can safely assume the server won't send any more responses, so release the streamId
+                handler.release();
+            } else {
+                handler.cancel(); // notify server to stop sending responses
+            }
             if (connection != null) {
                 // Make sure we don't leave it stuck
                 connection.channel.config().setAutoRead(true);
             }
-        } else {
-            // Cancel in case the error was purely client-side (server might still be executing the query)
-            cancel();
+            enqueueOrCompletePending(exception);
         }
-        enqueueOrCompletePending(exception);
     }
 
     // Enqueue a response or, if the client was already waiting for it, complete the pending future.

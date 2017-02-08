@@ -8,6 +8,7 @@ package com.datastax.driver.core;
 
 import com.datastax.driver.core.exceptions.ClientWriteException;
 import com.datastax.driver.core.exceptions.DriverException;
+import com.datastax.driver.core.exceptions.OperationTimedOutException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.CCMDseTestsSupport;
 import com.datastax.driver.dse.DseCluster;
@@ -279,6 +280,40 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
             fail("Expected a cancellation exception since fuure was cancelled.");
         } catch (CancellationException ce) {
             // expected
+        }
+    }
+
+    /**
+     * Validates that a client-side timeout is correctly reported to the caller.
+     *
+     * @test_category queries
+     * @jira_ticket JAVA-1390
+     * @since 1.2.0
+     */
+    @Test(groups = "short")
+    public void should_time_out_when_server_does_not_produce_pages_fast_enough() throws Exception {
+        SimpleStatement statement = new SimpleStatement("SELECT v from test where k=?", KEY);
+
+        // Throttle server at a page per second and set client timeout much lower so that the client will experience a
+        // timeout. Note that this might not be perfect if there are pauses in the JVM and the timeout doesn't fire
+        // soon enough.
+        ContinuousPagingOptions options = ContinuousPagingOptions.builder()
+                .withPageSize(10, ROWS)
+                .withMaxPagesPerSecond(1)
+                .build();
+        statement.setReadTimeoutMillis(100);
+
+        ListenableFuture<AsyncContinuousPagingResult> future = cSession().executeContinuouslyAsync(statement, options);
+
+        AsyncContinuousPagingResult pagingResult = Uninterruptibles.getUninterruptibly(future, 30, TimeUnit.SECONDS);
+
+        try {
+            pagingResult.nextPage().get();
+            fail("Expected a timeout");
+        } catch (ExecutionException e) {
+            assertThat(e.getCause())
+                    .isInstanceOf(OperationTimedOutException.class)
+                    .hasMessageContaining("Timed out waiting for page 2");
         }
     }
 

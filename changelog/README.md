@@ -2,6 +2,8 @@
 
 ### 1.2.0-eap5 (in progress)
 
+- [bug] JAVA-1390: Preserve original error when a continuous paging query times out on the client.
+
 
 ### 1.2.0-eap4
 
