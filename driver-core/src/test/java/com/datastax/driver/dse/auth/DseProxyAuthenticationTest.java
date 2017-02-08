@@ -194,6 +194,19 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
     }
 
     /**
+     * Validates that a batch may be successfully made as user 'alice' using a {@link DseCluster} that is authenticated
+     * to user 'steve' using {@link DsePlainTextAuthProvider} assuming steve has PROXY.EXECUTE authorization on alice.
+     *
+     * @jira_ticket JAVA-1391
+     * @test_category dse:authentication
+     */
+    @Test(groups = "long")
+    public void should_allow_plain_text_authorized_user_to_execute_batch_as() throws Exception {
+        DsePlainTextAuthProvider authProvider = new DsePlainTextAuthProvider("steve", "steve");
+        connectAndBatchQuery(authProvider, "alice");
+    }
+
+    /**
      * Validates that a query may be successfully made as user 'alice' using a {@link DseCluster} that is authenticated
      * to principal 'charlie@DATASTAX.COM' using {@link DseGSSAPIAuthProvider} assuming charlie@DATASTAX.COM has
      * PROXY.EXECUTE authorization on alice.
@@ -220,6 +233,24 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
         DsePlainTextAuthProvider authProvider = new DsePlainTextAuthProvider("ben", "ben");
         try {
             connectAndQuery(authProvider, "alice");
+            fail("Should have thrown an exception");
+        } catch (UnauthorizedException e) {
+            verifyException(e, "ben");
+        }
+    }
+
+    /**
+     * Validates that a batch query may not be made as user 'alice' using a {@link DseCluster} that is authenticated to
+     * user 'ben' if ben does not have PROXY.EXECUTE authorization on alice.
+     *
+     * @jira_ticket JAVA-1264
+     * @test_category dse:authentication
+     */
+    @Test(groups = "long")
+    public void should_not_allow_plain_text_unauthorized_user_to_execute_batch_as() throws Exception {
+        DsePlainTextAuthProvider authProvider = new DsePlainTextAuthProvider("ben", "ben");
+        try {
+            connectAndBatchQuery(authProvider, "alice");
             fail("Should have thrown an exception");
         } catch (UnauthorizedException e) {
             verifyException(e, "ben");
@@ -256,6 +287,23 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
                 statement = statement.executingAs(as);
             }
             return cluster.connect().execute(statement).one();
+        } finally {
+            cluster.close();
+        }
+    }
+
+    private void connectAndBatchQuery(AuthProvider authProvider, String as) {
+        DseCluster cluster = createClusterBuilder()
+                .addContactPointsWithPorts(this.getContactPointsWithPorts())
+                .withAuthProvider(authProvider)
+                .build();
+        try {
+            BatchStatement statement = new BatchStatement();
+            statement.add(new SimpleStatement("delete from aliceks.alicetable where key = 'doesnotexist'"));
+            if (as != null) {
+                statement.executingAs(as);
+            }
+            cluster.connect().execute(statement).one();
         } finally {
             cluster.close();
         }

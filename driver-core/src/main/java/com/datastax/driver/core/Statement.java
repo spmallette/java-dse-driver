@@ -33,7 +33,7 @@ public abstract class Statement {
      */
     public static final ByteBuffer NULL_PAYLOAD_VALUE = ByteBuffer.allocate(0);
 
-    private static final String PROXY_EXECUTE = "ProxyExecute";
+    static final String PROXY_EXECUTE = "ProxyExecute";
 
     // An exception to the RegularStatement, BoundStatement or BatchStatement rule above. This is
     // used when preparing a statement and for other internal queries. Do not expose publicly.

@@ -132,6 +132,10 @@ public class BatchStatement extends Statement {
             throw new IllegalArgumentException("Batch statement cannot contain regular statements with named values ("
                     + ((RegularStatement) statement).getQueryString() + ")");
         }
+        if (statement.getOutgoingPayload() != null && statement.getOutgoingPayload().containsKey(PROXY_EXECUTE)) {
+            throw new IllegalArgumentException("Batch statement cannot contain statements with proxy execution. " +
+                    "Call executeAs(...) globally on the batch statement");
+        }
 
         // We handle BatchStatement here (rather than in getIdAndValues) as it make it slightly
         // easier to avoid endless loops if the user mistakenly passes a batch that depends on this
