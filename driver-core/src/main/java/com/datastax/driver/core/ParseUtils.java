@@ -9,7 +9,9 @@ package com.datastax.driver.core;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -320,16 +322,37 @@ public abstract class ParseUtils {
      * Parse the given string as a date, using the supplied date pattern.
      * <p/>
      * This method is adapted from Apache Commons {@code DateUtils.parseStrictly()} method (that is used Cassandra side
-     * to parse date strings)..
+     * to parse date strings).
      *
      * @throws ParseException If the given string cannot be parsed with the given pattern.
      * @see <a href="https://cassandra.apache.org/doc/cql3/CQL-2.2.html#usingtimestamps">'Working with timestamps' section of CQL specification</a>
      */
     public static Date parseDate(String str, String pattern) throws ParseException {
+        return parseDate(str, pattern, false);
+    }
+
+    /**
+     * Parse the given string as a date, using the supplied date pattern.
+     * <p/>
+     * This method is adapted from Apache Commons {@code DateUtils.parseStrictly()} method (that is used Cassandra side
+     * to parse date strings).
+     *
+     * @param str     the string to parse.
+     * @param pattern the pattern to use.
+     * @param lenient whether the parser is lenient or not.
+     * @throws ParseException If the given string cannot be parsed with the given pattern.
+     * @see <a href="https://cassandra.apache.org/doc/cql3/CQL-2.2.html#usingtimestamps">'Working with timestamps' section of CQL specification</a>
+     */
+    public static Date parseDate(String str, String pattern, boolean lenient) throws ParseException {
         SimpleDateFormat parser = new SimpleDateFormat();
-        parser.setLenient(false);
+        parser.setLenient(lenient);
         // set a default timezone for patterns that do not provide one
         parser.setTimeZone(TimeZone.getTimeZone("UTC"));
+        // make the parser proleptic, see java.util.GregorianCalendar.from(ZonedDateTime)
+        GregorianCalendar cal = (GregorianCalendar) parser.getCalendar();
+        cal.setGregorianChange(new Date(Long.MIN_VALUE));
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        cal.setMinimalDaysInFirstWeek(4);
         // Java 6 has very limited support for ISO-8601 time zone formats,
         // so we need to transform the string first
         // so that accepted patterns are correctly handled,

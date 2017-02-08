@@ -18,6 +18,8 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.datastax.driver.core.ClasspathUtil.isJavaTimeAvailable;
+
 /**
  * Utility static methods and objects useful in the DSE Driver's execution chain.
  */
@@ -51,21 +53,7 @@ public class GraphJsonUtils {
         }
     };
 
-    private static final boolean JSR_310_AVAILABLE;
-
     static {
-        boolean jsr310Available;
-        try {
-            Class.forName("java.time.Instant");
-            jsr310Available = true;
-        } catch (LinkageError e) {
-            jsr310Available = false;
-            LOGGER.warn("JSR 310 could not be loaded", e);
-        } catch (ClassNotFoundException e) {
-            jsr310Available = false;
-        }
-        JSR_310_AVAILABLE = jsr310Available;
-
         GRAPHSON1_OBJECT_MAPPER = new ObjectMapper();
         Version dseDriverVersion = dseDriverVersion();
         GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1DefaultModule("graph-graphson1default", dseDriverVersion));
@@ -78,7 +66,7 @@ public class GraphJsonUtils {
                 .addCustomModule(new GraphSON2TinkerDriverModule())
                 .addCustomModule(new GraphSON2DriverObjectsModule());
 
-        if (JSR_310_AVAILABLE) {
+        if (isJavaTimeAvailable()) {
             LOGGER.debug("JSR 310 found on the classpath, registering serializers for java.time temporal types");
             GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1JavaTimeModule("graph-graphson1javatime", dseDriverVersion));
             GRAPHSON1_OBJECT_MAPPER.registerModule(new GraphSON1DriverTimeModule("graph-graphson1drivertime", dseDriverVersion));

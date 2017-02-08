@@ -4,6 +4,7 @@
 
 - [bug] JAVA-1390: Preserve original error when a continuous paging query times out on the client.
 - [improvement] JAVA-1391: Fail if batch children use proxy auth.
+- [improvement] JAVA-1319: Add support for DSE DateRangeType.
 
 
 ### 1.2.0-eap4

@@ -16,6 +16,7 @@ import com.datastax.driver.dse.geometry.codecs.PointCodec;
 import com.datastax.driver.dse.geometry.codecs.PolygonCodec;
 import com.datastax.driver.dse.graph.GraphOptions;
 import com.datastax.driver.dse.graph.GraphStatement;
+import com.datastax.driver.dse.search.DateRangeCodec;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -90,7 +91,7 @@ public class DseCluster extends DelegatingCluster {
         }
 
         /**
-         * Prevents the registration of {@link com.datastax.driver.dse.geometry.Geometry geospatial type} codecs with the
+         * Prevents the registration of {@link com.datastax.driver.dse.geometry.codecs geospatial codecs} with the
          * new cluster.
          * <p/>
          * If this method is not called, those codecs will be registered by default.
@@ -261,6 +262,8 @@ public class DseCluster extends DelegatingCluster {
             DseCluster dseCluster = new DseCluster(super.build());
             if (geospatialCodecs)
                 registerGeospatialCodecs(dseCluster);
+            dseCluster.getConfiguration().getCodecRegistry().register(
+                    DateRangeCodec.INSTANCE);
             return dseCluster;
         }
 
@@ -277,6 +280,7 @@ public class DseCluster extends DelegatingCluster {
                     PointCodec.INSTANCE,
                     PolygonCodec.INSTANCE);
         }
+
     }
 
     /**
