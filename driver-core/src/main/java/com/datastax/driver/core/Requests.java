@@ -236,7 +236,7 @@ class Requests {
             int i = 0;
             for (QueryFlag flag : flags)
                 i |= 1 << flag.pos;
-            if (version.compareTo(ProtocolVersion.DSE_V1) >= 0) {
+            if (version.compareTo(ProtocolVersion.V5) >= 0) {
                 dest.writeInt(i);
             } else {
                 dest.writeByte((byte) i);
@@ -244,7 +244,7 @@ class Requests {
         }
 
         static int serializedSize(ProtocolVersion version) {
-            return version.compareTo(ProtocolVersion.DSE_V1) >= 0 ? 4 : 1;
+            return version.compareTo(ProtocolVersion.V5) >= 0 ? 4 : 1;
         }
     }
 
