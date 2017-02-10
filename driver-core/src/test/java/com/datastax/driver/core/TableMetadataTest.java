@@ -398,7 +398,7 @@ public class TableMetadataTest extends CCMTestsSupport {
      * @jira_ticket CASSANDRA-9424
      */
     @Test(groups = "short")
-    @CassandraVersion(major = 3.0)
+    @CassandraVersion("3.0")
     public void should_parse_new_compression_options() {
         // given
         String cql = String.format("CREATE TABLE %s.new_compression_options (\n"
@@ -466,7 +466,7 @@ public class TableMetadataTest extends CCMTestsSupport {
      * @test_category metadata
      */
     @Test(groups = "short")
-    @CassandraVersion(major = 3.0)
+    @CassandraVersion("3.0")
     public void should_parse_extensions_from_table_options() throws Exception {
         // given
         // create a simple table and retrieve it's metadata from system_schema.tables.

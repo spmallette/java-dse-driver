@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 // TODO: Renable when DSP-11970 is fixed.
 @CreateCCM(PER_METHOD)
-@DseVersion(major = 5.1)
+@DseVersion("5.1.0")
 public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
 
     // Realm for the KDC.

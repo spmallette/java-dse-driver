@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class PathIntegrationTest extends CCMGraphTestsSupport {
 
     @Override

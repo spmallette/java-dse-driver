@@ -20,7 +20,7 @@ import static com.datastax.driver.core.ConsistencyLevel.ONE;
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
 @CCMConfig(numberOfNodes = 3, dirtiesContext = true)
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class GraphConsistencyTest extends CCMGraphTestsSupport {
 
     private static final boolean isDSE50;

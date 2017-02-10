@@ -18,7 +18,7 @@ import java.util.UUID;
 import static com.datastax.driver.dse.geometry.Utils.p;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class LineStringCodecIntegrationTest extends GeometryCodecIntegrationTest<LineString> {
     public LineStringCodecIntegrationTest() {
         super("LineStringType", Lists.newArrayList(

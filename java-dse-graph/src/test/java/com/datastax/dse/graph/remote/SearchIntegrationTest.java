@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
+@DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 @CCMConfig(workloads = @CCMWorkload({"solr", "graph"}), jvmArgs = "-Duser.language=en")
 @SuppressWarnings("unchecked")
 public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
@@ -80,7 +80,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    @DseVersion(major = 5.1)
+    @DseVersion("5.1.0")
     public void search_by_fuzzy() {
         // Alias matches 'mario' fuzzy
         GraphTraversal traversal = g.V().has("user", "alias", Search.fuzzy("mario", 1)).values("full_name");
@@ -219,7 +219,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    @DseVersion(major = 5.1)
+    @DseVersion("5.1.0")
     public void search_by_token_fuzzy() {
         // Description containing 'lives' fuzzy
         GraphTraversal traversal = g.V().has("user", "description", Search.tokenFuzzy("lives", 1)).values("full_name");
@@ -237,7 +237,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    @DseVersion(major = 5.1)
+    @DseVersion("5.1.0")
     public void search_by_phrase() {
         // Full name contains phrase "Paul Joe"
         GraphTraversal traversal = g.V().has("user", "description", Search.phrase("a cold", 2)).values("full_name");

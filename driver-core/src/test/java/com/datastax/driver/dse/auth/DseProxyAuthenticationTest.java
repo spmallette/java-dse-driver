@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.fail;
  */
 @CreateCCM(PER_METHOD)
 @CCMConfig(ccmProvider = "configureCCM")
-@DseVersion(major = 5.1)
+@DseVersion("5.1.0")
 public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
 
     // Realm for the KDC.

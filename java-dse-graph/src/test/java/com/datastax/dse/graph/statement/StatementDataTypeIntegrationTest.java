@@ -23,7 +23,7 @@ import static com.datastax.dse.graph.api.DseGraph.statementFromTraversal;
  * {@link com.datastax.driver.dse.DseSession#executeGraph} and the {@link GraphResultSet} API for
  * consuming results.
  */
-@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
+@DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 public class StatementDataTypeIntegrationTest extends DataTypeIntegrationTest {
 
     StatementDataTypeIntegrationTest() {

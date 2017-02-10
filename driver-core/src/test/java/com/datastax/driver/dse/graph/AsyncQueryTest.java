@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 import static com.datastax.driver.dse.graph.GraphExtractors.asVertex;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class AsyncQueryTest extends CCMGraphTestsSupport {
 
     @Override

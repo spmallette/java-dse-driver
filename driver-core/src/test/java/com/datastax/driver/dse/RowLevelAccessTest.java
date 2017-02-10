@@ -20,7 +20,7 @@ import static com.datastax.driver.core.Assertions.assertThat;
                 "authorization_options.enabled:true",
                 "authorization_options.allow_row_level_security:true"
         })
-@DseVersion(major = 5.1)
+@DseVersion("5.1.0")
 public class RowLevelAccessTest extends CCMDseTestsSupport {
 
     /**

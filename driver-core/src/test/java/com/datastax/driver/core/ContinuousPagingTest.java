@@ -31,7 +31,7 @@ import static com.datastax.driver.core.ContinuousPagingOptions.PageUnit.ROWS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.fail;
 
-@DseVersion(major = 5.1)
+@DseVersion("5.1.0")
 public class ContinuousPagingTest extends CCMDseTestsSupport {
 
     public static final String KEY = "k";

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static com.datastax.driver.core.CCMBridge.Builder.RANDOM_PORT;
 
 @CCMConfig(createKeyspace = false, dse = true, ccmProvider = "configureCCM")
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class CCMGraphTestsSupport extends CCMDseTestsSupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CCMGraphTestsSupport.class);

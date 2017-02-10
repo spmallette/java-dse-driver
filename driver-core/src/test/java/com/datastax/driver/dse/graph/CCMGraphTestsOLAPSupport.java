@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 @CCMConfig(dirtiesContext = true)
 public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphOLAPQueryTest.class);

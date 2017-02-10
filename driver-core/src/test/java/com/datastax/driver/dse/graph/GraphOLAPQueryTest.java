@@ -16,7 +16,7 @@ import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class GraphOLAPQueryTest extends CCMGraphTestsOLAPSupport {
 
     private Collection<Host> executeOLAPQuery(int times, String graphSource) {

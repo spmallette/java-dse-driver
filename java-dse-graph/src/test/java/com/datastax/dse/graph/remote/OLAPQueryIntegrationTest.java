@@ -25,7 +25,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class OLAPQueryIntegrationTest extends CCMGraphTestsOLAPSupport {
 
     @Override

@@ -16,7 +16,7 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class DefaultTimestampTest extends CCMGraphTestsSupport {
 
     @Override

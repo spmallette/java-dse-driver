@@ -12,7 +12,7 @@ import org.testng.collections.Lists;
 
 import static com.datastax.driver.dse.geometry.Utils.p;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class PointCodecIntegrationTest extends GeometryCodecIntegrationTest<Point> {
     public PointCodecIntegrationTest() {
         super("PointType", Lists.newArrayList(p(-1.0, -5), p(0, 0), p(1.1, 2.2),

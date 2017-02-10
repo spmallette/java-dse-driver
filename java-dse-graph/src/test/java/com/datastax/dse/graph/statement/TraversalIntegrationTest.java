@@ -25,7 +25,7 @@ import static com.datastax.driver.dse.graph.GraphExtractors.fieldAs;
 import static com.datastax.driver.dse.graph.GraphExtractors.vertexPropertyValueAs;
 import static com.datastax.dse.graph.api.DseGraph.statementFromTraversal;
 
-@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
+@DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
 
     protected TraversalIntegrationTest() {

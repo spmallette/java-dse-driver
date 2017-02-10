@@ -9,7 +9,7 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.utils.DseVersion;
 import org.testng.annotations.Test;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class GraphOptionsIntegrationTest extends CCMGraphTestsSupport {
 
     @Override

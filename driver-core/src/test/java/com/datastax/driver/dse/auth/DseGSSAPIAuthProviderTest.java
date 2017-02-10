@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("unused")
 @CreateCCM(PER_METHOD)
 @CCMConfig(createCluster = false, dirtiesContext = true, ccmProvider = "configureCCM")
-@DseVersion
+@DseVersion("5.0.0")
 public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
 
     // Realm for the KDC.

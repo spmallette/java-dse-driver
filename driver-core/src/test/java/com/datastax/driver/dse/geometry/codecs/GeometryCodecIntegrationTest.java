@@ -23,7 +23,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends CCMDseTestsSupport {
 
     private final String cqlTypeName;

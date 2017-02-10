@@ -14,7 +14,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DseVersion(major = 5.0, minor = 3, description = "DSE 5.0.3 required for remote TinkerPop support")
+@DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 public class AuthenticationIntegrationTest extends CCMTinkerPopTestsSupport {
 
     AuthenticationIntegrationTest() {

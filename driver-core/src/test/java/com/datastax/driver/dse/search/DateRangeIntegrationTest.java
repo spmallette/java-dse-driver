@@ -22,7 +22,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-@DseVersion(major = 5.1)
+@DseVersion(value = "5.1")
 public class DateRangeIntegrationTest extends CCMDseTestsSupport {
 
     /**

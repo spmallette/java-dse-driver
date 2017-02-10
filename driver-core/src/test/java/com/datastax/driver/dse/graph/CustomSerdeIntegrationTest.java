@@ -34,7 +34,7 @@ import static com.datastax.driver.dse.graph.GraphFixtures.gods;
  * and used, and that a completely customized domain model can be used
  * to model a graph.
  */
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class CustomSerdeIntegrationTest extends CCMGraphTestsSupport {
 
     @JsonSerialize(using = GodSerializer.class)

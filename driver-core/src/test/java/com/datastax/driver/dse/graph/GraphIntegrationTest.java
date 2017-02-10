@@ -28,7 +28,7 @@ import static com.datastax.driver.dse.graph.GraphExtractors.fieldAs;
 import static com.datastax.driver.dse.graph.GraphExtractors.vertexPropertyValueAs;
 
 @SuppressWarnings("Since15")
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class GraphIntegrationTest extends CCMGraphTestsSupport {
 
     @Override

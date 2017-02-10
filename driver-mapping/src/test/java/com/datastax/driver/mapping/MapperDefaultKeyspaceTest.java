@@ -22,7 +22,7 @@ import static org.testng.Assert.assertNull;
 /**
  * Tests usage of mapping annotations without specifying a keyspace.
  */
-@CassandraVersion(major = 2.1)
+@CassandraVersion("2.1.0")
 @SuppressWarnings("unused")
 public class MapperDefaultKeyspaceTest extends CCMTestsSupport {
 

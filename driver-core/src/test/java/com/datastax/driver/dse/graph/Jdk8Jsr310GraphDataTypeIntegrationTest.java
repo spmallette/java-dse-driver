@@ -12,7 +12,7 @@ import org.testng.annotations.DataProvider;
 
 @IgnoreJDK6Requirement
 @SuppressWarnings("Since15")
-@DseVersion(major = 5.0)
+@DseVersion("5.0.0")
 public class Jdk8Jsr310GraphDataTypeIntegrationTest extends GraphDataTypeIntegrationTest {
 
     @DataProvider
