@@ -6,6 +6,12 @@
 - [improvement] JAVA-1391: Fail if batch children use proxy auth.
 - [improvement] JAVA-1319: Add support for DSE DateRangeType.
 
+Merged from OSS 3.1.x:
+
+- [bug] JAVA-1313: Copy SerialConsistencyLevel to PreparedStatement.
+- [documentation] JAVA-1334: Clarify documentation of method `addContactPoints`.
+- [improvement] JAVA-1357: Document that getReplicas only returns replicas of the last token in range.
+
 
 ### 1.2.0-eap4
 
