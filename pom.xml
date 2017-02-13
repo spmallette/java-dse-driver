@@ -34,7 +34,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cassandra.version>5.0.3</cassandra.version>
-        <java-driver.version>3.1.3</java-driver.version>
+        <java-driver.version>3.1.4</java-driver.version>
         <slf4j-api.version>1.7.13</slf4j-api.version>
         <guava.version>16.0.1</guava.version>
         <snappy.version>1.0.5</snappy.version>
