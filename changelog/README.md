@@ -6,6 +6,10 @@
 - [improvement] JAVA-1391: Fail if batch children use proxy auth.
 - [improvement] JAVA-1319: Add support for DSE DateRangeType.
 
+Cherry-picked from OSS 3.x:
+
+- [new feature] JAVA-1362: Send query options flags as [int] for Protocol V5+.
+
 Merged from OSS 3.1.x:
 
 - [bug] JAVA-1313: Copy SerialConsistencyLevel to PreparedStatement.
