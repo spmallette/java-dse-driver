@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
 public class QueryLoggerTest extends CCMTestsSupport {
 
     private static final List<DataType> dataTypes = new ArrayList<DataType>(
-            Sets.filter(DataType.allPrimitiveTypes(TestUtils.getDesiredProtocolVersion()), new Predicate<DataType>() {
+            Sets.filter(TestUtils.allPrimitiveTypes(TestUtils.getDesiredProtocolVersion()), new Predicate<DataType>() {
                 @Override
                 public boolean apply(DataType type) {
                     return type != DataType.counter();

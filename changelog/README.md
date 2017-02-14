@@ -16,6 +16,10 @@ Merged from OSS 3.1.x:
 - [documentation] JAVA-1334: Clarify documentation of method `addContactPoints`.
 - [improvement] JAVA-1357: Document that getReplicas only returns replicas of the last token in range.
 
+Cherry-picked from OSS 3.x:
+
+- [bug] JAVA-1397: Handle duration as native datatype in protocol v5+.
+
 
 ### 1.2.0-eap4
 

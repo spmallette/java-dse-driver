@@ -30,7 +30,7 @@ import static org.testng.Assert.assertNotEquals;
 @CassandraVersion("2.1.0")
 public class UserTypesTest extends CCMTestsSupport {
 
-    private final static List<DataType> DATA_TYPE_PRIMITIVES = new ArrayList<DataType>(DataType.allPrimitiveTypes(TestUtils.getDesiredProtocolVersion()));
+    private final static List<DataType> DATA_TYPE_PRIMITIVES = new ArrayList<DataType>(TestUtils.allPrimitiveTypes(TestUtils.getDesiredProtocolVersion()));
 
     static {
         DATA_TYPE_PRIMITIVES.remove(DataType.counter());
@@ -244,6 +244,8 @@ public class UserTypesTest extends CCMTestsSupport {
                 case DOUBLE:
                     alldatatypes.setDouble(index, ((Double) sampleData).doubleValue());
                     break;
+                case DURATION:
+                    alldatatypes.set(index, Duration.from(sampleData.toString()), Duration.class);
                 case FLOAT:
                     alldatatypes.setFloat(index, ((Float) sampleData).floatValue());
                     break;
@@ -313,8 +315,9 @@ public class UserTypesTest extends CCMTestsSupport {
                 "WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor': '1'}");
         session().execute("USE test_nonprimitive_datatypes");
 
-        // counters are not allowed inside collections
+        // counters and durations are not allowed inside collections
         DATA_TYPE_PRIMITIVES.remove(DataType.counter());
+        DATA_TYPE_PRIMITIVES.remove(DataType.duration());
 
         // create UDT
         List<String> alpha_type_list = new ArrayList<String>();

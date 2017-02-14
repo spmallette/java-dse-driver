@@ -76,6 +76,7 @@ public class CCMBridge implements CCMAccess {
      * {@link #getCassandraVersion()}.  If C* version cannot be derived, the method makes a 'best guess'.
      */
     private static final Map<String, String> dseToCassandraVersions = ImmutableMap.<String, String>builder()
+            .put("5.1.0", "3.10")
             .put("5.0.4", "3.0.10")
             .put("5.0.3", "3.0.9")
             .put("5.0.2", "3.0.8")
