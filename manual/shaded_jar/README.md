@@ -12,7 +12,7 @@ package name:
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>dse-driver</artifactId>
-  <version>1.2.0-eap4</version>
+  <version>1.2.0-eap5</version>
   <classifier>shaded</classifier>
   <!-- Because the shaded JAR uses the original POM, you still need
        to exclude this dependency explicitly: -->

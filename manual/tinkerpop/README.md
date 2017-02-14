@@ -9,7 +9,7 @@ This component is published in Maven central as a separate artifact:
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>java-dse-graph</artifactId>
-  <version>1.2.0-eap4</version>
+  <version>1.2.0-eap5</version>
 </dependency>
 ```
 

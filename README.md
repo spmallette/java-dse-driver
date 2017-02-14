@@ -20,7 +20,7 @@ The driver is available from Maven central:
 <dependency>
   <groupId>com.datastax.cassandra</groupId>
   <artifactId>dse-driver</artifactId>
-  <version>1.2.0-eap4</version>
+  <version>1.2.0-eap5</version>
 </dependency>
 ```
 

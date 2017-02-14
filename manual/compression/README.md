@@ -85,4 +85,4 @@ cluster = DseCluster.builder()
     .build();
 ```
 
-[pom]: https://repo1.maven.org/maven2/com/datastax/cassandra/dse-parent/1.2.0-eap4/dse-parent-1.2.0-eap4.pom
+[pom]: https://repo1.maven.org/maven2/com/datastax/cassandra/dse-parent/1.2.0-eap5/dse-parent-1.2.0-eap5.pom

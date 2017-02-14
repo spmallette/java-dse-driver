@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0-eap5 (in progress)
+### 1.2.0-eap5
 
 - [bug] JAVA-1390: Preserve original error when a continuous paging query times out on the client.
 - [improvement] JAVA-1391: Fail if batch children use proxy auth.
