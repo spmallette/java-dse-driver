@@ -48,15 +48,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-mapping</artifactId>
-            <version>${oss-driver.version}</version>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-mapping</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-extras</artifactId>
-            <version>${oss-driver.version}</version>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-extras</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
@@ -202,7 +202,6 @@
                         <snappy.version>${snappy.version}</snappy.version>
                         <hdr.version>${hdr.version}</hdr.version>
                         <netty.version>${netty.version}</netty.version>
-                        <oss-driver.version>${oss-driver.version}</oss-driver.version>
                         <slf4j.version>${slf4j.version}</slf4j.version>
                         <logback.version>${logback.version}</logback.version>
                         <metrics.version>${metrics.version}</metrics.version>
