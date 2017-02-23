@@ -18,8 +18,8 @@ The driver is available from Maven central:
 
 ```xml
 <dependency>
-  <groupId>com.datastax.cassandra</groupId>
-  <artifactId>dse-driver</artifactId>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-core</artifactId>
   <version>1.2.0-eap5</version>
 </dependency>
 ```

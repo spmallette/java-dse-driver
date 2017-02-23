@@ -2,6 +2,16 @@
 
 ### 1.2.0
 
+The coordinates of the driver artifacts have changed:
+  
+* core DSE driver: `com.datastax.dse:dse-java-driver-core`
+* Apache Tinkerpop integration: `com.datastax.dse:dse-java-driver-graph`
+
+DSE-specific versions of the mapper and extras are now published:
+
+* `com.datastax.dse:dse-java-driver-mapping`
+* `com.datastax.dse:dse-java-driver-extras`
+
 The `SSLOptions` interface is now deprecated in favor of
 `RemoteEndpointAwareSSLOptions`. 
 Similarly, the two existing implementations of that interface, 

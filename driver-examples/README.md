@@ -1,7 +1,7 @@
-# DataStax Java Driver for Apache Cassandra - Examples
+# DataStax Enterprise Java Driver - Examples
 
 This module contains examples of how to use the DataStax Java driver for
-Apache Cassandra.
+DataStax Enterprise.
 
 ## Usage
 

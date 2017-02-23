@@ -18,7 +18,7 @@
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.datastax.cassandra:dse-driver</include>
+                <include>com.datastax.cassandra:dse-java-driver-core</include>
                 <include>com.datastax.cassandra:java-dse-graph</include>
             </includes>
             <binaries>
@@ -32,7 +32,7 @@
                         The only way I've found so far is to list them explicitly, this is brittle if we add new ones.
                     -->
                     <dependencySet>
-                        <outputDirectory>lib/dse-driver</outputDirectory>
+                        <outputDirectory>lib/core</outputDirectory>
                         <includes>
                             <include>io.netty:netty-handler</include>
                             <!--
@@ -53,7 +53,7 @@
                         <useTransitiveFiltering>true</useTransitiveFiltering>
                     </dependencySet>
                     <dependencySet>
-                        <outputDirectory>lib/java-dse-graph</outputDirectory>
+                        <outputDirectory>lib/graph</outputDirectory>
                         <includes>
                             <include>org.apache.tinkerpop:gremlin-groovy</include>
                             <include>org.apache.tinkerpop:tinkergraph-gremlin</include>
@@ -66,8 +66,8 @@
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.datastax.cassandra:dse-driver</include>
-                <include>com.datastax.cassandra:java-dse-graph</include>
+                <include>com.datastax.cassandra:dse-java-driver-core</include>
+                <include>com.datastax.cassandra:dse-java-driver-graph</include>
             </includes>
             <binaries>
                 <unpack>false</unpack>

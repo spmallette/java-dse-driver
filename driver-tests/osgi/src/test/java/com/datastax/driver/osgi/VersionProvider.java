@@ -57,7 +57,4 @@ public class VersionProvider {
         return value;
     }
 
-    public static String ossDriverVersion() {
-        return getVersion("oss-driver.version");
-    }
 }

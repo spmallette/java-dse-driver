@@ -10,13 +10,13 @@ driver which is a drop-in replacement):
 
 ```xml
 <dependency>
-  <groupId>com.datastax.cassandra</groupId>
-  <artifactId>cassandra-driver-mapping</artifactId>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-driver-mapping</artifactId>
   <version>3.1.2</version>
   <exclusions>
     <exclusion>
-      <groupId>com.datastax.cassandra</groupId>
-      <artifactId>cassandra-driver-core</artifactId>
+      <groupId>com.datastax.dse</groupId>
+      <artifactId>dse-driver-core</artifactId>
     </exclusion>
   </exclusions>
 </dependency>
