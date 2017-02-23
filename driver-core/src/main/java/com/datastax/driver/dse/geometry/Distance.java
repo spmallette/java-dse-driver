@@ -106,7 +106,7 @@ public class Distance extends Geometry {
      * {@link UnsupportedOperationException}.
      */
     @Override
-    public OGCGeometry getOgcGeometry() {
+    OGCGeometry getOgcGeometry() {
         throw new UnsupportedOperationException();
     }
 
