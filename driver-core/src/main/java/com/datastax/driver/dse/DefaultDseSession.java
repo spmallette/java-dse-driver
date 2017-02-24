@@ -94,16 +94,16 @@ class DefaultDseSession implements DseSession, ContinuousPagingSession {
 
         if (ANALYTICS_GRAPH_SOURCE.equals(graphStatement.getGraphSource())) {
             // Try to send the statement directly to the graph analytics server (we have to look it up first)
-            ListenableFuture<ResultSet> serverLocation = Futures.withFallback(
+            ListenableFuture<ResultSet> serverLocation = GuavaCompatibility.INSTANCE.withFallback(
                     delegate.executeAsync(LOOKUP_ANALYTICS_GRAPH_SERVER),
-                    new FutureFallback<ResultSet>() {
+                    new AsyncFunction<Throwable, ResultSet>() {
                         @Override
-                        public ListenableFuture<ResultSet> create(Throwable t) throws Exception {
+                        public ListenableFuture<ResultSet> apply(Throwable t) throws Exception {
                             logger.debug("Error querying graph analytics server, query will not be routed optimally", t);
                             return null;
                         }
                     });
-            return Futures.transform(serverLocation, new AsyncFunction<ResultSet, GraphResultSet>() {
+            return GuavaCompatibility.INSTANCE.transformAsync(serverLocation, new AsyncFunction<ResultSet, GraphResultSet>() {
                 @Override
                 public ListenableFuture<GraphResultSet> apply(ResultSet rs) throws Exception {
                     Host analyticsServer = (rs == null) ? null : extractHostFromAnalyticsServerQuery(rs);

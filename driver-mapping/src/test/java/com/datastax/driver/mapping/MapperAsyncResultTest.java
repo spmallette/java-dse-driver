@@ -7,6 +7,7 @@
 package com.datastax.driver.mapping;
 
 import com.datastax.driver.core.CCMTestsSupport;
+import com.datastax.driver.core.GuavaCompatibility;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.utils.CassandraVersion;
@@ -85,7 +86,7 @@ public class MapperAsyncResultTest extends CCMTestsSupport {
         Mapper<User> mapper = new MappingManager(session()).mapper(User.class);
         ResultsAccumulator accumulator = new ResultsAccumulator();
         ListenableFuture<Result<User>> results = mapper.mapAsync(session().executeAsync(statement));
-        ListenableFuture<Result<User>> future = Futures.transform(
+        ListenableFuture<Result<User>> future = GuavaCompatibility.INSTANCE.transformAsync(
                 results,
                 accumulator);
         Futures.getUnchecked(future);
@@ -111,7 +112,7 @@ public class MapperAsyncResultTest extends CCMTestsSupport {
             if (wasLastPage)
                 return Futures.immediateFuture(users);
             else
-                return Futures.transform(users.fetchMoreResults(), this);
+                return GuavaCompatibility.INSTANCE.transformAsync(users.fetchMoreResults(), this);
         }
     }
 }

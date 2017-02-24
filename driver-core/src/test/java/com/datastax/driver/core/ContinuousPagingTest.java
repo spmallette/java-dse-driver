@@ -170,7 +170,7 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
         SimpleStatement statement = new SimpleStatement("SELECT v from test where k=?", KEY);
         ListenableFuture<AsyncContinuousPagingResult> result = cSession().executeContinuouslyAsync(statement, options);
 
-        ListenableFuture<PageStatistics> future = Futures.transform(result, new AsyncContinuousPagingFunction());
+        ListenableFuture<PageStatistics> future = GuavaCompatibility.INSTANCE.transformAsync(result, new AsyncContinuousPagingFunction());
 
         PageStatistics stats = Uninterruptibles.getUninterruptibly(future, 30, TimeUnit.SECONDS);
         assertThat(stats.rows).isEqualTo(expectedRows);
@@ -339,7 +339,7 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
         Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
 
         // Start consuming rows, this should cause autoread to be reenabled once we consume some pages.
-        ListenableFuture<PageStatistics> future = Futures.transform(result, new AsyncContinuousPagingFunction());
+        ListenableFuture<PageStatistics> future = GuavaCompatibility.INSTANCE.transformAsync(result, new AsyncContinuousPagingFunction());
 
         PageStatistics stats = Uninterruptibles.getUninterruptibly(future, 30, TimeUnit.SECONDS);
 
@@ -494,7 +494,7 @@ public class ContinuousPagingTest extends CCMDseTestsSupport {
                 int pages = rows == rowsSoFar ? input.pageNumber() - 1 : input.pageNumber();
                 return Futures.immediateFuture(new PageStatistics(rows, pages));
             } else {
-                return Futures.transform(input.nextPage(), new AsyncContinuousPagingFunction(rows));
+                return GuavaCompatibility.INSTANCE.transformAsync(input.nextPage(), new AsyncContinuousPagingFunction(rows));
             }
         }
     }

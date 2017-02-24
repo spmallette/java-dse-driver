@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.GuavaCompatibility;
 import com.datastax.driver.core.utils.DseVersion;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.*;
@@ -73,10 +74,10 @@ public class AsyncQueryTest extends CCMGraphTestsSupport {
                 public void run() {
                     permits.release();
                 }
-            }, MoreExecutors.sameThreadExecutor());
+            }, GuavaCompatibility.INSTANCE.sameThreadExecutor());
 
             // Evaluate vertex properties and ensure they match those that were inserted.
-            futures.add(Futures.transform(future, new AsyncFunction<GraphResultSet, Vertex>() {
+            futures.add(GuavaCompatibility.INSTANCE.transformAsync(future, new AsyncFunction<GraphResultSet, Vertex>() {
 
                 @Override
                 public ListenableFuture<Vertex> apply(GraphResultSet input) {
