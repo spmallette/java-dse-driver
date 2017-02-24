@@ -15,7 +15,11 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * {@link SSLOptions} implementation based on built-in JDK classes.
+ *
+ * @deprecated Use {@link RemoteEndpointAwareJdkSSLOptions} instead.
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated
 public class JdkSSLOptions implements SSLOptions {
 
     /**
@@ -27,8 +31,8 @@ public class JdkSSLOptions implements SSLOptions {
         return new Builder();
     }
 
-    private final SSLContext context;
-    private final String[] cipherSuites;
+    protected final SSLContext context;
+    protected final String[] cipherSuites;
 
     /**
      * Creates a new instance.
@@ -57,7 +61,7 @@ public class JdkSSLOptions implements SSLOptions {
      * @param channel the Netty channel for that connection.
      * @return the engine.
      */
-    protected SSLEngine newSSLEngine(SocketChannel channel) {
+    protected SSLEngine newSSLEngine(@SuppressWarnings("unused") SocketChannel channel) {
         SSLEngine engine = context.createSSLEngine();
         engine.setUseClientMode(true);
         if (cipherSuites != null)
@@ -77,8 +81,8 @@ public class JdkSSLOptions implements SSLOptions {
      * Helper class to build JDK-based SSL options.
      */
     public static class Builder {
-        private SSLContext context;
-        private String[] cipherSuites;
+        protected SSLContext context;
+        protected String[] cipherSuites;
 
         /**
          * Set the SSL context to use.
@@ -115,6 +119,7 @@ public class JdkSSLOptions implements SSLOptions {
          *
          * @return the new instance.
          */
+        @SuppressWarnings("deprecation")
         public JdkSSLOptions build() {
             return new JdkSSLOptions(context, cipherSuites);
         }

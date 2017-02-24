@@ -467,7 +467,6 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
         if (statement.isIdempotentWithDefault(manager.cluster.getConfiguration().getQueryOptions())) {
             decision = retryPolicy().onRequestError(statement, request().consistency(), exception, retriesByPolicy);
         } else {
-            RequestHandler.logIdempotenceWarning();
             decision = RetryPolicy.RetryDecision.rethrow();
         }
         if (metricsEnabled()) {

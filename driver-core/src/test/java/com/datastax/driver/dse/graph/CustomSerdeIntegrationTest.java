@@ -197,7 +197,7 @@ public class CustomSerdeIntegrationTest extends CCMGraphTestsSupport {
     @Override
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
-        executeGraph(gods(CCMBridge.getDSEVersion()));
+        executeGraph(gods(CCMBridge.getGlobalDSEVersion()));
     }
 
     @Test(groups = "short")

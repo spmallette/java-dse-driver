@@ -146,7 +146,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative</artifactId>
-            <version>1.1.33.Fork18</version>
+            <version>1.1.33.Fork26</version>
             <classifier>${os.detected.classifier}</classifier>
             <scope>test</scope>
         </dependency>
@@ -359,7 +359,7 @@
                         <Import-Package>
                             <!-- JNR does not provide OSGi bundles, so exclude it; the driver can live without it -->
                             <![CDATA[
-                                com.google.common*;version="[${guava.version},20)",
+                                com.google.common*;version="[16.0.1,21)",
                                 !jnr.*,
                                 !com.fasterxml.jackson.*,
                                 !com.esri.core.geometry.*,
@@ -395,7 +395,7 @@
                                     Explicitly import javax.security.cert because it's required by Netty, but Netty has been explicitly excluded
                                     -->
                                     <![CDATA[
-                                        com.google.common.*;version="[${guava.version},20)",
+                                        com.google.common.*;version="[16.0.1,21)",
                                         !jnr.*,
                                         !com.fasterxml.jackson.*,
                                         !com.esri.core.geometry.*,
@@ -542,6 +542,8 @@
                                         <resource>META-INF/maven/io.netty/netty-common/pom.xml</resource>
                                         <resource>META-INF/maven/io.netty/netty-handler/pom.properties</resource>
                                         <resource>META-INF/maven/io.netty/netty-handler/pom.xml</resource>
+                                        <resource>META-INF/maven/io.netty/netty-resolver/pom.properties</resource>
+                                        <resource>META-INF/maven/io.netty/netty-resolver/pom.xml</resource>
                                         <resource>META-INF/maven/io.netty/netty-transport/pom.properties</resource>
                                         <resource>META-INF/maven/io.netty/netty-transport/pom.xml</resource>
                                     </resources>

@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.VersionNumber;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -50,16 +51,18 @@ public class GraphFixtures {
                     "josh.addEdge('created', lop, 'weight', 0.4f);\n" +
                     "peter.addEdge('created', lop, 'weight', 0.2f);");
 
-    private static String pointType(String dseVersion) {
+    private static String pointType(VersionNumber dseVersion) {
         Preconditions.checkNotNull(dseVersion);
-        return dseVersion.startsWith("5.0") ? "Point()" : "Point().withGeoBounds()";
+        return (dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0)
+                ? "Point()"
+                : "Point().withGeoBounds()";
     }
 
     /**
      * Builds the Graph of the Gods example graph.
      * see com.datastax.bdp.graph.example.GraphOfTheGodsFactory.
      */
-    public static Collection<String> gods(String dseVersion) {
+    public static Collection<String> gods(VersionNumber dseVersion) {
         return Lists.newArrayList(
 
                 makeStrict,
@@ -157,7 +160,7 @@ public class GraphFixtures {
     /**
      * A schema representing an address book with search enabled on name, description, and coordinates.
      */
-    public static Collection<String> addressBook(String dseVersion) {
+    public static Collection<String> addressBook(VersionNumber dseVersion) {
         return Lists.newArrayList(
                 makeStrict,
                 allowScans,

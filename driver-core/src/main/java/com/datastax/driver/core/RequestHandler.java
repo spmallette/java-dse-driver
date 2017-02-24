@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class RequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
-    private static final AtomicBoolean WARNED_IDEMPOTENT = new AtomicBoolean();
 
     final String id;
 
@@ -371,7 +370,6 @@ class RequestHandler {
             if (statement.isIdempotentWithDefault(manager.cluster.getConfiguration().getQueryOptions())) {
                 decision = retryPolicy().onRequestError(statement, request().consistency(), exception, retriesByPolicy);
             } else {
-                logIdempotenceWarning();
                 decision = RetryPolicy.RetryDecision.rethrow();
             }
             if (metricsEnabled()) {
@@ -531,7 +529,6 @@ class RequestHandler {
                                             wte.getReceivedAcknowledgements(),
                                             retriesByPolicy);
                                 else {
-                                    logIdempotenceWarning();
                                     retry = RetryPolicy.RetryDecision.rethrow();
                                 }
                                 if (metricsEnabled()) {
@@ -792,15 +789,6 @@ class RequestHandler {
         private void setFinalResult(Connection connection, Message.Response response) {
             RequestHandler.this.setFinalResult(this, connection, response);
         }
-    }
-
-    static void logIdempotenceWarning() {
-        if (WARNED_IDEMPOTENT.compareAndSet(false, true))
-            logger.warn("Not retrying statement because it is not idempotent (this message will be logged only once). " +
-                    "Note that this version of the driver changes the default retry behavior for non-idempotent " +
-                    "statements: they won't be automatically retried anymore. The driver marks statements " +
-                    "non-idempotent by default, so you should explicitly call setIdempotent(true) if your statements " +
-                    "are safe to retry. See http://goo.gl/4HrSby for more details.");
     }
 
     /**

@@ -9,9 +9,9 @@ package com.datastax.driver.mapping;
 import com.datastax.driver.core.CCMTestsSupport;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.CassandraVersion;
+import com.datastax.driver.core.utils.MoreObjects;
 import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.mapping.annotations.*;
-import com.google.common.base.Objects;
 import org.testng.annotations.Test;
 
 import java.util.UUID;
@@ -143,13 +143,13 @@ public class MapperDefaultKeyspaceTest extends CCMTestsSupport {
                 return false;
 
             Group that = (Group) other;
-            return Objects.equal(groupId, that.groupId)
-                    && Objects.equal(name, that.name);
+            return MoreObjects.equal(groupId, that.groupId)
+                    && MoreObjects.equal(name, that.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(groupId, name);
+            return MoreObjects.hashCode(groupId, name);
         }
     }
 
@@ -193,13 +193,13 @@ public class MapperDefaultKeyspaceTest extends CCMTestsSupport {
                 return false;
 
             Group2 that = (Group2) other;
-            return Objects.equal(groupId, that.groupId)
-                    && Objects.equal(name, that.name);
+            return MoreObjects.equal(groupId, that.groupId)
+                    && MoreObjects.equal(name, that.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(groupId, name);
+            return MoreObjects.hashCode(groupId, name);
         }
     }
 
@@ -237,7 +237,7 @@ public class MapperDefaultKeyspaceTest extends CCMTestsSupport {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(name);
+            return MoreObjects.hashCode(name);
         }
     }
 

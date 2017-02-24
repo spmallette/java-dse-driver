@@ -21,10 +21,13 @@ import static org.testng.Assert.fail;
 @CassandraVersion("2.1.0")
 public class TupleTest extends CCMTestsSupport {
 
-    ProtocolVersion protocolVersion = TestUtils.getDesiredProtocolVersion();
+    private ProtocolVersion protocolVersion;
+    private Map<DataType, Object> samples;
 
     @Override
     public void onTestContextInitialized() {
+        protocolVersion = cluster().getConfiguration().getProtocolOptions().getProtocolVersion();
+        samples = PrimitiveTypeSamples.samples(protocolVersion);
         execute("CREATE TABLE t (k int PRIMARY KEY, v frozen<tuple<int, text, float>>)");
     }
 
@@ -193,8 +196,7 @@ public class TupleTest extends CCMTestsSupport {
      */
     @Test(groups = "short")
     public void tupleSubtypesTest() throws Exception {
-
-        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(PrimitiveTypeSamples.ALL.keySet());
+        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(samples.keySet());
         session().execute("CREATE KEYSPACE test_tuple_subtypes " +
                 "WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor': '1'}");
         session().execute("USE test_tuple_subtypes");
@@ -217,8 +219,8 @@ public class TupleTest extends CCMTestsSupport {
             for (int j = 0; j < i; ++j) {
                 dataTypes.add(DATA_TYPE_PRIMITIVES.get(j));
                 completeDataTypes.add(DATA_TYPE_PRIMITIVES.get(j));
-                createdValues.add(PrimitiveTypeSamples.ALL.get(DATA_TYPE_PRIMITIVES.get(j)));
-                completeValues.add(PrimitiveTypeSamples.ALL.get(DATA_TYPE_PRIMITIVES.get(j)));
+                createdValues.add(samples.get(DATA_TYPE_PRIMITIVES.get(j)));
+                completeValues.add(samples.get(DATA_TYPE_PRIMITIVES.get(j)));
             }
 
             // complete portion of the arrays needed for trailing nulls
@@ -252,8 +254,7 @@ public class TupleTest extends CCMTestsSupport {
      */
     @Test(groups = "short")
     public void tupleNonPrimitiveSubTypesTest() throws Exception {
-
-        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(PrimitiveTypeSamples.ALL.keySet());
+        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(samples.keySet());
         session().execute("CREATE KEYSPACE test_tuple_non_primitive_subtypes " +
                 "WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor': '1'}");
         session().execute("USE test_tuple_non_primitive_subtypes");
@@ -287,7 +288,7 @@ public class TupleTest extends CCMTestsSupport {
             ArrayList<Object> createdValues = new ArrayList<Object>();
 
             dataTypes.add(DataType.list(datatype));
-            createdValues.add(Collections.singletonList(PrimitiveTypeSamples.ALL.get(datatype)));
+            createdValues.add(Collections.singletonList(samples.get(datatype)));
 
             TupleType t = new TupleType(dataTypes, protocolVersion, cluster().getConfiguration().getCodecRegistry());
             TupleValue createdTuple = t.newValue(createdValues.toArray());
@@ -310,7 +311,7 @@ public class TupleTest extends CCMTestsSupport {
             ArrayList<Object> createdValues = new ArrayList<Object>();
 
             dataTypes.add(DataType.set(datatype));
-            createdValues.add(new HashSet<Object>(Collections.singletonList(PrimitiveTypeSamples.ALL.get(datatype))));
+            createdValues.add(new HashSet<Object>(Collections.singletonList(samples.get(datatype))));
 
             TupleType t = new TupleType(dataTypes, protocolVersion, cluster().getConfiguration().getCodecRegistry());
             TupleValue createdTuple = t.newValue(createdValues.toArray());
@@ -333,7 +334,7 @@ public class TupleTest extends CCMTestsSupport {
             ArrayList<Object> createdValues = new ArrayList<Object>();
 
             HashMap<Object, Object> hm = new HashMap<Object, Object>();
-            hm.put(PrimitiveTypeSamples.ALL.get(datatype), PrimitiveTypeSamples.ALL.get(datatype));
+            hm.put(samples.get(datatype), samples.get(datatype));
 
             dataTypes.add(DataType.map(datatype, datatype));
             createdValues.add(hm);
@@ -361,7 +362,7 @@ public class TupleTest extends CCMTestsSupport {
      */
     @Test(groups = "short")
     public void detachedTupleTypeTest() {
-        TupleType detachedType = TupleType.of(TestUtils.getDesiredProtocolVersion(), CodecRegistry.DEFAULT_INSTANCE,
+        TupleType detachedType = TupleType.of(protocolVersion, CodecRegistry.DEFAULT_INSTANCE,
                 DataType.cint(), DataType.text(), DataType.cfloat());
         TupleValue detachedValue = detachedType.newValue(1, "hello", 2.0f);
 

@@ -6,7 +6,7 @@
  */
 package com.datastax.driver.core;
 
-import com.google.common.base.Objects;
+import com.datastax.driver.core.utils.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
 import java.nio.ByteBuffer;
@@ -36,6 +36,7 @@ public class TableOptionsMetadata {
     private static final String MAX_INDEX_INTERVAL = "max_index_interval";
     private static final String CRC_CHECK_CHANCE = "crc_check_chance";
     private static final String EXTENSIONS = "extensions";
+    private static final String CDC = "cdc";
 
     private static final boolean DEFAULT_REPLICATE_ON_WRITE = true;
     private static final double DEFAULT_BF_FP_CHANCE = 0.01;
@@ -47,6 +48,7 @@ public class TableOptionsMetadata {
     private static final int DEFAULT_MIN_INDEX_INTERVAL = 128;
     private static final int DEFAULT_MAX_INDEX_INTERVAL = 2048;
     private static final double DEFAULT_CRC_CHECK_CHANCE = 1.0;
+    private static final boolean DEFAULT_CDC = false;
 
     private final boolean isCompactStorage;
 
@@ -68,12 +70,15 @@ public class TableOptionsMetadata {
     private final Map<String, String> compression;
     private final Double crcCheckChance;
     private final Map<String, ByteBuffer> extensions;
+    private final boolean cdc;
 
     TableOptionsMetadata(Row row, boolean isCompactStorage, VersionNumber version) {
 
         boolean is120 = version.getMajor() < 2;
         boolean is200 = version.getMajor() == 2 && version.getMinor() == 0;
         boolean is210 = version.getMajor() == 2 && version.getMinor() >= 1;
+        boolean is400OrHigher = version.getMajor() > 3;
+        boolean is380OrHigher = is400OrHigher || version.getMajor() == 3 && version.getMinor() >= 8;
         boolean is300OrHigher = version.getMajor() > 2;
         boolean is210OrHigher = is210 || is300OrHigher;
 
@@ -145,6 +150,13 @@ public class TableOptionsMetadata {
             this.extensions = ImmutableMap.copyOf(row.getMap(EXTENSIONS, String.class, ByteBuffer.class));
         else
             this.extensions = ImmutableMap.of();
+
+        if (is380OrHigher)
+            this.cdc = isNullOrAbsent(row, CDC)
+                    ? DEFAULT_CDC
+                    : row.getBool(CDC);
+        else
+            this.cdc = DEFAULT_CDC;
     }
 
     private static boolean isNullOrAbsent(Row row, String name) {
@@ -357,6 +369,17 @@ public class TableOptionsMetadata {
         return extensions;
     }
 
+    /**
+     * Returns whether or not change data capture is enabled for this table.
+     * <p/>
+     * For Cassandra versions prior to 3.8.0, this method always returns false.
+     *
+     * @return whether or not change data capture is enabled for this table.
+     */
+    public boolean isCDC() {
+        return cdc;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this)
@@ -366,30 +389,32 @@ public class TableOptionsMetadata {
 
         TableOptionsMetadata that = (TableOptionsMetadata) other;
         return this.isCompactStorage == that.isCompactStorage &&
-                Objects.equal(this.comment, that.comment) &&
+                MoreObjects.equal(this.comment, that.comment) &&
                 this.readRepair == that.readRepair &&
                 this.localReadRepair == that.localReadRepair &&
                 this.replicateOnWrite == that.replicateOnWrite &&
                 this.gcGrace == that.gcGrace &&
                 this.bfFpChance == that.bfFpChance &&
-                Objects.equal(this.caching, that.caching) &&
+                MoreObjects.equal(this.caching, that.caching) &&
                 this.populateCacheOnFlush == that.populateCacheOnFlush &&
                 this.memtableFlushPeriodMs == that.memtableFlushPeriodMs &&
                 this.defaultTTL == that.defaultTTL &&
-                Objects.equal(this.speculativeRetry, that.speculativeRetry) &&
-                Objects.equal(this.indexInterval, that.indexInterval) &&
-                Objects.equal(this.minIndexInterval, that.minIndexInterval) &&
-                Objects.equal(this.maxIndexInterval, that.maxIndexInterval) &&
-                Objects.equal(this.compaction, that.compaction) &&
-                Objects.equal(this.compression, that.compression) &&
-                Objects.equal(this.crcCheckChance, that.crcCheckChance) &&
-                Objects.equal(this.extensions, that.extensions);
+                this.cdc == that.cdc &&
+                MoreObjects.equal(this.speculativeRetry, that.speculativeRetry) &&
+                MoreObjects.equal(this.indexInterval, that.indexInterval) &&
+                MoreObjects.equal(this.minIndexInterval, that.minIndexInterval) &&
+                MoreObjects.equal(this.maxIndexInterval, that.maxIndexInterval) &&
+                MoreObjects.equal(this.compaction, that.compaction) &&
+                MoreObjects.equal(this.compression, that.compression) &&
+                MoreObjects.equal(this.crcCheckChance, that.crcCheckChance) &&
+                MoreObjects.equal(this.extensions, that.extensions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(isCompactStorage, comment, readRepair, localReadRepair, replicateOnWrite, gcGrace,
+        return MoreObjects.hashCode(isCompactStorage, comment, readRepair, localReadRepair, replicateOnWrite, gcGrace,
                 bfFpChance, caching, populateCacheOnFlush, memtableFlushPeriodMs, defaultTTL, speculativeRetry,
-                indexInterval, minIndexInterval, maxIndexInterval, compaction, compression, crcCheckChance, extensions);
+                indexInterval, minIndexInterval, maxIndexInterval, compaction, compression, crcCheckChance, extensions,
+                cdc);
     }
 }

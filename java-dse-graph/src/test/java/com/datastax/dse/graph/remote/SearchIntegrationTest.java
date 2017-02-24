@@ -6,7 +6,6 @@
  */
 package com.datastax.dse.graph.remote;
 
-import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.CCMWorkload;
 import com.datastax.driver.core.utils.DseVersion;
@@ -35,7 +34,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
     @Override
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
-        executeGraph(GraphFixtures.addressBook(CCMBridge.getDSEVersion()));
+        executeGraph(GraphFixtures.addressBook(ccm().getDSEVersion()));
         // arbitrary sleep to deal with index time.
         // TODO: Find a better way of dealing with this uncertainty.
         Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);

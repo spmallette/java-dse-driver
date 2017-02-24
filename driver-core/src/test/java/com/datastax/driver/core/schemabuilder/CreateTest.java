@@ -39,8 +39,8 @@ public class CreateTest {
 
         //Then
         assertThat(statement.getQueryString()).isEqualTo("\n\tCREATE TABLE test(\n\t\t" +
-                        "u frozen<user>,\n\t\t" +
-                        "PRIMARY KEY(u))"
+                "u frozen<user>,\n\t\t" +
+                "PRIMARY KEY(u))"
         );
     }
 
@@ -315,7 +315,8 @@ public class CreateTest {
                 .populateIOCacheOnFlush(true)
                 .readRepairChance(0.05)
                 .replicateOnWrite(true)
-                .speculativeRetry(always());
+                .speculativeRetry(always())
+                .cdc(true);
 
         //Then
         assertThat(statement.getQueryString()).isEqualTo("\n\tCREATE TABLE test(\n\t\t" +
@@ -337,7 +338,8 @@ public class CreateTest {
                 "AND populate_io_cache_on_flush = true " +
                 "AND read_repair_chance = 0.05 " +
                 "AND replicate_on_write = true " +
-                "AND speculative_retry = 'ALWAYS' AND CLUSTERING ORDER BY(col1 ASC, col2 DESC) AND COMPACT STORAGE");
+                "AND speculative_retry = 'ALWAYS' " +
+                "AND cdc = true AND CLUSTERING ORDER BY(col1 ASC, col2 DESC) AND COMPACT STORAGE");
     }
 
     @Test(groups = "unit")
@@ -473,6 +475,40 @@ public class CreateTest {
                 "name text,\n\t\t" +
                 "PRIMARY KEY(id))\n\t" +
                 "WITH speculative_retry = '12ms'");
+    }
+
+    @Test(groups = "unit")
+    public void should_create_table_with_cdc_true() throws Exception {
+        //When
+        SchemaStatement statement = createTable("test")
+                .addPartitionKey("id", DataType.bigint())
+                .addColumn("name", DataType.text())
+                .withOptions()
+                .cdc(true);
+
+        //Then
+        assertThat(statement.getQueryString()).isEqualTo("\n\tCREATE TABLE test(\n\t\t" +
+                "id bigint,\n\t\t" +
+                "name text,\n\t\t" +
+                "PRIMARY KEY(id))\n\t" +
+                "WITH cdc = true");
+    }
+
+    @Test(groups = "unit")
+    public void should_create_table_with_cdc_false() throws Exception {
+        //When
+        SchemaStatement statement = createTable("test")
+                .addPartitionKey("id", DataType.bigint())
+                .addColumn("name", DataType.text())
+                .withOptions()
+                .cdc(false);
+
+        //Then
+        assertThat(statement.getQueryString()).isEqualTo("\n\tCREATE TABLE test(\n\t\t" +
+                "id bigint,\n\t\t" +
+                "name text,\n\t\t" +
+                "PRIMARY KEY(id))\n\t" +
+                "WITH cdc = false");
     }
 
     @Test(groups = "unit", expectedExceptions = IllegalStateException.class,

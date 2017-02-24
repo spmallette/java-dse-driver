@@ -204,7 +204,7 @@ public abstract class GeometryCodecIntegrationTest<T extends Geometry> extends C
     @Test(groups = "short")
     public void should_insert_as_tuple() throws Exception {
         UUID key = UUIDs.random();
-        TupleType tupleType = TupleType.of(TestUtils.getDesiredProtocolVersion(),
+        TupleType tupleType = TupleType.of(cluster().getConfiguration().getProtocolOptions().getProtocolVersion(),
                 cluster().getConfiguration().getCodecRegistry(),
                 codec().getCqlType(), codec().getCqlType(), codec().getCqlType());
 

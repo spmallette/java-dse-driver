@@ -66,19 +66,19 @@ abstract class Utils {
         return sb;
     }
 
-    static StringBuilder joinAndAppendNames(StringBuilder sb, CodecRegistry codecRegistry, String separator, List<?> values) {
+    static StringBuilder joinAndAppendNames(StringBuilder sb, CodecRegistry codecRegistry, List<?> values) {
         for (int i = 0; i < values.size(); i++) {
             if (i > 0)
-                sb.append(separator);
+                sb.append(",");
             appendName(values.get(i), codecRegistry, sb);
         }
         return sb;
     }
 
-    static StringBuilder joinAndAppendValues(StringBuilder sb, CodecRegistry codecRegistry, String separator, List<?> values, List<Object> variables) {
+    static StringBuilder joinAndAppendValues(StringBuilder sb, CodecRegistry codecRegistry, List<?> values, List<Object> variables) {
         for (int i = 0; i < values.size(); i++) {
             if (i > 0)
-                sb.append(separator);
+                sb.append(",");
             appendValue(values.get(i), codecRegistry, sb, variables);
         }
         return sb;
@@ -109,13 +109,13 @@ abstract class Utils {
             sb.append(value.toString());
         } else if (value instanceof List && !isSerializable(value)) {
             // bind variables are not supported inside collection literals
-            appendList((List<?>) value, codecRegistry, sb, null);
+            appendList((List<?>) value, codecRegistry, sb);
         } else if (value instanceof Set && !isSerializable(value)) {
             // bind variables are not supported inside collection literals
-            appendSet((Set<?>) value, codecRegistry, sb, null);
+            appendSet((Set<?>) value, codecRegistry, sb);
         } else if (value instanceof Map && !isSerializable(value)) {
             // bind variables are not supported inside collection literals
-            appendMap((Map<?, ?>) value, codecRegistry, sb, null);
+            appendMap((Map<?, ?>) value, codecRegistry, sb);
         } else if (variables == null || !isSerializable(value)) {
             // we are not collecting statement values (variables == null)
             // or the value is meant to be forcefully appended to the query string:
@@ -133,30 +133,30 @@ abstract class Utils {
         return sb;
     }
 
-    private static StringBuilder appendList(List<?> l, CodecRegistry codecRegistry, StringBuilder sb, List<Object> variables) {
+    private static StringBuilder appendList(List<?> l, CodecRegistry codecRegistry, StringBuilder sb) {
         sb.append('[');
         for (int i = 0; i < l.size(); i++) {
             if (i > 0)
                 sb.append(',');
-            appendValue(l.get(i), codecRegistry, sb, variables);
+            appendValue(l.get(i), codecRegistry, sb, null);
         }
         sb.append(']');
         return sb;
     }
 
-    private static StringBuilder appendSet(Set<?> s, CodecRegistry codecRegistry, StringBuilder sb, List<Object> variables) {
+    private static StringBuilder appendSet(Set<?> s, CodecRegistry codecRegistry, StringBuilder sb) {
         sb.append('{');
         boolean first = true;
         for (Object elt : s) {
             if (first) first = false;
             else sb.append(',');
-            appendValue(elt, codecRegistry, sb, variables);
+            appendValue(elt, codecRegistry, sb, null);
         }
         sb.append('}');
         return sb;
     }
 
-    private static StringBuilder appendMap(Map<?, ?> m, CodecRegistry codecRegistry, StringBuilder sb, List<Object> variables) {
+    private static StringBuilder appendMap(Map<?, ?> m, CodecRegistry codecRegistry, StringBuilder sb) {
         sb.append('{');
         boolean first = true;
         for (Map.Entry<?, ?> entry : m.entrySet()) {
@@ -164,9 +164,9 @@ abstract class Utils {
                 first = false;
             else
                 sb.append(',');
-            appendValue(entry.getKey(), codecRegistry, sb, variables);
+            appendValue(entry.getKey(), codecRegistry, sb, null);
             sb.append(':');
-            appendValue(entry.getValue(), codecRegistry, sb, variables);
+            appendValue(entry.getValue(), codecRegistry, sb, null);
         }
         sb.append('}');
         return sb;
@@ -180,7 +180,7 @@ abstract class Utils {
                 if (containsBindMarker(param))
                     return true;
         if (value instanceof Collection)
-            for (Object elt : (Collection) value)
+            for (Object elt : (Collection<?>) value)
                 if (containsBindMarker(elt))
                     return true;
         if (value instanceof Map)
@@ -194,7 +194,7 @@ abstract class Utils {
         if (value instanceof BindMarker || value instanceof FCall || value instanceof CName || value instanceof RawString)
             return true;
         if (value instanceof Collection)
-            for (Object elt : (Collection) value)
+            for (Object elt : (Collection<?>) value)
                 if (containsSpecialValue(elt))
                     return true;
         if (value instanceof Map)
@@ -223,7 +223,7 @@ abstract class Utils {
         if (value instanceof Number && !(value instanceof BigInteger || value instanceof BigDecimal))
             return false;
         if (value instanceof Collection)
-            for (Object elt : (Collection) value)
+            for (Object elt : (Collection<?>) value)
                 if (!isSerializable(elt))
                     return false;
         if (value instanceof Map)
@@ -244,7 +244,7 @@ abstract class Utils {
         } else if (value instanceof RawString) {
             return false;
         } else if (value instanceof Collection) {
-            for (Object elt : ((Collection) value)) {
+            for (Object elt : ((Collection<?>) value)) {
                 if (!isIdempotent(elt))
                     return false;
             }
@@ -264,7 +264,7 @@ abstract class Utils {
     static StringBuilder appendName(String name, StringBuilder sb) {
         name = name.trim();
         // FIXME: checking for token( specifically is uber ugly, we'll need some better solution.
-        if (cnamePattern.matcher(name).matches() || name.startsWith("\"") || name.startsWith("token("))
+        if (name.startsWith("\"") || name.startsWith("token(") || cnamePattern.matcher(name).matches())
             sb.append(name);
         else
             sb.append('"').append(name).append('"');
@@ -275,7 +275,14 @@ abstract class Utils {
         if (name instanceof String) {
             appendName((String) name, sb);
         } else if (name instanceof CName) {
-            appendName(((CName) name).name, codecRegistry, sb);
+            appendName(((CName) name).name, sb);
+        } else if (name instanceof Path) {
+            String[] segments = ((Path) name).segments;
+            for (int i = 0; i < segments.length; i++) {
+                if (i > 0)
+                    sb.append('.');
+                appendName(segments[i], sb);
+            }
         } else if (name instanceof FCall) {
             FCall fcall = (FCall) name;
             sb.append(fcall.name).append('(');
@@ -471,4 +478,15 @@ abstract class Utils {
             return String.format("CAST(%s AS %s)", column, targetType);
         }
     }
+
+    static class Path {
+
+        private final String[] segments;
+
+        Path(String... segments) {
+            this.segments = segments;
+        }
+
+    }
+
 }

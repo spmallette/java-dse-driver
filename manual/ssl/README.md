@@ -71,7 +71,7 @@ if you've followed the steps for inter-node encryption).
 
 ### Driver configuration
 
-The base class to configure SSL is [SSLOptions]. It's very generic, but
+The base class to configure SSL is [RemoteEndpointAwareSSLOptions]. It's very generic, but
 you don't necessarily need to deal with it directly: the default
 instance, or the provided subclasses, might be enough for your needs.
 
@@ -101,12 +101,12 @@ for specific details, like keystore locations and passwords:
 #### JSSE, programmatic
 
 If you need more control than what system properties allow, you can
-configure SSL programmatically with [JdkSSLOptions]:
+configure SSL programmatically with [RemoteEndpointAwareJdkSSLOptions]:
 
 ```java
 SSLContext sslContext = ... // create and configure SSL context
 
-JdkSSLOptions sslOptions = JdkSSLOptions.builder()
+RemoteEndpointAwareJdkSSLOptions sslOptions = RemoteEndpointAwareJdkSSLOptions.builder()
   .withSSLContext(context)
   .build();
 
@@ -117,14 +117,13 @@ DseCluster cluster = DseCluster.builder()
 ```
 
 Note that you can also extend the class and override
-[newSSLEngine(SocketChannel)][newSSLEngine] if you need specific
+[newSSLEngine(SocketChannel,InetSocketAddress)][newSSLEngine] if you need specific
 configuration on the `SSLEngine` (for example hostname verification).
 
-[newSSLEngine]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/JdkSSLOptions.html#newSSLEngine-io.netty.channel.socket.SocketChannel-
 
 #### Netty
 
-[NettySSLOptions] allows you to use Netty's `SslContext` instead of
+[RemoteEndpointAwareNettySSLOptions] allows you to use Netty's `SslContext` instead of
 the JDK directly. The advantage is that Netty can use OpenSSL directly,
 which provides better performance and generates less garbage.  A disadvantage of
 using the OpenSSL provider is that it requires platform-specific dependencies,
@@ -154,7 +153,7 @@ add it to your dependencies.
 
 There are known runtime incompatibilities between newer versions of
 netty-tcnative and the version of netty that the driver uses.  For best
-results, use version 1.1.33.Fork18.
+results, use version 1.1.33.Fork26.
 
 Using netty-tcnative requires JDK 1.7 or above and requires the presence of
 OpenSSL on the system.  It will not fall back to the JDK implementation.
@@ -178,7 +177,7 @@ SslContextBuilder builder = SslContextBuilder
   // only if you use client authentication
   .keyManager(new File("client.crt"), new File("client.key"));
 
-SSLOptions sslOptions = new NettySSLOptions(builder.build());
+SSLOptions sslOptions = new RemoteEndpointAwareNettySSLOptions(builder.build());
 
 DseCluster cluster = DseCluster.builder()
   .addContactPoint("127.0.0.1")
@@ -186,7 +185,8 @@ DseCluster cluster = DseCluster.builder()
   .build();
 ```
 
-[SSLOptions]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/SSLOptions.html
-[JdkSSLOptions]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/JdkSSLOptions.html
-[NettySSLOptions]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/NettySSLOptions.html
-[NettyOptions]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/NettyOptions.html
+[RemoteEndpointAwareSSLOptions]:      http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/RemoteEndpointAwareSSLOptions.html
+[RemoteEndpointAwareJdkSSLOptions]:   http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/RemoteEndpointAwareJdkSSLOptions.html
+[newSSLEngine]:                       http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/RemoteEndpointAwareJdkSSLOptions.html#newSSLEngine-io.netty.channel.socket.SocketChannel-java.net.InetSocketAddress-
+[RemoteEndpointAwareNettySSLOptions]: http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/RemoteEndpointAwareNettySSLOptions.html
+[NettyOptions]:                       http://docs.datastax.com/en/drivers/java-dse/1.1/com/datastax/driver/core/NettyOptions.html

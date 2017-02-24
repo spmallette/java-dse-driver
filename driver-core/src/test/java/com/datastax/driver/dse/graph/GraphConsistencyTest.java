@@ -9,6 +9,7 @@ package com.datastax.driver.dse.graph;
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.VersionNumber;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.UnavailableException;
@@ -26,8 +27,8 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
     private static final boolean isDSE50;
 
     static {
-        String dseVersion = CCMBridge.getDSEVersion();
-        isDSE50 = dseVersion != null && dseVersion.startsWith("5.0");
+        VersionNumber dseVersion = CCMBridge.getGlobalDSEVersion();
+        isDSE50 = dseVersion != null && dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0;
     }
 
     @Override

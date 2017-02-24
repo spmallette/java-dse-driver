@@ -6,8 +6,8 @@
  */
 package com.datastax.driver.core;
 
+import com.datastax.driver.core.utils.MoreObjects;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -206,7 +206,7 @@ public final class TokenRange implements Comparable<TokenRange> {
      * Checks whether this range contains a given token.
      *
      * @param token the token to check for.
-     * @return whether this range contains the token, i.e. {@code range.start &lt; token &lt;= range.end}.
+     * @return whether this range contains the token, i.e. {@code range.start < token <= range.end}.
      */
     public boolean contains(Token token) {
         return contains(token, false);
@@ -215,13 +215,27 @@ public final class TokenRange implements Comparable<TokenRange> {
     // isStart handles the case where the token is the start of another range, for example:
     // * ]1,2] contains 2, but it does not contain the start of ]2,3]
     // * ]1,2] does not contain 1, but it contains the start of ]1,3]
-    private boolean contains(Token token, boolean isStart) {
-        boolean isAfterStart = isStart ? token.compareTo(start) >= 0 : token.compareTo(start) > 0;
-        boolean isBeforeEnd = end.equals(factory.minToken()) ||
-                (isStart ? token.compareTo(end) < 0 : token.compareTo(end) <= 0);
-        return isWrappedAround()
-                ? isAfterStart || isBeforeEnd
-                : isAfterStart && isBeforeEnd;
+    @VisibleForTesting
+    boolean contains(Token token, boolean isStart) {
+        if (isEmpty()) {
+            return false;
+        }
+        Token minToken = factory.minToken();
+        if (end.equals(minToken)) {
+            if (start.equals(minToken)) { // ]min, min] = full ring, contains everything
+                return true;
+            } else if (token.equals(minToken)) {
+                return !isStart;
+            } else {
+                return isStart ? token.compareTo(start) >= 0 : token.compareTo(start) > 0;
+            }
+        } else {
+            boolean isAfterStart = isStart ? token.compareTo(start) >= 0 : token.compareTo(start) > 0;
+            boolean isBeforeEnd = isStart ? token.compareTo(end) < 0 : token.compareTo(end) <= 0;
+            return isWrappedAround()
+                    ? isAfterStart || isBeforeEnd //  ####]----]####
+                    : isAfterStart && isBeforeEnd; // ----]####]----
+        }
     }
 
     /**
@@ -286,15 +300,15 @@ public final class TokenRange implements Comparable<TokenRange> {
             return true;
         if (other instanceof TokenRange) {
             TokenRange that = (TokenRange) other;
-            return Objects.equal(this.start, that.start) &&
-                    Objects.equal(this.end, that.end);
+            return MoreObjects.equal(this.start, that.start) &&
+                    MoreObjects.equal(this.end, that.end);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(start, end);
+        return MoreObjects.hashCode(start, end);
     }
 
     @Override

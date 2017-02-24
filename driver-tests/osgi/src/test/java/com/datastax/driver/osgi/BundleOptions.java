@@ -94,7 +94,8 @@ public class BundleOptions {
                         mavenBundle("io.netty", "netty-codec", nettyVersion),
                         mavenBundle("io.netty", "netty-common", nettyVersion),
                         mavenBundle("io.netty", "netty-handler", nettyVersion),
-                        mavenBundle("io.netty", "netty-transport", nettyVersion)
+                        mavenBundle("io.netty", "netty-transport", nettyVersion),
+                        mavenBundle("io.netty", "netty-resolver", nettyVersion)
                 );
             }
         };
@@ -113,7 +114,7 @@ public class BundleOptions {
                         // Delegate javax.security.cert to the parent classloader.  javax.security.cert.X509Certificate is used in
                         // io.netty.util.internal.EmptyArrays, but not directly by the driver.
                         bootDelegationPackage("javax.security.cert"),
-                        systemProperty("cassandra.version").value(CCMBridge.getCassandraVersion()),
+                        systemProperty("cassandra.version").value(CCMBridge.getGlobalCassandraVersion().toString()),
                         systemProperty("cassandra.contactpoints").value(TestUtils.IP_PREFIX + 1),
                         systemProperty("logback.configurationFile").value("file:" + PathUtils.getBaseDir() + "/src/test/resources/logback.xml"),
                         mavenBundle("org.slf4j", "slf4j-api", getVersion("slf4j.version")),

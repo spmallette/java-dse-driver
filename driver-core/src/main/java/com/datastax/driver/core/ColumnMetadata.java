@@ -6,7 +6,7 @@
  */
 package com.datastax.driver.core;
 
-import com.google.common.base.Objects;
+import com.datastax.driver.core.utils.MoreObjects;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -107,7 +107,7 @@ public class ColumnMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, isStatic, type);
+        return MoreObjects.hashCode(name, isStatic, type);
     }
 
     @Override

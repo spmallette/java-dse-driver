@@ -8,6 +8,7 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.CCMBridge;
 import com.datastax.driver.core.LocalDate;
+import com.datastax.driver.core.VersionNumber;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.dse.geometry.LineString;
@@ -119,8 +120,8 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         int id = schemaCounter.incrementAndGet();
         // If we're working with a geotype and our version is 5.0, make a special exception and truncate the
         // withBounds/withGeoBounds qualifiers.
-        String dseVersion = CCMBridge.getDSEVersion();
-        if (dseVersion != null && dseVersion.startsWith("5.0")) {
+        VersionNumber dseVersion = CCMBridge.getGlobalDSEVersion();
+        if (dseVersion != null && dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0) {
             Matcher matcher = withBoundsPattern.matcher(type);
             if (matcher.matches()) {
                 type = matcher.group(1);

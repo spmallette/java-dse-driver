@@ -37,12 +37,12 @@ public class HostMetadataIntegrationTest {
     public void test_mixed_dse_workload() {
         CCMBridge.Builder builder = CCMBridge.builder()
                 .withNodes(3)
-                .withDSE()
+                .withDSE(true)
                 .withWorkload(2, "solr")
                 .withWorkload(3, "spark");
         CCMAccess ccm = CCMCache.get(builder);
 
-        VersionNumber version = VersionNumber.parse(CCMBridge.getDSEVersion());
+        VersionNumber version = ccm.getDSEVersion();
 
         Cluster cluster = Cluster.builder()
                 .addContactPoints(ccm.addressOfNode(1).getAddress())

@@ -1,14 +1,25 @@
 ## Changelog
 
+### 1.2.0-rc1 (in progress)
+
+Merged from OSS 3.x:
+
+- [new feature] JAVA-1364: Enable creation of SSLHandler with remote address information.
+- [improvement] JAVA-1308: CodecRegistry performance improvements.
+- [improvement] JAVA-1241: Upgrade Netty to 4.1.x.
+- [improvement] JAVA-1287: Add CDC to TableOptionsMetadata and Schema Builder.
+- [improvement] JAVA-1392: Reduce lock contention in RPTokenFactory.
+- [improvement] JAVA-1328: Provide compatibility with Guava 20.
+- [improvement] JAVA-1247: Disable idempotence warnings.
+- [improvement] JAVA-1286: Support setting and retrieving udt fields in QueryBuilder.
+- [bug] JAVA-1404: Fix min token handling in TokenRange.contains.
+
+
 ### 1.2.0-eap5
 
 - [bug] JAVA-1390: Preserve original error when a continuous paging query times out on the client.
 - [improvement] JAVA-1391: Fail if batch children use proxy auth.
 - [improvement] JAVA-1319: Add support for DSE DateRangeType.
-
-Cherry-picked from OSS 3.x:
-
-- [new feature] JAVA-1362: Send query options flags as [int] for Protocol V5+.
 
 Merged from OSS 3.1.x:
 
@@ -18,6 +29,7 @@ Merged from OSS 3.1.x:
 
 Cherry-picked from OSS 3.x:
 
+- [new feature] JAVA-1362: Send query options flags as [int] for Protocol V5+.
 - [bug] JAVA-1397: Handle duration as native datatype in protocol v5+.
 
 

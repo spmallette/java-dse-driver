@@ -1,5 +1,20 @@
 ## Upgrade guide
 
+### 1.2.0
+
+The `SSLOptions` interface is now deprecated in favor of
+`RemoteEndpointAwareSSLOptions`. 
+Similarly, the two existing implementations of that interface, 
+`JdkSSLOptions` and `NettySSLOptions`, 
+are now deprecated in favor of `RemoteEndpointAwareJdkSSLOptions` 
+and `RemoteEndpointAwareNettySSLOptions` respectively (see 
+[JAVA-1364](https://datastax-oss.atlassian.net/browse/JAVA-1364)).
+
+In 1.1, the driver would log a warning the first time it would skip 
+a retry for a non-idempotent request; this warning has now been 
+removed as users should now have adjusted their applications accordingly.
+
+
 ### cassandra-driver-dse-* to dse-driver-1.0.0
 
 For previous versions of DSE, the driver extensions were published as a module of the core driver, under the coordinates
