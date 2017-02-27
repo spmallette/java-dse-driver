@@ -6,13 +6,11 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.util.JsonParserSequence;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Utility class to easily concatenate multiple JsonParsers. This class had to be implemented because the class it is
@@ -27,28 +25,8 @@ class JsonParserConcat extends JsonParserSequence {
         super(parsers);
     }
 
-    public static JsonParserConcat createFlattened(final JsonParser first, final JsonParser second) {
-        if (!(first instanceof JsonParserConcat) && !(second instanceof JsonParserConcat)) {
-            return new JsonParserConcat(new JsonParser[]{first, second});
-        } else {
-            final ArrayList p = new ArrayList();
-            if (first instanceof JsonParserConcat) {
-                ((JsonParserConcat) first).addFlattenedActiveParsers(p);
-            } else {
-                p.add(first);
-            }
-
-            if (second instanceof JsonParserConcat) {
-                ((JsonParserConcat) second).addFlattenedActiveParsers(p);
-            } else {
-                p.add(second);
-            }
-            return new JsonParserConcat((JsonParser[]) p.toArray(new JsonParser[p.size()]));
-        }
-    }
-
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException {
+    public JsonToken nextToken() throws IOException {
         JsonToken t = this.delegate.nextToken();
         if (t != null) {
             return t;
