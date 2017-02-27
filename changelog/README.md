@@ -2,6 +2,8 @@
 
 ### 1.2.0-rc1 (in progress)
 
+- [bug] JAVA-1406: Handle unprepared error in continuous paging.
+
 Merged from OSS 3.x:
 
 - [new feature] JAVA-1364: Enable creation of SSLHandler with remote address information.

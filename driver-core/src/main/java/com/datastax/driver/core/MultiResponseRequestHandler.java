@@ -64,7 +64,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     // This is incremented by one writer at a time, so volatile is good enough.
     private volatile int retriesByPolicy;
     private volatile ExecutionInfo info;
-    private volatile boolean gotFirstPage;
+    private volatile boolean gotFirstResult;
 
     MultiResponseRequestHandler(SessionManager manager, Callback callback, Statement statement) {
         this.id = Long.toString(System.identityHashCode(this));
@@ -306,14 +306,12 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     @Override
     public void onSet(Connection connection, Message.Response response, long latency, int retryCount) {
         QueryState queryState = queryStateRef.get();
-        if (!gotFirstPage) {
+        if (!gotFirstResult) {
             if (!queryState.isInProgressAt(retryCount)
                     || !queryStateRef.compareAndSet(queryState, queryState.complete())) {
                 logger.debug("onSet triggered but the response was completed by another thread, cancelling (retryCount = {}, queryState = {}, queryStateRef = {})",
                         retryCount, queryState, queryStateRef.get());
                 return;
-            } else {
-                gotFirstPage = true;
             }
         }
 
@@ -329,7 +327,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                     RetryPolicy.RetryDecision retry = null;
                     // Retries are only handled for the first response. For subsequent responses, errors will always
                     // be reported directly.
-                    if (!gotFirstPage) {
+                    if (!gotFirstResult) {
                         RetryPolicy retryPolicy = retryPolicy();
                         switch (err.code) {
                             case READ_TIMEOUT:
@@ -605,7 +603,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     @Override
     public void onException(Connection connection, Exception exception, long latency, int retryCount) {
         QueryState queryState = queryStateRef.get();
-        if (!gotFirstPage && (!queryState.isInProgressAt(retryCount) ||
+        if (!gotFirstResult && (!queryState.isInProgressAt(retryCount) ||
                 !queryStateRef.compareAndSet(queryState, queryState.complete()))) {
             logger.debug("onException triggered but the response was completed by another thread, cancelling (retryCount = {}, queryState = {}, queryStateRef = {})",
                     retryCount, queryState, queryStateRef.get());
@@ -615,7 +613,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
         try {
             release(connection);
 
-            if (!gotFirstPage && (exception instanceof ConnectionException)) {
+            if (!gotFirstResult && (exception instanceof ConnectionException)) {
                 RetryPolicy.RetryDecision decision = computeRetryDecisionOnRequestError((ConnectionException) exception);
                 processRetryDecision(decision, connection, exception,
                         // In practice, onException is never called in response to a server error:
@@ -631,7 +629,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
 
     @Override
     public boolean onTimeout(Connection connection, long latency, int retryCount) {
-        // timeout can only happen for the first page so don't check gotFirstPage
+        // timeout can only happen for the first page so don't check gotFirstResult
         QueryState queryState = queryStateRef.get();
         if (!queryState.isInProgressAt(retryCount)
                 || !queryStateRef.compareAndSet(queryState, queryState.complete())) {
@@ -661,6 +659,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     }
 
     private void setResult(Connection connection, Message.Response response) {
+        gotFirstResult = true;
         logger.trace("[{}] Setting result", id);
         try {
             // Execution info describes the initial request, we will return the same object for all responses so cache
