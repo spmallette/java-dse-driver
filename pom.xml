@@ -61,7 +61,7 @@
         <jnr-ffi.version>2.0.7</jnr-ffi.version>
         <jnr-posix.version>3.0.27</jnr-posix.version>
         <!-- java-dse-graph module -->
-        <tinkerpop.version>3.2.3</tinkerpop.version>
+        <tinkerpop.version>3.2.4</tinkerpop.version>
 
         <!-- test dependency versions -->
         <testng.version>6.8.8</testng.version>

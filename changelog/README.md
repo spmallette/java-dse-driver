@@ -3,6 +3,7 @@
 ### 1.2.0-rc1 (in progress)
 
 - [bug] JAVA-1406: Handle unprepared error in continuous paging.
+- [improvement] JAVA-1409: Upgrade to tinkerpop 3.2.4.
 
 Merged from OSS 3.x:
 
