@@ -24,11 +24,21 @@
 
     <name>DataStax Enterprise Java Driver - Binary distribution</name>
 
-    <!-- These dependencies are only here to ensure proper build order -->
+    <!-- These dependencies are only here to ensure proper build order and proper inclusion of binaries in the final tarball -->
     <dependencies>
         <dependency>
             <groupId>com.datastax.dse</groupId>
             <artifactId>dse-java-driver-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-mapping</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-extras</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

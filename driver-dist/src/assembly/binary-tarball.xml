@@ -14,60 +14,121 @@
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
+
     <moduleSets>
+
+        <!-- dependencies of module dse-java-driver-core -->
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.datastax.cassandra:dse-java-driver-core</include>
-                <include>com.datastax.cassandra:java-dse-graph</include>
+                <include>com.datastax.dse:dse-java-driver-core</include>
             </includes>
             <binaries>
                 <unpack>false</unpack>
                 <dependencySets>
-                    <!--
-                        TODO find a way to sort the dependencies automatically
-                        We want:
-                        - the dependencies of each module in a separate subdirectory
-                        - shaded dependencies excluded
-                        The only way I've found so far is to list them explicitly, this is brittle if we add new ones.
-                    -->
                     <dependencySet>
-                        <outputDirectory>lib/core</outputDirectory>
-                        <includes>
-                            <include>io.netty:netty-handler</include>
-                            <!--
-                                Explicitly include netty-common because it is a grandchild of netty-handler, but gets
-                                excluded by default as a direct child of netty-transport-native-epoll (which is not
-                                included)
-                            -->
-                            <include>io.netty:netty-common</include>
-                            <include>com.google.guava:guava</include>
-                            <include>io.dropwizard.metrics:metrics-core</include>
-                            <include>com.github.jnr:jnr-ffi</include>
-                            <include>com.github.jnr:jnr-posix</include>
-                            <include>org.xerial.snappy:snappy-java</include>
-                            <include>net.jpountz.lz4:lz4</include>
-                            <include>org.hdrhistogram:HdrHistogram</include>
-                        </includes>
-                        <!-- It looks like this option does exactly the opposite of what the docs say -->
-                        <useTransitiveFiltering>true</useTransitiveFiltering>
-                    </dependencySet>
-                    <dependencySet>
-                        <outputDirectory>lib/graph</outputDirectory>
-                        <includes>
-                            <include>org.apache.tinkerpop:gremlin-groovy</include>
-                            <include>org.apache.tinkerpop:tinkergraph-gremlin</include>
-                        </includes>
+                        <outputDirectory>lib</outputDirectory>
+                        <excludes>
+                            <!-- reactor projects -->
+                            <exclude>com.datastax.dse:dse-java-driver-core</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                            <!-- shaded libraries -->
+                            <exclude>com.fasterxml.jackson.core:*</exclude>
+                            <exclude>com.esri.geometry:*</exclude>
+                            <!-- platform-dependent -->
+                            <exclude>io.netty:netty-transport-native-epoll:*</exclude>
+                        </excludes>
                         <useTransitiveFiltering>true</useTransitiveFiltering>
                     </dependencySet>
                 </dependencySets>
             </binaries>
         </moduleSet>
+
+        <!-- dependencies of module dse-java-driver-mapping -->
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.datastax.cassandra:dse-java-driver-core</include>
-                <include>com.datastax.cassandra:dse-java-driver-graph</include>
+                <include>com.datastax.dse:dse-java-driver-mapping</include>
+            </includes>
+            <binaries>
+                <unpack>false</unpack>
+                <dependencySets>
+                    <dependencySet>
+                        <outputDirectory>lib/mapping</outputDirectory>
+                        <excludes>
+                            <!-- reactor projects -->
+                            <exclude>com.datastax.dse:dse-java-driver-core</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                        </excludes>
+                        <useTransitiveFiltering>true</useTransitiveFiltering>
+                    </dependencySet>
+                </dependencySets>
+            </binaries>
+        </moduleSet>
+
+        <!-- dependencies of module dse-java-driver-extras -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>com.datastax.dse:dse-java-driver-extras</include>
+            </includes>
+            <binaries>
+                <unpack>false</unpack>
+                <dependencySets>
+                    <dependencySet>
+                        <outputDirectory>lib/extras</outputDirectory>
+                        <excludes>
+                            <!-- reactor projects -->
+                            <exclude>com.datastax.dse:dse-java-driver-core</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                            <!-- already included in lib/core -->
+                            <exclude>com.google.guava:guava</exclude>
+                        </excludes>
+                        <useTransitiveFiltering>true</useTransitiveFiltering>
+                    </dependencySet>
+                </dependencySets>
+            </binaries>
+        </moduleSet>
+
+        <!-- dependencies of module dse-java-driver-graph -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>com.datastax.dse:dse-java-driver-graph</include>
+            </includes>
+            <binaries>
+                <unpack>false</unpack>
+                <dependencySets>
+                    <dependencySet>
+                        <outputDirectory>lib/graph</outputDirectory>
+                        <excludes>
+                            <!-- reactor projects -->
+                            <exclude>com.datastax.dse:dse-java-driver-core</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
+                            <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                        </excludes>
+                        <useTransitiveFiltering>true</useTransitiveFiltering>
+                    </dependencySet>
+                </dependencySets>
+            </binaries>
+        </moduleSet>
+
+        <!-- sources for all modules -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+            <includes>
+                <include>com.datastax.dse:dse-java-driver-core</include>
+                <include>com.datastax.dse:dse-java-driver-mapping</include>
+                <include>com.datastax.dse:dse-java-driver-extras</include>
+                <include>com.datastax.dse:dse-java-driver-examples</include>
+                <include>com.datastax.dse:dse-java-driver-graph</include>
             </includes>
             <binaries>
                 <unpack>false</unpack>
@@ -79,12 +140,16 @@
                 </excludes>
             </binaries>
         </moduleSet>
+
     </moduleSets>
+
     <fileSets>
+
         <fileSet>
             <directory>target/apidocs</directory>
             <outputDirectory>apidocs</outputDirectory>
         </fileSet>
+
         <fileSet>
             <directory>..</directory>
             <outputDirectory>.</outputDirectory>
@@ -93,14 +158,23 @@
                 <include>LICENSE*</include>
             </includes>
         </fileSet>
+
         <fileSet>
             <directory>../changelog</directory>
         </fileSet>
+
         <fileSet>
             <directory>../faq</directory>
         </fileSet>
+
         <fileSet>
             <directory>../manual</directory>
         </fileSet>
+
+        <fileSet>
+            <directory>../upgrade_guide</directory>
+        </fileSet>
+
     </fileSets>
+
 </assembly>
