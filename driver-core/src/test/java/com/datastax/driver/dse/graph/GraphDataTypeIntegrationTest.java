@@ -74,6 +74,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
                 {"Uuid()", UUIDs.timeBased()},
                 // Timestamps
                 {"Timestamp()", new Date(123)},
+                {"Timestamp()", new Date(1488313909)},
                 // Blob
                 {"Blob()", "Hello World!".getBytes(Charsets.UTF_8)},
                 // BigDecimal/BigInteger

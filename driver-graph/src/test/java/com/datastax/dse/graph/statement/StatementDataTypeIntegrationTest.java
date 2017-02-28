@@ -31,7 +31,7 @@ public class StatementDataTypeIntegrationTest extends DataTypeIntegrationTest {
     }
 
     @Override
-    protected void create_and_retrieve_vertex_property(Object input) {
+    protected void create_and_retrieve_vertex_property(Object input, Object output) {
         int id = schemaCounter.incrementAndGet();
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
@@ -41,14 +41,13 @@ public class StatementDataTypeIntegrationTest extends DataTypeIntegrationTest {
         GraphResultSet result = session().executeGraph(
                 statementFromTraversal(g.addV(vertexLabel).property(propertyName, input))
         );
-        validateVertexResult(result, vertexLabel, propertyName, input);
-
+        validateVertexResult(result, vertexLabel, propertyName, output);
 
         // For completeness, retrieve the vertex and ensure the property value as maintained.
         result = session().executeGraph(
                 statementFromTraversal(g.V().hasLabel(vertexLabel).has(propertyName, input))
         );
-        validateVertexResult(result, vertexLabel, propertyName, input);
+        validateVertexResult(result, vertexLabel, propertyName, output);
     }
 
     @SuppressWarnings("unchecked")
