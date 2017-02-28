@@ -23,7 +23,7 @@ public class RemoteDataTypeIntegrationTest extends DataTypeIntegrationTest {
     }
 
     @Override
-    protected void create_and_retrieve_vertex_property(Object input) {
+    protected void create_and_retrieve_vertex_property(Object input, Object output) {
         int id = schemaCounter.incrementAndGet();
         String vertexLabel = "vertex" + id;
         String propertyName = "prop" + id;
@@ -33,12 +33,12 @@ public class RemoteDataTypeIntegrationTest extends DataTypeIntegrationTest {
         Vertex addV = g.addV(vertexLabel).property(propertyName, input).next();
         assertThat(addV)
                 .hasLabel(vertexLabel)
-                .hasProperty(propertyName, input);
+                .hasProperty(propertyName, output);
 
         // For completeness, retrieve the vertex and ensure the property value as maintained.
         Vertex getV = g.V().hasLabel(vertexLabel).has(propertyName, input).next();
         assertThat(getV)
                 .hasLabel(vertexLabel)
-                .hasProperty(propertyName, input);
+                .hasProperty(propertyName, output);
     }
 }
