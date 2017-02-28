@@ -36,7 +36,7 @@
         <module>driver-extras</module>
         <module>driver-examples</module>
         <module>driver-tests</module>
-        <module>java-dse-graph</module>
+        <module>driver-graph</module>
         <module>driver-dist</module>
     </modules>
 
