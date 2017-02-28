@@ -10,8 +10,8 @@ package name:
 
 ```xml
 <dependency>
-  <groupId>com.datastax.cassandra</groupId>
-  <artifactId>dse-driver</artifactId>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-core</artifactId>
   <version>1.2.0-eap5</version>
   <classifier>shaded</classifier>
   <!-- Because the shaded JAR uses the original POM, you still need

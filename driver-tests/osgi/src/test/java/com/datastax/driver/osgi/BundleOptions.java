@@ -18,7 +18,8 @@ import org.ops4j.pax.exam.util.PathUtils;
 
 import java.util.List;
 
-import static com.datastax.driver.osgi.VersionProvider.*;
+import static com.datastax.driver.osgi.VersionProvider.getVersion;
+import static com.datastax.driver.osgi.VersionProvider.projectVersion;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
 public class BundleOptions {
@@ -29,15 +30,15 @@ public class BundleOptions {
 
     public static UrlProvisionOption driverBundle(boolean useShaded) {
         String classifier = useShaded ? "-shaded" : "";
-        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-core/target/dse-driver-" + projectVersion() + classifier + ".jar");
+        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-core/target/dse-driver-core-" + projectVersion() + classifier + ".jar");
     }
 
     public static MavenArtifactProvisionOption mappingBundle() {
-        return mavenBundle("com.datastax.cassandra", "cassandra-driver-mapping", ossDriverVersion());
+        return mavenBundle("com.datastax.dse", "dse-driver-mapping", projectVersion());
     }
 
     public static MavenArtifactProvisionOption extrasBundle() {
-        return mavenBundle("com.datastax.cassandra", "cassandra-driver-extras", ossDriverVersion());
+        return mavenBundle("com.datastax.dse", "dse-driver-extras", projectVersion());
     }
 
     public static MavenArtifactProvisionOption guavaBundle() {

@@ -9,14 +9,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.datastax.cassandra</groupId>
-        <artifactId>dse-parent</artifactId>
+        <groupId>com.datastax.dse</groupId>
+        <artifactId>dse-java-driver-parent</artifactId>
         <version>1.2.0-eap6-SNAPSHOT</version>
     </parent>
-    <artifactId>dse-driver-mapping</artifactId>
+    <artifactId>dse-java-driver-mapping</artifactId>
     <packaging>bundle</packaging>
-    <name>DataStax Enterprise Driver - Object Mapping</name>
-    <description>Object mapper for the DataStax CQL Java Driver.</description>
+    <name>DataStax Enterprise Java Driver - Object Mapping</name>
+    <description>Object mapper for the DataStax Enterprise Java Driver.</description>
     <url>https://github.com/datastax/java-driver-dse</url>
 
     <properties>
@@ -26,14 +26,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>dse-driver</artifactId>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>dse-driver</artifactId>
+            <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-core</artifactId>
             <version>${project.parent.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
@@ -187,18 +187,6 @@
                         <version>${groovy.version}</version>
                     </dependency>
                 </dependencies>
-            </plugin>
-            <plugin>
-                <artifactId>maven-install-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
             </plugin>
         </plugins>
     </build>

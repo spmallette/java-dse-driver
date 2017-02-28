@@ -141,7 +141,7 @@ If a query is [not idempotent][idempotence], the driver will not retry it if tha
 Therefore, the driver does not retry after a write timeout or request error if the statement is not idempotent. This is
 handled internally, the retry policy methods are not even invoked in those cases.
 
-Note that this behavior was introduced in version 3.1.0 of the driver. In previous versions, it was up to retry policy
+Note that this behavior was introduced in version 1.0.0 of the driver. In previous versions, it was up to retry policy
 implementations to handle idempotence (the new behavior is equivalent to what you achieved with
 `IdempotenceAwareRetryPolicy` before).
 
