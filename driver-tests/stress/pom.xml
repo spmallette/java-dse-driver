@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.datastax.dse</groupId>
         <artifactId>dse-java-driver-tests-parent</artifactId>
-        <version>1.2.0-rc1</version>
+        <version>1.2.0-rc2-SNAPSHOT</version>
     </parent>
     <artifactId>dse-java-driver-tests-stress</artifactId>
     <packaging>jar</packaging>
