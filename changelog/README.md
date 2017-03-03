@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.0-rc2 (in progress)
+
+- revert JAVA-1241 (go back to Netty 4.0)
+
+
 ### 1.2.0-rc1
 
 - [bug] JAVA-1406: Handle unprepared error in continuous paging.
