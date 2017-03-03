@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-
 import com.google.common.base.Objects;
 
 class DefaultVertexProperty extends DefaultElement implements VertexProperty {
@@ -50,13 +49,13 @@ class DefaultVertexProperty extends DefaultElement implements VertexProperty {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("id", getId())
-                .add("label", getLabel())
-                .add("properties", getProperties())
-                .add("name", getName())
-                .add("value", getValue())
-                .add("parent", getParent())
-                .toString();
+        return "DefaultVertexProperty{" +
+                "id=" + id +
+                ", label='" + label + '\'' +
+                ", properties=" + properties +
+                ", name=" + getName() +
+                ", value=" + value +
+                ", parent=" + parent +
+                '}';
     }
 }

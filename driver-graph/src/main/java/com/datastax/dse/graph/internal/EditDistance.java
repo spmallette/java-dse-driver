@@ -36,11 +36,6 @@ public class EditDistance implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return Objects.toStringHelper(this).add("query", query).add("distance", distance).toString();
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -51,5 +46,13 @@ public class EditDistance implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hashCode(query, distance);
+    }
+
+    @Override
+    public String toString() {
+        return "EditDistance{" +
+                "query='" + query + '\'' +
+                ", distance=" + distance +
+                '}';
     }
 }

@@ -6,8 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.google.common.base.Objects;
-
 /**
  * A default representation of an edge in DSE Graph.
  */
@@ -46,14 +44,14 @@ class DefaultEdge extends DefaultElement implements Edge {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("id", getId())
-                .add("label", getLabel())
-                .add("properties", getProperties())
-                .add("inV", getInV())
-                .add("inVLabel", getInVLabel())
-                .add("outV", getOutV())
-                .add("outVLabel", getOutVLabel())
-                .toString();
+        return "DefaultEdge{" +
+                "id=" + id +
+                ", label='" + label + '\'' +
+                ", properties=" + properties +
+                ", inV=" + inV +
+                ", inVLabel='" + inVLabel + '\'' +
+                ", outV=" + outV +
+                ", outVLabel='" + outVLabel + '\'' +
+                '}';
     }
 }

@@ -7,6 +7,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 
 import java.util.Iterator;
@@ -44,14 +45,14 @@ class DefaultVertex extends DefaultElement implements Vertex {
     @Override
     public Iterator<VertexProperty> getProperties(String name) {
         if (properties == null || properties.isEmpty() || !properties.containsKey(name))
-            return Iterators.emptyIterator();
+            return ImmutableSet.<VertexProperty>of().iterator();
         return Iterators.unmodifiableIterator(Iterators.transform(properties.get(name).iterator(), GRAPH_NODE_TO_VERTEX_PROPERTY));
     }
 
     @Override
     public Iterator<VertexProperty> getProperties() {
         if (properties == null || properties.isEmpty())
-            return Iterators.emptyIterator();
+            return ImmutableSet.<VertexProperty>of().iterator();
         return Iterators.unmodifiableIterator(Iterators.transform(properties.values().iterator(), GRAPH_NODE_TO_VERTEX_PROPERTY));
     }
 

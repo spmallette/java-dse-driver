@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-
 import com.google.common.base.Objects;
 
 class DefaultProperty implements Property {
@@ -52,10 +51,10 @@ class DefaultProperty implements Property {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("name", getName())
-                .add("value", getValue())
-                .add("parent", getParent())
-                .toString();
+        return "DefaultProperty{" +
+                "name='" + name + '\'' +
+                ", value=" + value +
+                ", parent=" + parent +
+                '}';
     }
 }

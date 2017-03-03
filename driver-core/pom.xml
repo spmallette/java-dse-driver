@@ -362,7 +362,7 @@
                         <Import-Package>
                             <!-- JNR does not provide OSGi bundles, so exclude it; the driver can live without it -->
                             <![CDATA[
-                                com.google.common*;version="[16.0.1,21)",
+                                com.google.common*;version="[16.0.1,22)",
                                 !jnr.*,
                                 !com.fasterxml.jackson.*,
                                 !com.esri.core.geometry.*,
@@ -398,7 +398,7 @@
                                     Explicitly import javax.security.cert because it's required by Netty, but Netty has been explicitly excluded
                                     -->
                                     <![CDATA[
-                                        com.google.common.*;version="[16.0.1,21)",
+                                        com.google.common.*;version="[16.0.1,22)",
                                         !jnr.*,
                                         !com.fasterxml.jackson.*,
                                         !com.esri.core.geometry.*,

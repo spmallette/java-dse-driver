@@ -8,6 +8,7 @@ package com.datastax.driver.dse.graph;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
 
@@ -66,14 +67,14 @@ abstract class DefaultElement implements Element {
     @Override
     public Iterator<? extends Property> getProperties(String name) {
         if (properties == null || properties.isEmpty() || !properties.containsKey(name))
-            return Iterators.emptyIterator();
+            return ImmutableSet.<Property>of().iterator();
         return Iterators.unmodifiableIterator(Iterators.transform(properties.get(name).iterator(), GRAPH_NODE_TO_PROPERTY));
     }
 
     @Override
     public Iterator<? extends Property> getProperties() {
         if (properties == null || properties.isEmpty())
-            return Iterators.emptyIterator();
+            return ImmutableSet.<Property>of().iterator();
         return Iterators.unmodifiableIterator(Iterators.transform(properties.values().iterator(), GRAPH_NODE_TO_PROPERTY));
     }
 
@@ -93,11 +94,11 @@ abstract class DefaultElement implements Element {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("id", getId())
-                .add("label", getLabel())
-                .add("properties", getProperties())
-                .toString();
+        return "DefaultElement{" +
+                "id=" + id +
+                ", label='" + label + '\'' +
+                ", properties=" + properties +
+                '}';
     }
 
 }

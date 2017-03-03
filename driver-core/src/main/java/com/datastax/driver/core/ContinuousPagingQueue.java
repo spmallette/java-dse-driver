@@ -15,7 +15,6 @@ import com.datastax.driver.core.exceptions.DriverInternalError;
 import com.datastax.driver.core.exceptions.OperationTimedOutException;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
@@ -223,7 +222,7 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
                             ContinuousPagingQueue.this.cancel();
                         }
                     }
-                }, MoreExecutors.sameThreadExecutor());
+                }, GuavaCompatibility.INSTANCE.sameThreadExecutor());
                 pendingResult = future;
                 startTimeout();
                 return future;

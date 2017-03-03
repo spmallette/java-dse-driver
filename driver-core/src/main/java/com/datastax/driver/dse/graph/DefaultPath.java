@@ -106,9 +106,9 @@ class DefaultPath implements Path {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("labels", getLabels())
-                .add("objects", getObjects())
-                .toString();
+        return "DefaultPath{" +
+                "labels=" + getLabels() +
+                ", objects=" + getObjects() +
+                '}';
     }
 }
