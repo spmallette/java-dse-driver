@@ -10,7 +10,7 @@ The module is published as a separate Maven artifact:
 <dependency>
   <groupId>com.datastax.dse</groupId>
   <artifactId>dse-java-driver-extras</artifactId>
-  <version>1.2.0-eap5</version>
+  <version>1.2.0-rc1</version>
 </dependency>
 ```
 
