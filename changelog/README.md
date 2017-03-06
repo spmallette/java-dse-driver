@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0-rc2 (in progress)
+### 1.2.0-rc2
 
 - revert JAVA-1241 (go back to Netty 4.0)
 
