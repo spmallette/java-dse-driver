@@ -59,6 +59,7 @@ public class DseGraphModule extends TinkerPopJacksonModule {
         addDeserializer(P.class, new DsePJacksonDeserializer());
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public Map<Class, String> getTypeDefinitions() {
         Map<Class, String> definitions = new HashMap<>();
@@ -68,8 +69,6 @@ public class DseGraphModule extends TinkerPopJacksonModule {
         definitions.put(byte[].class, "Blob");
         definitions.put(Distance.class, "Distance");
         definitions.put(P.class, "P");
-
-
         return definitions;
     }
 
@@ -79,7 +78,7 @@ public class DseGraphModule extends TinkerPopJacksonModule {
     }
 
     abstract static class AbstractGeometryJacksonDeserializer<T extends Geometry> extends StdDeserializer<T> {
-        public AbstractGeometryJacksonDeserializer(final Class<T> clazz) {
+        AbstractGeometryJacksonDeserializer(final Class<T> clazz) {
             super(clazz);
         }
 
@@ -93,7 +92,7 @@ public class DseGraphModule extends TinkerPopJacksonModule {
 
     static abstract class AbstractGeometryJacksonSerializer<T extends Geometry> extends StdScalarSerializer<T> {
 
-        public AbstractGeometryJacksonSerializer(final Class<T> clazz) {
+        AbstractGeometryJacksonSerializer(final Class<T> clazz) {
             super(clazz);
         }
 
@@ -106,13 +105,13 @@ public class DseGraphModule extends TinkerPopJacksonModule {
 
 
     public static class LineStringGeometrySerializer extends AbstractGeometryJacksonSerializer<LineString> {
-        public LineStringGeometrySerializer() {
+        LineStringGeometrySerializer() {
             super(LineString.class);
         }
     }
 
     public static class LineStringGeometryDeserializer extends AbstractGeometryJacksonDeserializer<LineString> {
-        public LineStringGeometryDeserializer() {
+        LineStringGeometryDeserializer() {
             super(LineString.class);
         }
 
@@ -123,13 +122,13 @@ public class DseGraphModule extends TinkerPopJacksonModule {
     }
 
     public static class PolygonGeometrySerializer extends AbstractGeometryJacksonSerializer<Polygon> {
-        public PolygonGeometrySerializer() {
+        PolygonGeometrySerializer() {
             super(Polygon.class);
         }
     }
 
     public static class PolygonGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Polygon> {
-        public PolygonGeometryDeserializer() {
+        PolygonGeometryDeserializer() {
             super(Polygon.class);
         }
 
@@ -140,13 +139,13 @@ public class DseGraphModule extends TinkerPopJacksonModule {
     }
 
     public static class PointGeometrySerializer extends AbstractGeometryJacksonSerializer<Point> {
-        public PointGeometrySerializer() {
+        PointGeometrySerializer() {
             super(Point.class);
         }
     }
 
     public static class PointGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Point> {
-        public PointGeometryDeserializer() {
+        PointGeometryDeserializer() {
             super(Point.class);
         }
 
@@ -157,13 +156,13 @@ public class DseGraphModule extends TinkerPopJacksonModule {
     }
 
     public static class DistanceGeometrySerializer extends AbstractGeometryJacksonSerializer<Distance> {
-        public DistanceGeometrySerializer() {
+        DistanceGeometrySerializer() {
             super(Distance.class);
         }
     }
 
     public static class DistanceGeometryDeserializer extends AbstractGeometryJacksonDeserializer<Distance> {
-        public DistanceGeometryDeserializer() {
+        DistanceGeometryDeserializer() {
             super(Distance.class);
         }
 
@@ -173,9 +172,10 @@ public class DseGraphModule extends TinkerPopJacksonModule {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     final static class DsePJacksonSerializer extends StdScalarSerializer<P> {
 
-        public DsePJacksonSerializer() {
+        DsePJacksonSerializer() {
             super(P.class);
         }
 
@@ -219,9 +219,10 @@ public class DseGraphModule extends TinkerPopJacksonModule {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     final static class DsePJacksonDeserializer extends AbstractObjectDeserializer<P> {
 
-        public DsePJacksonDeserializer() {
+        DsePJacksonDeserializer() {
             super(P.class);
         }
 
@@ -267,10 +268,13 @@ public class DseGraphModule extends TinkerPopJacksonModule {
                         } else if (predicate.equals(SearchPredicate.phrase.name())) {
                             Map<String, Object> arguments = (Map<String, Object>) value;
                             return Search.phrase((String) arguments.get("query"), (int) arguments.get("distance"));
-                        } else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.inside.name()))
+                        } else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.inside.name())){
                             return Geo.inside(((Distance) value).getCenter(), ((Distance) value).getRadius(), Geo.Unit.DEGREES);
-                        else
+                        } else if (predicateType.equals(Geo.class.getSimpleName()) && predicate.equals(GeoPredicate.insideCartesian.name())){
+                            return Geo.inside(((Distance) value).getCenter(), ((Distance) value).getRadius());
+                        } else {
                             return (P) P.class.getMethod(predicate, Object.class).invoke(null, value);
+                        }
                     }
                 } catch (final Exception e) {
                     throw new IllegalStateException(e.getMessage(), e);
@@ -280,7 +284,7 @@ public class DseGraphModule extends TinkerPopJacksonModule {
     }
 
     public static class EditDistanceSerializer extends StdSerializer<EditDistance> {
-        protected EditDistanceSerializer() {
+        EditDistanceSerializer() {
             super(EditDistance.class);
         }
 

@@ -22,10 +22,10 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * The driver-side representation of DSE's {@code Geo.distance}.
  * <p/>
  * This is a circle in a two-dimensional XY plane represented by its center point and radius.  It is used as a search
- * criteria to determine whether or not another geospatial object is lies within a circular area.
+ * criteria to determine whether or not another geospatial object lies within a circular area.
  * <p/>
  * Note that this shape has no equivalent in the OGC and GeoJSON standards: as a consequence, {@link #asWellKnownText()}
- * returns a custom format, and {@link #asWellKnownBinary()}, {@link #asGeoJson()} and {@link #asGeoJson()} are not
+ * returns a custom format, and {@link #asWellKnownBinary()}, and {@link #asGeoJson()} are not
  * supported.
  */
 public class Distance extends Geometry {

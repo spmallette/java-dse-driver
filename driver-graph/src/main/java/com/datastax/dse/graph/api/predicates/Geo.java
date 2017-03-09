@@ -50,7 +50,7 @@ public class Geo {
     }
 
     /**
-     * Graph predicate to find whether an entity is inside a defined area.
+     * Graph predicate to find whether an entity is inside a defined area using a geo coordinate system.
      *
      * @param center the center of the area to look into.
      * @param radius the radius of the area to look into.
@@ -62,13 +62,24 @@ public class Geo {
     }
 
     /**
+     * Graph predicate to find whether an entity is inside a defined area using a cartesian coordinate system.
+     *
+     * @param center the center of the area to look into.
+     * @param radius the radius of the area to look into.
+     * @return a predicate to use in TinkerPop on a graph data set.
+     */
+    public static P<Object> inside(Point center, double radius) {
+        return new P<>(GeoPredicate.insideCartesian, distance(center, radius));
+    }
+
+    /**
      * Graph predicate to find whether an entity is inside a defined {@link com.datastax.driver.dse.geometry.Polygon}.
      *
      * @param polygon the polygon entity to check inside of.
      * @return a predicate to use in TinkerPop on a graph data set.
      */
     public static P<Object> inside(Polygon polygon) {
-        return new P<>(GeoPredicate.inside, polygon);
+        return new P<>(GeoPredicate.insideCartesian, polygon);
     }
 
     /**
@@ -153,5 +164,7 @@ public class Geo {
         Preconditions.checkArgument(radius >= 0.0D, "Invalid radius: %s", radius);
         return new Distance(center, radius);
     }
+
+
 
 }

@@ -2,6 +2,8 @@
 
 ### 1.2.0-rc3 (in progress)
 
+- [improvement] JAVA-1416: Use haversine distance in Geo predicates.
+
 Merged from OSS 3.x:
 
 - [bug] JAVA-1415: Correctly report if a UDT column is frozen.
