@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -337,7 +338,7 @@ public class ScassandraCluster {
                             .withQuery("SELECT * FROM system.local WHERE key='local'")
                             .withThen(then()
                                     .withColumnTypes(localMetadata.toArray(new ColumnMetadata[localMetadata.size()]))
-                                    .withRows(row)
+                                    .withRows(Collections.<Map<String, ?>>singletonList(row))
                                     .build())
                             .build());
 
@@ -366,7 +367,7 @@ public class ScassandraCluster {
                             .withQuery("SELECT * FROM system.peers WHERE peer='" + address + "'")
                             .withThen(then()
                                     .withColumnTypes(peersMetadata.toArray(new ColumnMetadata[peersMetadata.size()]))
-                                    .withRows(row)
+                                    .withRows(Collections.<Map<String, ?>>singletonList(row))
                                     .build())
                             .build());
                 }
@@ -388,7 +389,7 @@ public class ScassandraCluster {
                 .withQuery("select cluster_name from system.local")
                 .withThen(then()
                         .withColumnTypes(SELECT_CLUSTER_NAME)
-                        .withRows(clusterNameRow)
+                        .withRows(Collections.<Map<String, ?>>singletonList(clusterNameRow))
                         .build())
                 .build());
 

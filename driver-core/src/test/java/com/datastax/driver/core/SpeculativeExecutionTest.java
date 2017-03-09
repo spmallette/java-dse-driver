@@ -26,6 +26,7 @@ import java.util.Map;
 import static com.datastax.driver.core.Assertions.assertThat;
 import static com.datastax.driver.core.TestUtils.nonQuietClusterCloseOptions;
 import static org.mockito.Mockito.*;
+import static org.scassandra.http.client.PrimingRequest.then;
 
 public class SpeculativeExecutionTest {
     ScassandraCluster scassandras;
@@ -75,7 +76,7 @@ public class SpeculativeExecutionTest {
     public void should_not_start_speculative_execution_if_first_execution_completes_successfully() {
         scassandras.node(1).primingClient().prime(PrimingRequest.queryBuilder()
                 .withQuery("mock query")
-                .withRows(row("result", "result1"))
+                .withThen(then().withRows(row("result", "result1")))
                 .build()
         );
 
@@ -95,14 +96,14 @@ public class SpeculativeExecutionTest {
         scassandras.node(1).primingClient().prime(PrimingRequest.queryBuilder()
                 .withQuery("mock query")
                 .withConsistency(Consistency.TWO)
-                .withResult(Result.read_request_timeout)
+                .withThen(then().withResult(Result.read_request_timeout))
                 .build()
         );
 
         scassandras.node(1).primingClient().prime(PrimingRequest.queryBuilder()
                 .withQuery("mock query")
                 .withConsistency(Consistency.ONE)
-                .withRows(row("result", "result1"))
+                .withThen(then().withRows(row("result", "result1")))
                 .build()
         );
 
@@ -125,14 +126,13 @@ public class SpeculativeExecutionTest {
     public void should_start_speculative_execution_if_first_execution_takes_too_long() {
         scassandras.node(1).primingClient().prime(PrimingRequest.queryBuilder()
                 .withQuery("mock query")
-                .withFixedDelay(400)
-                .withRows(row("result", "result1"))
+                .withThen(then().withRows(row("result", "result1")).withFixedDelay(400L))
                 .build()
         );
 
         scassandras.node(2).primingClient().prime(PrimingRequest.queryBuilder()
                 .withQuery("mock query")
-                .withRows(row("result", "result2"))
+                .withThen(then().withRows(row("result", "result2")))
                 .build()
         );
         long execStartCount = errors.getSpeculativeExecutions().getCount();
@@ -154,15 +154,13 @@ public class SpeculativeExecutionTest {
                 // execution1 starts with host1, which will time out at t=1000
                 .prime(PrimingRequest.queryBuilder()
                         .withQuery("mock query")
-                        .withFixedDelay(2000)
-                        .withRows(row("result", "result1"))
+                        .withThen(then().withRows(row("result", "result1")).withFixedDelay(2000L))
                         .build());
         // at t=1000, execution1 moves to host3, which eventually succeeds at t=1500
         scassandras.node(3).primingClient()
                 .prime(PrimingRequest.queryBuilder()
                         .withQuery("mock query")
-                        .withFixedDelay(500)
-                        .withRows(row("result", "result3"))
+                        .withThen(then().withRows(row("result", "result3")).withFixedDelay(500L))
                         .build());
         // meanwhile, execution2 starts at t=200, using host2 which times out at t=1200
         // at that time, the query plan is empty so execution2 fails
@@ -170,8 +168,7 @@ public class SpeculativeExecutionTest {
         scassandras.node(2).primingClient()
                 .prime(PrimingRequest.queryBuilder()
                         .withQuery("mock query")
-                        .withFixedDelay(2000)
-                        .withRows(row("result", "result2"))
+                        .withThen(then().withRows(row("result", "result2")).withFixedDelay(2000L))
                         .build());
         long execStartCount = errors.getSpeculativeExecutions().getCount();
 
@@ -238,8 +235,7 @@ public class SpeculativeExecutionTest {
                     // execution1 starts with host1, which will time out at t=1000
                     .prime(PrimingRequest.queryBuilder()
                             .withQuery("mock query")
-                            .withFixedDelay(2000)
-                            .withRows(row("result", "result1"))
+                            .withThen(then().withRows(row("result", "result1")).withFixedDelay(2000L))
                             .build());
 
             Session session = cluster.connect();

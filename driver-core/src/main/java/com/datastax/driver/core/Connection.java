@@ -20,6 +20,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.Timeout;
@@ -89,8 +90,6 @@ class Connection {
 
     private final AtomicReference<Owner> ownerRef = new AtomicReference<Owner>();
 
-    private final ListenableFuture<Connection> thisFuture;
-
     /**
      * Create a new connection to a Cassandra node and associate it with the given pool.
      *
@@ -106,7 +105,7 @@ class Connection {
         this.dispatcher = new Dispatcher();
         this.name = name;
         this.ownerRef.set(owner);
-        this.thisFuture = Futures.immediateFuture(this);
+        ListenableFuture<Connection> thisFuture = Futures.immediateFuture(this);
         this.defaultKeyspaceAttempt = new SetKeyspaceAttempt(null, thisFuture);
         this.targetKeyspace = new AtomicReference<SetKeyspaceAttempt>(defaultKeyspaceAttempt);
     }
@@ -1216,6 +1215,7 @@ class Connection {
 
             ChannelFuture future = channel.close();
             future.addListener(new ChannelFutureListener() {
+                @Override
                 public void operationComplete(ChannelFuture future) {
                     factory.allChannels.remove(channel);
                     if (future.cause() != null) {
@@ -1444,14 +1444,17 @@ class Connection {
             ChannelPipeline pipeline = channel.pipeline();
 
             if (sslOptions != null) {
-                if (sslOptions instanceof RemoteEndpointAwareSSLOptions)
-                    pipeline.addLast("ssl", ((RemoteEndpointAwareSSLOptions) sslOptions).newSSLHandler(channel, connection.address));
-                else
-                    //noinspection deprecation
-                    pipeline.addLast("ssl", sslOptions.newSSLHandler(channel));
+                if (sslOptions instanceof RemoteEndpointAwareSSLOptions) {
+                    SslHandler handler = ((RemoteEndpointAwareSSLOptions) sslOptions).newSSLHandler(channel, connection.address);
+                    pipeline.addLast("ssl", handler);
+                } else {
+                    @SuppressWarnings("deprecation")
+                    SslHandler handler = sslOptions.newSSLHandler(channel);
+                    pipeline.addLast("ssl", handler);
+                }
             }
 
-            //            pipeline.addLast("debug", new LoggingHandler(LogLevel.INFO));
+            // pipeline.addLast("debug", new LoggingHandler(LogLevel.INFO));
 
             pipeline.addLast("frameDecoder", new Frame.Decoder());
             pipeline.addLast("frameEncoder", frameEncoder);

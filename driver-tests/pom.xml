@@ -29,7 +29,18 @@
     </modules>
 
     <build>
+
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>clirr-maven-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
@@ -38,6 +49,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -46,6 +58,9 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
         </plugins>
+
     </build>
+
 </project>

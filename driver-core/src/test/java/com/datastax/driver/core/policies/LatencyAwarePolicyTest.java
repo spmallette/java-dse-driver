@@ -18,6 +18,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.scassandra.http.client.PrimingRequest.queryBuilder;
+import static org.scassandra.http.client.PrimingRequest.then;
 import static org.scassandra.http.client.Result.read_request_timeout;
 import static org.scassandra.http.client.Result.unavailable;
 
@@ -97,7 +98,7 @@ public class LatencyAwarePolicyTest extends ScassandraTestBase {
         primingClient.prime(
                 queryBuilder()
                         .withQuery(query)
-                        .withResult(unavailable)
+                        .withThen(then().withResult(unavailable))
                         .build()
         );
         LatencyAwarePolicy latencyAwarePolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy())
@@ -141,7 +142,7 @@ public class LatencyAwarePolicyTest extends ScassandraTestBase {
         primingClient.prime(
                 queryBuilder()
                         .withQuery(query)
-                        .withResult(read_request_timeout)
+                        .withThen(then().withResult(read_request_timeout))
                         .build()
         );
 

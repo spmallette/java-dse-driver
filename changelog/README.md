@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.2.0-rc3 (in progress)
+
+Merged from OSS 3.x:
+
+- [bug] JAVA-1415: Correctly report if a UDT column is frozen.
+- [bug] JAVA-1418: Make Guava version detection more reliable.
+
+
 ### 1.2.0-rc2
 
 - revert JAVA-1241 (go back to Netty 4.0)

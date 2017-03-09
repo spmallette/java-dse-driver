@@ -7,6 +7,7 @@
 package com.datastax.driver.osgi;
 
 import com.datastax.driver.core.CCMBridge;
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ProtocolOptions;
 import com.datastax.driver.core.TestUtils;
 import com.google.common.collect.Lists;
@@ -18,8 +19,6 @@ import org.ops4j.pax.exam.util.PathUtils;
 
 import java.util.List;
 
-import static com.datastax.driver.osgi.VersionProvider.getVersion;
-import static com.datastax.driver.osgi.VersionProvider.projectVersion;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
 public class BundleOptions {
@@ -30,15 +29,15 @@ public class BundleOptions {
 
     public static UrlProvisionOption driverBundle(boolean useShaded) {
         String classifier = useShaded ? "-shaded" : "";
-        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-core/target/dse-java-driver-core-" + projectVersion() + classifier + ".jar");
+        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-core/target/dse-java-driver-core-" + Cluster.getDriverVersion() + classifier + ".jar");
     }
 
-    public static MavenArtifactProvisionOption mappingBundle() {
-        return mavenBundle("com.datastax.dse", "dse-java-driver-mapping", projectVersion());
+    public static UrlProvisionOption mappingBundle() {
+        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-mapping/target/dse-java-driver-mapping-" + Cluster.getDriverVersion() + ".jar");
     }
 
-    public static MavenArtifactProvisionOption extrasBundle() {
-        return mavenBundle("com.datastax.dse", "dse-java-driver-extras", projectVersion());
+    public static UrlProvisionOption extrasBundle() {
+        return bundle("reference:file:" + PathUtils.getBaseDir() + "/../../driver-extras/target/dse-java-driver-extras-" + Cluster.getDriverVersion() + ".jar");
     }
 
     public static MavenArtifactProvisionOption guavaBundle() {
@@ -136,5 +135,13 @@ public class BundleOptions {
                 return options.toArray(new Option[options.size()]);
             }
         };
+    }
+
+    private static String getVersion(String propertyName) {
+        String value = System.getProperty(propertyName);
+        if (value == null) {
+            throw new IllegalArgumentException(propertyName + " system property is not set.");
+        }
+        return value;
     }
 }
