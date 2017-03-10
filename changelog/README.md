@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0-rc3 (in progress)
+### 1.2.0-rc3
 
 - [improvement] JAVA-1416: Use haversine distance in Geo predicates.
 
