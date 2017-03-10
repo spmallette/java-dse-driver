@@ -51,11 +51,11 @@ public class GraphFixtures {
                     "josh.addEdge('created', lop, 'weight', 0.4f);\n" +
                     "peter.addEdge('created', lop, 'weight', 0.2f);");
 
-    private static String pointType(VersionNumber dseVersion) {
+    private static String geoType(String baseName, VersionNumber dseVersion) {
         Preconditions.checkNotNull(dseVersion);
         return (dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0)
-                ? "Point()"
-                : "Point().withGeoBounds()";
+                ? baseName
+                : baseName + ".withGeoBounds()";
     }
 
     /**
@@ -75,7 +75,7 @@ public class GraphFixtures {
                         "schema.propertyKey('time').Timestamp().ifNotExists().create();\n" +
                         "schema.propertyKey('reason').Text().ifNotExists().create();\n" +
                         "schema.propertyKey('nicknames').Text().multiple().properties('time').ifNotExists().create();\n" +
-                        "schema.propertyKey('place')." + pointType(dseVersion) + ".ifNotExists().create();",
+                        "schema.propertyKey('place')." + geoType("Point()", dseVersion) + ".ifNotExists().create();",
 
                 // schema - vertices
                 "schema.vertexLabel('titan').properties('name', 'age').ifNotExists().create();\n" +
@@ -165,16 +165,16 @@ public class GraphFixtures {
                 makeStrict,
                 allowScans,
                 "schema.propertyKey('full_name').Text().create()\n" +
-                        "schema.propertyKey('coordinates')." + pointType(dseVersion) + ".create()\n" +
-                        "schema.propertyKey('linestringProp').Linestring().create()\n" +
-                        "schema.propertyKey('polygonProp').Polygon().create()\n" +
+                        "schema.propertyKey('coordinates')." + geoType("Point()", dseVersion) + ".create()\n" +
+                        "schema.propertyKey('linestringProp')." + geoType("Linestring()", dseVersion) + ".create()\n" +
+                        "schema.propertyKey('polygonProp')." + geoType("Polygon()", dseVersion) + ".create()\n" +
                         "schema.propertyKey('city').Text().create()\n" +
                         "schema.propertyKey('state').Text().create()\n" +
                         "schema.propertyKey('description').Text().create()\n" +
                         "schema.propertyKey('alias').Text().create()\n" +
                         "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description').create()\n" +
-                        "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().by('alias').asString().add()\n",
-                        "schema.vertexLabel('user').index('searchLinestring').secondary().by('linestringProp').add()\n",
+                        "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().by('alias').asString().add()\n" +
+                        "schema.vertexLabel('user').index('searchLinestring').secondary().by('linestringProp').add()\n" +
                         "schema.vertexLabel('user').index('searchPolygon').secondary().by('polygonProp').add()\n",
                 "g.addV('user').property('full_name', 'Paul Thomas Joe').property('city', 'Rochester').property('state', 'MN').property('coordinates', Geo.point(-92.46295, 44.0234)).property('description', 'Lives by the hospital').property('alias', 'mario')",
                 "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.9778)).property('description', 'A cold dude').property('alias', 'wario').property('linestringProp', 'LINESTRING (30 10, 10 30, 40 40)')",

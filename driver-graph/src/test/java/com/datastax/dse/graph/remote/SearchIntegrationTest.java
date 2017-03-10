@@ -158,7 +158,7 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long")
+    @Test(groups = "long", enabled = false, description = "Disabled until Cartesian Predicate is Supported by DSE")
     public void search_by_polygon_area() {
         // 10 clicks from La Crosse, WI should include Chicago, Rochester and Minneapolis, this is needed to filter
         // down the traversal set using the search index as Geo.inside(polygon) is not supported for search indices.
