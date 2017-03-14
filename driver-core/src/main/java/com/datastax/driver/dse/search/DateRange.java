@@ -18,7 +18,7 @@ import java.util.*;
 import static com.datastax.driver.dse.search.DateRange.DateRangeBound.UNBOUNDED;
 
 /**
- * A date range, as defined by the  C* type {@value DateRangeCodec#CLASS_NAME},
+ * A date range, as defined by the  C* type {@code org.apache.cassandra.db.marshal.DateRangeType},
  * corresponding to the Apache Solr type
  * <a href="https://lucene.apache.org/solr/6_3_0/solr-core/index.html?org/apache/solr/schema/DateRangeField.html">{@code DateRangeField}</a>.
  * <p/>
