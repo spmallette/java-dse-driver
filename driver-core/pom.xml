@@ -69,7 +69,7 @@
         <dependency>
             <groupId>com.esri.geometry</groupId>
             <artifactId>esri-geometry-api</artifactId>
-            <version>1.2.1</version>
+            <version>${esri.version}</version>
         </dependency>
 
         <!-- Compression libraries for the protocol. -->
