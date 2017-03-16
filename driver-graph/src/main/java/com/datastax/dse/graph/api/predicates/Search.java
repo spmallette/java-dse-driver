@@ -19,7 +19,7 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> token(String value) {
-        return new P(SearchPredicate.token, value);
+        return new P<>(SearchPredicate.token, value);
     }
 
     /**
@@ -29,7 +29,7 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> tokenPrefix(String value) {
-        return new P(SearchPredicate.tokenPrefix, value);
+        return new P<>(SearchPredicate.tokenPrefix, value);
     }
 
     /**
@@ -39,7 +39,7 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> tokenRegex(String value) {
-        return new P(SearchPredicate.tokenRegex, value);
+        return new P<>(SearchPredicate.tokenRegex, value);
     }
 
     /**
@@ -49,7 +49,7 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> prefix(String value) {
-        return new P(SearchPredicate.prefix, value);
+        return new P<>(SearchPredicate.prefix, value);
     }
 
     /**
@@ -59,7 +59,7 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> regex(String value) {
-        return new P(SearchPredicate.regex, value);
+        return new P<>(SearchPredicate.regex, value);
     }
 
     /**
@@ -79,11 +79,11 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> phrase(String query, int distance) {
-        return new P(SearchPredicate.phrase, new EditDistance(query, distance));
+        return new P<>(SearchPredicate.phrase, new EditDistance(query, distance));
     }
 
     /**
-     * Supports fuzzy searches based on the Levenshtein Distance, or Edit Distance algorithm
+     * Supports fuzzy searches based on the Damerau-Levenshtein Distance, or Edit Distance algorithm
      * (case sensitive).
      * <p/>
      * Example: the search expression is {@code fuzzy("david", 1)}
@@ -99,11 +99,11 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> fuzzy(String query, int distance) {
-        return new P(SearchPredicate.fuzzy, new EditDistance(query, distance));
+        return new P<>(SearchPredicate.fuzzy, new EditDistance(query, distance));
     }
 
     /**
-     * Supports fuzzy searches based on the Levenshtein Distance, or Edit Distance algorithm
+     * Supports fuzzy searches based on the Damerau-Levenshtein Distance, or Edit Distance algorithm
      * after having tokenized the data stored (case insensitive).
      * <p/>
      * Example: the search expression is {@code tokenFuzzy("david", 1)}
@@ -119,6 +119,6 @@ public class Search {
      * @return a predicate to apply in a {@link org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal}.
      */
     public static P<Object> tokenFuzzy(String query, int distance) {
-        return new P(SearchPredicate.tokenFuzzy, new EditDistance(query, distance));
+        return new P<>(SearchPredicate.tokenFuzzy, new EditDistance(query, distance));
     }
 }

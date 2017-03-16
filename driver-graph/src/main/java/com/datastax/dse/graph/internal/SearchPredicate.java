@@ -6,15 +6,16 @@
  */
 package com.datastax.dse.graph.internal;
 
-import com.google.common.collect.Sets;
-
-import java.util.ArrayList;
 import com.datastax.dse.graph.api.predicates.Search;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static com.datastax.dse.graph.internal.utils.StringUtils.getOptimalStringAlignmentDistance;
 
 /**
  * List of predicates for geolocation usage with DseGraph and Search indexes.
@@ -44,10 +45,7 @@ public enum SearchPredicate implements DsePredicate {
 
         @Override
         public boolean isValidCondition(Object condition) {
-            if (condition == null) return false;
-            else if (StringUtils.isNotBlank((String) condition))
-                return true;
-            else return false;
+            return condition != null && StringUtils.isNotBlank((String) condition);
         }
 
         @Override
@@ -129,7 +127,7 @@ public enum SearchPredicate implements DsePredicate {
             EditDistance fuzzyCondition = (EditDistance) condition;
 
             for (String token : tokenize(value.toString().toLowerCase())) {
-                if (StringUtils.getLevenshteinDistance(token, fuzzyCondition.query.toLowerCase()) <= fuzzyCondition.distance) {
+                if (getOptimalStringAlignmentDistance(token, fuzzyCondition.query.toLowerCase()) <= fuzzyCondition.distance) {
                     return true;
                 }
             }
@@ -179,10 +177,7 @@ public enum SearchPredicate implements DsePredicate {
         @Override
         public boolean test(Object value, Object condition) {
             preEvaluate(condition);
-            if (value == null) {
-                return false;
-            }
-            return Pattern.compile((String) condition, Pattern.DOTALL).matcher(value.toString()).matches();
+            return value != null && Pattern.compile((String) condition, Pattern.DOTALL).matcher(value.toString()).matches();
 
         }
 
@@ -207,7 +202,7 @@ public enum SearchPredicate implements DsePredicate {
             preEvaluate(condition);
             if (value == null) return false;
             EditDistance fuzzyCondition = (EditDistance) condition;
-            return StringUtils.getLevenshteinDistance(value.toString(), fuzzyCondition.query) <= fuzzyCondition.distance;
+            return getOptimalStringAlignmentDistance(value.toString(), fuzzyCondition.query) <= fuzzyCondition.distance;
         }
 
         @Override

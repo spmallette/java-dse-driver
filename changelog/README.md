@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.0 (in progress)
+
+- [bug] JAVA-1421: Use Optimal string alignment distance algorithm for fuzzy predicates.
+
+
 ### 1.2.0-rc3
 
 - [improvement] JAVA-1416: Use haversine distance in Geo predicates.
