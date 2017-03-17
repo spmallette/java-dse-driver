@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.0 (in progress)
+### 1.2.0
 
 - [bug] JAVA-1421: Use Optimal string alignment distance algorithm for fuzzy predicates.
 

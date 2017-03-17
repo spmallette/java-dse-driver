@@ -20,7 +20,7 @@ The driver is available from Maven central:
 <dependency>
   <groupId>com.datastax.dse</groupId>
   <artifactId>dse-java-driver-core</artifactId>
-  <version>1.2.0-rc3</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 

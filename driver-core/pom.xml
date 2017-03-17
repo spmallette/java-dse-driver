@@ -282,7 +282,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <comparisonVersion>1.1.0</comparisonVersion>
+                            <comparisonVersion>1.1.2</comparisonVersion>
                             <includes>
                                 <!--
                                     TODO replace with com/datastax/driver/** when we have a released version of dse-driver with the core classes included.
