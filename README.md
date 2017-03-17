@@ -30,6 +30,6 @@ Create a [JIRA](https://datastax-oss.atlassian.net/browse/JAVA) ticket with the 
 
 ## License
 
-Copyright (C) 2012-2016 DataStax Inc.
+Copyright (C) 2012-2017 DataStax Inc.
 
 The full license terms are available at http://www.datastax.com/terms/datastax-dse-driver-license-terms
