@@ -7,6 +7,7 @@
 - [improvement] JAVA-1452: Provide external links to Apache TinkerPop in javadoc.
 - [improvement] JAVA-1453: Change call to TinkerIoRegistry#instance() to the backward compatible one.
 - [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
+- [improvement] JAVA-1427: DseGSSAPIAuthProvider should provide method for existing Subject.
 
 
 ### 1.2.3
