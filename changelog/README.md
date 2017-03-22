@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.1 (in progress)
+
+- [bug] JAVA-1424: Handle new WRITE_FAILURE and READ_FAILURE format in DSE v1 protocol.
+
+
 ### 1.2.0
 
 - [bug] JAVA-1421: Use Optimal string alignment distance algorithm for fuzzy predicates.
