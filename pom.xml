@@ -470,7 +470,7 @@
         <connection>scm:git:git@github.com:datastax/${github_repo}.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/${github_repo}.git</developerConnection>
         <url>https://github.com/datastax/${github_repo}</url>
-        <tag>1.2.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>

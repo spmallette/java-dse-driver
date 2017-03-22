@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.1 (in progress)
+### 1.2.1
 
 - [bug] JAVA-1424: Handle new WRITE_FAILURE and READ_FAILURE format in DSE v1 protocol.
 

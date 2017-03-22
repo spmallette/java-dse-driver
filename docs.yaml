@@ -44,4 +44,4 @@ api_docs:
   1.2: http://docs.datastax.com/en/drivers/java-dse/1.2
 versions:
   - name: '1.2'
-    ref: '1.2.0'
+    ref: '1.2.1'

@@ -204,7 +204,7 @@
         <connection>scm:git:git@github.com:datastax/java-driver-dse.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/java-driver-dse.git</developerConnection>
         <url>https://github.com/datastax/java-driver-dse</url>
-        <tag>1.2.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
