@@ -9,6 +9,7 @@
 - [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
 - [improvement] JAVA-1427: DseGSSAPIAuthProvider should provide method for existing Subject.
 - [documentation] JAVA-1331: "g not defined" graph error topic in FAQ.
+- [bug] JAVA-1432: Check null results in Row-to-TinkerPop/GraphSON2 function.
 
 
 ### 1.2.3

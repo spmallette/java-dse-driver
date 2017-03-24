@@ -50,10 +50,15 @@ public class GraphSONUtils {
             .create();
 
     public static final Function<Row, GraphNode> ROW_TO_GRAPHSON2_TINKERPOP_OBJECTGRAPHNODE = (input -> {
+        if (input == null) {
+            return null;
+        }
         Object deserializedObject = null;
         if (input.getColumnDefinitions().contains("gremlin")) {
             try {
-                deserializedObject = ((Map<?, ?>) readStringAs(input.getString("gremlin"), Object.class)).get("result");
+                @SuppressWarnings("rawtypes")
+                Map map = (Map) readStringAs(input.getString("gremlin"), Object.class);
+                deserializedObject = map.get("result");
             } catch (IOException e) {
                 throw Throwables.propagate(e);
             }
