@@ -234,6 +234,16 @@ public interface CCMAccess extends Closeable {
     void waitForDown(int node);
 
     /**
+     * Executes dsetool with the given arguments.
+     */
+    void dsetool(int node, String... args);
+
+    /**
+     * Executes dsetool reload_core keyspace.table reindex=reindex.  This is considered a non-dirty change.
+     */
+    void reloadCore(int node, String keyspace, String table, boolean reindex);
+
+    /**
      * @return The target protocolVersion to use when connecting to this CCM cluster.
      * <p/>
      * This should be based on the highest protocol version that both the cluster and driver support.

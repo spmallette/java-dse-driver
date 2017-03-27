@@ -684,6 +684,16 @@ public class CCMBridge implements CCMAccess {
     }
 
     @Override
+    public void dsetool(int node, String... args) {
+        execute(CCM_COMMAND + " node%d dsetool %s", node, Joiner.on(" ").join(args));
+    }
+
+    @Override
+    public void reloadCore(int node, String keyspace, String table, boolean reindex) {
+        dsetool(node, "reload_core", keyspace + "." + table, "reindex=" + reindex);
+    }
+
+    @Override
     public ProtocolVersion getProtocolVersion() {
         VersionNumber dseVersion = getDSEVersion();
         if (dseVersion != null && dseVersion.compareTo(VersionNumber.parse("5.1.0")) >= 0) {

@@ -212,6 +212,16 @@ public class CCMCache {
         }
 
         @Override
+        public void dsetool(int node, String... args) {
+            ccm.dsetool(node, args);
+        }
+
+        @Override
+        public void reloadCore(int node, String keyspace, String table, boolean reindex) {
+            ccm.reloadCore(node, keyspace, table, reindex);
+        }
+
+        @Override
         public ProtocolVersion getProtocolVersion() {
             return ccm.getProtocolVersion();
         }
