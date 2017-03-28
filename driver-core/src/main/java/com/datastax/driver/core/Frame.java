@@ -196,7 +196,7 @@ class Frame {
             // Initialize sub decoder on first message.  No synchronization needed as
             // decode is always called from same thread.
             if (decoder == null) {
-                int version = buffer.getByte(buffer.readerIndex());
+                int version = buffer.getByte(0);
                 // version first bit is the "direction" of the frame (request or response)
                 version = version & 0x7F;
                 decoder = new DecoderForStreamIdSize(version, version >= 3 ? 2 : 1);
