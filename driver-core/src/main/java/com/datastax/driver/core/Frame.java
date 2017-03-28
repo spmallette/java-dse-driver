@@ -196,7 +196,7 @@ class Frame {
             // Initialize sub decoder on first message.  No synchronization needed as
             // decode is always called from same thread.
             if (decoder == null) {
-                int version = buffer.getByte(0);
+                int version = peekFirst(buffer);
                 // version first bit is the "direction" of the frame (request or response)
                 version = version & 0x7F;
                 decoder = new DecoderForStreamIdSize(version, version >= 3 ? 2 : 1);
@@ -205,6 +205,13 @@ class Frame {
             Object frame = decoder.decode(ctx, buffer);
             if (frame != null)
                 out.add(frame);
+        }
+
+        private static byte peekFirst(ByteBuf buffer) {
+            buffer.markReaderIndex();
+            byte b = buffer.readByte();
+            buffer.resetReaderIndex();
+            return b;
         }
 
         static class DecoderForStreamIdSize extends LengthFieldBasedFrameDecoder {
