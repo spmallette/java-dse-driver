@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.2.2
+
+- [improvement] Add integration tests for graph predicates.
+- [improvement] Add code examples for proxy auth and graph.
+
+
 ### 1.2.1
 
 - [bug] JAVA-1424: Handle new WRITE_FAILURE and READ_FAILURE format in DSE v1 protocol.
