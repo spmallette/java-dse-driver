@@ -2,6 +2,8 @@
 
 ### 1.2.3 (in progress)
 
+- [bug] JAVA-1433: Remove infinite recursion in Graph elements toString().
+
 Merged from OSS 3.x:
 
 - [new feature] JAVA-1174: Add ifNotExists option to mapper.

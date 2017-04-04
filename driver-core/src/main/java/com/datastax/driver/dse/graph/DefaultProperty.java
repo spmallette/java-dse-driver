@@ -54,7 +54,7 @@ class DefaultProperty implements Property {
         return "DefaultProperty{" +
                 "name='" + name + '\'' +
                 ", value=" + value +
-                ", parent=" + parent +
+                ", parent-id=" + parent.getId() +
                 '}';
     }
 }
