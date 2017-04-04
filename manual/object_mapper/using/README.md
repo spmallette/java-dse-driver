@@ -90,6 +90,9 @@ underlying query:
   in the query. If set to false, fields with null value won't be included
   in the write query (thus avoiding tombstones).  If not specified, the 
   default behavior is to persist `null` fields.
+- `ifNotExists`: if set to true, adds an `IF NOT EXISTS` clause to the
+  save operation (use `ifNotExists(false)` if you enabled the option by
+  default and need to disable it for a specific operation).
 
 To use options, add them to the mapper call after regular parameters:
 
@@ -109,6 +112,7 @@ Some options don't apply to all operations:
     <tr> <td>ConsistencyLevel</td> <td>yes</td>                   <td>yes</td>                 <td>yes</td> </tr>
     <tr> <td>Tracing</td>          <td>yes</td>                   <td>yes</td>                 <td>yes</td> </tr>
     <tr> <td>SaveNullFields</td>   <td>yes</td>                   <td>no</td>                  <td>no</td> </tr>
+    <tr> <td>IfNotExists</td>      <td>yes</td>                   <td>no</td>                  <td>no</td> </tr>
 </table>
 
 Note that `Option.consistencyLevel` is redundant with the consistency
@@ -293,3 +297,49 @@ public ListenableFuture<Result<User>> getAllAsync();
 ```
 
 [@QueryParameters]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/mapping/annotations/QueryParameters.html
+
+
+### Mapping configuration
+
+[MappingConfiguration] lets you configure low-level aspects of the object mapper. It is configured
+when initializing the mapping manager:
+
+```java
+PropertyMapper propertyMapper = ... ; // see examples below
+MappingConfiguration configuration = 
+        MappingConfiguration.builder()
+                .withPropertyMapper(propertyMapper)
+                .build();
+MappingManager manager = new MappingManager(session, configuration);
+```
+
+The main component in the configuration is [PropertyMapper], which controls how annotated classes
+will relate to database objects. The best way to plug in specific behavior is to create an instance of
+[DefaultPropertyMapper] and customize it.
+
+For example, the mapper's default behavior is to try to map all the properties of your Java objects.
+You might want to take the opposite approach and only map the ones that are specifically annotated
+with `@Column` or `@Field`:
+
+```java
+PropertyMapper propertyMapper = new DefaultPropertyMapper()
+        .setPropertyTransienceStrategy(PropertyTransienceStrategy.OPT_IN);
+```
+
+Another common need is to customize the way Cassandra column names are inferred. Out of the box, Java
+property names are simply lowercased, so a `userName` property would be mapped to the `username` column.
+To map to `user_name` instead, use the following:
+
+```java
+PropertyMapper propertyMapper = new DefaultPropertyMapper()
+        .setNamingStrategy(new DefaultNamingStrategy(
+                NamingConventions.LOWER_CAMEL_CASE, 
+                NamingConventions.LOWER_SNAKE_CASE));
+```
+
+There is more to `DefaultPropertyMapper`; see the Javadocs and implementation for details.
+
+
+[MappingConfiguration]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/mapping/MappingConfiguration.html
+[PropertyMapper]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/mapping/PropertyMapper.html
+[DefaultPropertyMapper]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/mapping/DefaultPropertyMapper.html

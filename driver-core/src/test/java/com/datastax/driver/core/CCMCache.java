@@ -157,6 +157,16 @@ public class CCMCache {
         }
 
         @Override
+        public void pause(int n) {
+            ccm.pause(n);
+        }
+
+        @Override
+        public void resume(int n) {
+            ccm.resume(n);
+        }
+
+        @Override
         public void remove(int n) {
             ccm.remove(n);
         }

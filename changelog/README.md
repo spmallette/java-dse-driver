@@ -1,5 +1,16 @@
 ## Changelog
 
+### 1.2.3 (in progress)
+
+Merged from OSS 3.x:
+
+- [new feature] JAVA-1174: Add ifNotExists option to mapper.
+- [improvement] JAVA-1414: Optimize Metadata.escapeId and Metadata.handleId.
+- [improvement] JAVA-1310: Make mapper's ignored properties configurable.
+- [improvement] JAVA-1316: Add strategy for resolving properties into CQL names.
+- [bug] JAVA-1429: Prevent heartbeats until connection is fully initialized.
+
+
 ### 1.2.2
 
 - [improvement] Add integration tests for graph predicates.

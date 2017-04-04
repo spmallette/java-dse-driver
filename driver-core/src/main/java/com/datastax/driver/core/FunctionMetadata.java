@@ -154,9 +154,9 @@ public class FunctionMetadata {
         StringBuilder sb = new StringBuilder("CREATE FUNCTION ");
 
         sb
-                .append(Metadata.escapeId(keyspace.getName()))
+                .append(Metadata.quoteIfNecessary(keyspace.getName()))
                 .append('.')
-                .append(Metadata.escapeId(simpleName))
+                .append(Metadata.quoteIfNecessary(simpleName))
                 .append('(');
 
         boolean first = true;
@@ -170,7 +170,7 @@ public class FunctionMetadata {
             DataType type = entry.getValue();
             sb
                     .append(TableMetadata.spaces(4, formatted))
-                    .append(Metadata.escapeId(name))
+                    .append(Metadata.quoteIfNecessary(name))
                     .append(' ')
                     .append(type.asFunctionParameterString());
         }
@@ -217,7 +217,7 @@ public class FunctionMetadata {
     public String getSignature() {
         StringBuilder sb = new StringBuilder();
         sb
-                .append(Metadata.escapeId(simpleName))
+                .append(Metadata.quoteIfNecessary(simpleName))
                 .append('(');
         boolean first = true;
         for (DataType type : arguments.values()) {

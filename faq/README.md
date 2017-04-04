@@ -35,7 +35,7 @@ row.getBool(0);       // this is equivalent row.getBool("applied")
 
 Note that, unlike manual inspection, `wasApplied` does not consume the first row.
 
-[wasApplied]: http://docs.datastax.com/en/drivers/java/2.1/com/datastax/driver/core/ResultSet.html#wasApplied--
+[wasApplied]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/ResultSet.html#wasApplied--
 
 
 ### What is a parameterized statement and how can I use it?
@@ -216,7 +216,7 @@ fields set to `null`.  This also causes tombstones to be inserted unless
 setting `saveNullFields` option to false.  See [Mapper options] for more
 details.
 
-[Blobs.java]: https://github.com/datastax/java-driver/tree/3.0.x/driver-examples/src/main/java/com/datastax/driver/examples/datatypes/Blobs.java
+[Blobs.java]: https://github.com/datastax/java-driver/tree/3.2.0/driver-examples/src/main/java/com/datastax/driver/examples/datatypes/Blobs.java
 [CASSANDRA-7304]: https://issues.apache.org/jira/browse/CASSANDRA-7304
 [Parameters and Binding]: ../manual/statements/prepared/#parameters-and-binding
 [Mapper options]: ../manual/object_mapper/using/#mapper-options

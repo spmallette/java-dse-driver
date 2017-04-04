@@ -31,7 +31,7 @@ public class MapperCaseSensitivityTest extends CCMTestsSupport {
     static class User {
 
         @PartitionKey
-        @Column(caseSensitive = true)
+        @Column(name = "userId", caseSensitive = true)
         private String userId;
 
         @Column(name = "Address", caseSensitive = true)
@@ -82,7 +82,7 @@ public class MapperCaseSensitivityTest extends CCMTestsSupport {
         @Field(name = "Street", caseSensitive = true)
         private String street;
 
-        @Field(caseSensitive = true)
+        @Field(name = "zipCode", caseSensitive = true)
         private String zipCode;
 
         public Address() {
@@ -133,11 +133,6 @@ public class MapperCaseSensitivityTest extends CCMTestsSupport {
         public UserNoKeyspace(String id, Address address) {
             super(id, address);
         }
-
-    }
-
-    @UDT(name = TYPE, caseSensitiveKeyspace = true, caseSensitiveType = true)
-    static class AddressNoKeyspace extends Address {
 
     }
 

@@ -299,9 +299,9 @@ public abstract class AbstractTableMetadata {
         if (getOptions().getExtensions().containsKey(DSE_RLACA)) {
             newLine(sb, true);
             sb.append("RESTRICT ROWS ON ")
-                    .append(Metadata.escapeId(keyspace.getName()))
+                    .append(Metadata.quoteIfNecessary(keyspace.getName()))
                     .append('.')
-                    .append(Metadata.escapeId(name))
+                    .append(Metadata.quoteIfNecessary(name))
                     .append(" USING ")
                     .append(new String(Bytes.getArray(getOptions().getExtensions().get(DSE_RLACA)), Charsets.UTF_8))
                     .append(';');

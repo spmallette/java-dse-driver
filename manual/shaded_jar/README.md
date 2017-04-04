@@ -25,6 +25,35 @@ package name:
 </dependency>
 ```
 
+If you also use the mapper, you need to remove its dependency to the
+non-shaded JAR:
+
+```xml
+<dependency>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-core</artifactId>
+  <version>3.2.0</version>
+  <classifier>shaded</classifier>
+  <exclusions>
+    <exclusion>
+      <groupId>io.netty</groupId>
+      <artifactId>*</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+<dependency>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-mapping</artifactId>
+  <version>3.2.0</version>
+  <exclusions>
+    <exclusion>
+      <groupId>com.datastax.dse</groupId>
+      <artifactId>dse-java-driver-core</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+```
+
 ### Limitations
 
 When using the shaded jar, it is not possible to configure the Netty layer.
