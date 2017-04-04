@@ -17,11 +17,18 @@ import static com.datastax.driver.core.Assertions.assertThat;
 @CCMConfig(
         dse = true,
         dseConfig = {
+                "authentication_options.enabled:true",
+                "authentication_options.default_scheme:internal",
                 "authorization_options.enabled:true",
                 "authorization_options.allow_row_level_security:true"
         })
 @DseVersion("5.1.0")
 public class RowLevelAccessTest extends CCMDseTestsSupport {
+
+    @Override
+    public DseCluster.Builder createClusterBuilder() {
+        return super.createClusterBuilder().withCredentials("cassandra", "cassandra");
+    }
 
     /**
      * Validates that the row-level access definition is properly exposed when set on a table.

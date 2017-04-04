@@ -34,28 +34,28 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
     private static final String realm = "DATASTAX.COM";
     private static final String address = TestUtils.IP_PREFIX + "1";
 
+    private final EmbeddedADS adsServer = EmbeddedADS.builder()
+            .withKerberos()
+            .withRealm(realm)
+            .withAddress(address).build();
+
     // Principal for DSE service ( = kerberos_options.service_principal)
-    private static final String servicePrincipal = "dse/" + address + "@" + realm;
+    private final String servicePrincipal = "dse/" + adsServer.getHostname() + "@" + realm;
 
     // A non-standard principal for DSE service, to test SASL protocol names
-    private static final String alternateServicePrincipal = "alternate/" + address + "@" + realm;
+    private final String alternateServicePrincipal = "alternate/" + adsServer.getHostname() + "@" + realm;
 
     // Principal for the default cassandra user.
-    private static final String userPrincipal = "cassandra@" + realm;
+    private final String userPrincipal = "cassandra@" + realm;
 
     // Principal for a user that doesn't exist.
-    private static final String unknownPrincipal = "unknown@" + realm;
+    private final String unknownPrincipal = "unknown@" + realm;
 
     // Keytabs to use for auth.
     private File userKeytab;
     private File unknownKeytab;
     private File dseKeytab;
     private File alternateKeytab;
-
-    private EmbeddedADS adsServer = EmbeddedADS.builder()
-            .withKerberos()
-            .withRealm(realm)
-            .withAddress(address).build();
 
     @BeforeClass(groups = "long")
     public void setupKDC() throws Exception {
@@ -77,19 +77,25 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
         adsServer.stop();
     }
 
-    public CCMBridge.Builder configureCCM() {
+    CCMBridge.Builder baseAuthenticationConfiguration() {
         return CCMBridge.builder()
-                .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.KerberosAuthenticator")
-                .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", servicePrincipal)
+                .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
                 .withDSEConfiguration("kerberos_options.qop", "auth")
+                .withDSEConfiguration("authentication_options.enabled", "true")
+                .withDSEConfiguration("authentication_options.default_scheme", "kerberos")
                 .withJvmArgs("-Dcassandra.superuser_setup_delay_ms=0", "-Djava.security.krb5.conf=" + adsServer.getKrb5Conf().getAbsolutePath());
     }
 
+    public CCMBridge.Builder configureCCM() {
+        return baseAuthenticationConfiguration()
+                .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
+                .withDSEConfiguration("kerberos_options.service_principal", "dse/_HOST@" + realm);
+    }
+
     public CCMBridge.Builder configureAlternateCCM() {
-        return configureCCM()
+        return baseAuthenticationConfiguration()
                 .withDSEConfiguration("kerberos_options.keytab", alternateKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", alternateServicePrincipal);
+                .withDSEConfiguration("kerberos_options.service_principal", "alternate/_HOST@" + realm);
     }
 
     /**

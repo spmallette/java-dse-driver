@@ -33,26 +33,25 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
 
     // Realm for the KDC.
     private static final String realm = "DATASTAX.COM";
-
     private static final String address = TestUtils.IP_PREFIX + "1";
-
-    // Principal for DSE service ( = kerberos_options.service_principal)
-    private static final String dsePrincipal = "dse/" + address + "@" + realm;
-
-    private static final String bobPrincipal = "bob@" + realm;
-
-    private static final String charliePrincipal = "charlie@" + realm;
-
-    // Keytabs to use for auth.
-    private File dseKeytab;
-    private File bobKeytab;
-    private File charlieKeytab;
 
     private final EmbeddedADS adsServer = EmbeddedADS.builder()
             .withKerberos()
             .withRealm(realm)
             .withAddress(address)
             .build();
+
+    // Principal for DSE service ( = kerberos_options.service_principal)
+    private final String dsePrincipal = "dse/" + adsServer.getHostname() + "@" + realm;
+
+    private final String bobPrincipal = "bob@" + realm;
+
+    private final String charliePrincipal = "charlie@" + realm;
+
+    // Keytabs to use for auth.
+    private File dseKeytab;
+    private File bobKeytab;
+    private File charlieKeytab;
 
     @BeforeClass(groups = "long")
     public void setupKDC() throws Exception {
@@ -72,14 +71,24 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
         adsServer.stop();
     }
 
+    @SuppressWarnings("unused")
     public CCMBridge.Builder configureCCM() {
+        // Specify authentication options together as a literal yaml string.  This is needed to express
+        // other_schemes as a list.
+        String authenticationOptions = "" +
+                "authentication_options:\n" +
+                "  enabled: true\n" +
+                "  default_scheme: kerberos\n" +
+                "  other_schemes:\n" +
+                "    - internal";
+
         return CCMBridge.builder()
                 .withCassandraConfiguration("authorizer", "com.datastax.bdp.cassandra.auth.DseAuthorizer")
                 .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
-                .withDSEConfiguration("authentication_options.enabled", true)
+                .withDSEConfiguration(authenticationOptions)
                 .withDSEConfiguration("authorization_options.enabled", true)
                 .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", dsePrincipal)
+                .withDSEConfiguration("kerberos_options.service_principal", "dse/_HOST@" + realm)
                 .withDSEConfiguration("kerberos_options.qop", "auth")
                 .withJvmArgs(
                         "-Dcassandra.superuser_setup_delay_ms=0",

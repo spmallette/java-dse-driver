@@ -10,6 +10,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
@@ -585,6 +586,10 @@ public class CCMBridge implements CCMAccess {
         execute(CCM_COMMAND + " updatedseconf " + confStr);
     }
 
+    public void updateDSEConfig(String yaml) {
+        executeUnsanitized("updatedseconf", "-y", yaml);
+    }
+
     @Override
     public void updateNodeConfig(int n, String key, Object value) {
         updateNodeConfig(n, ImmutableMap.<String, Object>builder().put(key, value).build());
@@ -627,17 +632,22 @@ public class CCMBridge implements CCMAccess {
         execute(CCM_COMMAND + " node%d setworkload %s", node, workloadStr);
     }
 
-    private String execute(String command, Object... args) {
-        String fullCommand = String.format(command, args) + " --config-dir=" + ccmDir;
+    /**
+     * Executes the given command and returns command output when it completes.
+     *
+     * @param cli Command to execute
+     * @return Command output
+     */
+    private String executeCommand(CommandLine cli) {
+        logger.trace("Executing: {}", cli);
         Closer closer = Closer.create();
         // 10 minutes timeout
         ExecuteWatchdog watchDog = new ExecuteWatchdog(TimeUnit.MINUTES.toMillis(10));
         StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw);
         closer.register(pw);
+
         try {
-            logger.trace("Executing: " + fullCommand);
-            CommandLine cli = CommandLine.parse(fullCommand);
             Executor executor = new DefaultExecutor();
             LogOutputStream outStream = new LogOutputStream() {
                 @Override
@@ -662,15 +672,15 @@ public class CCMBridge implements CCMAccess {
             executor.setWatchdog(watchDog);
             int retValue = executor.execute(cli, ENVIRONMENT_MAP);
             if (retValue != 0) {
-                logger.error("Non-zero exit code ({}) returned from executing ccm command: {}", retValue, fullCommand);
+                logger.error("Non-zero exit code ({}) returned from executing ccm command: {}", retValue, cli);
                 pw.flush();
-                throw new CCMException(String.format("Non-zero exit code (%s) returned from executing ccm command: %s", retValue, fullCommand), sw.toString());
+                throw new CCMException(String.format("Non-zero exit code (%s) returned from executing ccm command: %s", retValue, cli), sw.toString());
             }
         } catch (IOException e) {
             if (watchDog.killedProcess())
-                logger.error("The command {} was killed after 10 minutes", fullCommand);
+                logger.error("The command {} was killed after 10 minutes", cli);
             pw.flush();
-            throw new CCMException(String.format("The command %s failed to execute", fullCommand), sw.toString(), e);
+            throw new CCMException(String.format("The command %s failed to execute", cli), sw.toString(), e);
         } finally {
             try {
                 closer.close();
@@ -679,6 +689,36 @@ public class CCMBridge implements CCMAccess {
             }
         }
         return sw.toString();
+    }
+
+    /**
+     * Executes ccm with the given arguments, the arguments are not formatted by the underlying command line parser
+     * (i.e. arguments with spaces are not quoted).
+     *
+     * @param args Command arguments
+     * @return Command output
+     */
+    private String executeUnsanitized(String... args) {
+        CommandLine cli = CommandLine.parse(CCM_COMMAND);
+        for (String arg : args) {
+            // add argument and don't handle quoting (accept as is)
+            cli.addArgument(arg, false);
+        }
+        cli.addArgument("--config-dir=" + ccmDir);
+        return executeCommand(cli);
+    }
+
+    /**
+     * Executes the given command substituting the given args into the command using {@link String#format}
+     *
+     * @param command Command pattern to execute
+     * @param args    Arguments to substitute into command
+     * @return Command output
+     */
+    private String execute(String command, Object... args) {
+        String fullCommand = String.format(command, args) + " --config-dir=" + ccmDir;
+        CommandLine cli = CommandLine.parse(fullCommand);
+        return executeCommand(cli);
     }
 
     /**
@@ -796,6 +836,7 @@ public class CCMBridge implements CCMAccess {
         private Set<String> jvmArgs = new LinkedHashSet<String>();
         private final Map<String, Object> cassandraConfiguration = Maps.newLinkedHashMap();
         private final Map<String, Object> dseConfiguration = Maps.newLinkedHashMap();
+        private final List<String> rawDseYaml = Lists.newArrayList();
         private final Map<Integer, String[]> workloads = new HashMap<Integer, String[]>();
 
         private Builder() {
@@ -889,6 +930,14 @@ public class CCMBridge implements CCMAccess {
         }
 
         /**
+         * Customizes entries in dse.yaml using the literal yaml provided.
+         */
+        public Builder withDSEConfiguration(String yaml) {
+            this.rawDseYaml.add(yaml);
+            return this;
+        }
+
+        /**
          * JVM args to use when starting hosts.
          * System properties should be provided one by one, as a string in the form:
          * {@code -Dname=value}.
@@ -978,6 +1027,10 @@ public class CCMBridge implements CCMAccess {
                 dseConfiguration = randomizePorts(dseConfiguration);
                 if (!dseConfiguration.isEmpty())
                     ccm.updateDSEConfig(dseConfiguration);
+
+                for (String yaml : rawDseYaml) {
+                    ccm.updateDSEConfig(yaml);
+                }
             }
             for (Map.Entry<Integer, String[]> entry : workloads.entrySet()) {
                 ccm.setWorkload(entry.getKey(), entry.getValue());
