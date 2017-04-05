@@ -44,11 +44,13 @@ public class DseRemoteConnection implements RemoteConnection {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public <E> Iterator<Traverser.Admin<E>> submit(Traversal<?, E> traversal) throws RemoteConnectionException {
         return submit(traversal.asAdmin().getBytecode());
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public <E> RemoteTraversal<?, E> submit(Bytecode bytecode) throws RemoteConnectionException {
         GraphStatement graphStatement = GraphSONUtils.getStatementFromBytecode(bytecode);
         // override the transformFunction manually as we want to deserialize into TP types.

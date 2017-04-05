@@ -35,7 +35,7 @@ public class GraphSONUtils {
     private static final GraphSONMapper GRAPHSON_MAPPER_2_0 = GraphSONMapper.build()
             .version(GraphSONVersion.V2_0)
             .typeInfo(TypeInfo.PARTIAL_TYPES)
-            .addRegistry(TinkerIoRegistryV2d0.getInstance())
+            .addRegistry(TinkerIoRegistryV2d0.instance())
             .addCustomModule(GraphSONXModuleV2d0.build().create(false))
             .addCustomModule(new DseGraphModule())
             .addCustomModule(new DriverObjectsModule())
@@ -53,7 +53,7 @@ public class GraphSONUtils {
         Object deserializedObject = null;
         if (input.getColumnDefinitions().contains("gremlin")) {
             try {
-                deserializedObject = ((Map) readStringAs(input.getString("gremlin"), Object.class)).get("result");
+                deserializedObject = ((Map<?, ?>) readStringAs(input.getString("gremlin"), Object.class)).get("result");
             } catch (IOException e) {
                 throw Throwables.propagate(e);
             }

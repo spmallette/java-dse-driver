@@ -6,7 +6,6 @@
  */
 package com.datastax.dse.graph.remote;
 
-import com.datastax.driver.core.Host;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.DseSession;
@@ -19,7 +18,6 @@ import com.google.common.collect.Sets;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.testng.annotations.Test;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +38,8 @@ public class OLAPQueryIntegrationTest extends CCMGraphTestsOLAPSupport {
                 .setGraphSource(source);
     }
 
-    private Collection<Host> executeQuery(int times, GraphTraversalSource g) {
-        Collection<Host> triedHosts = Lists.newArrayListWithCapacity(times);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void executeQuery(int times, GraphTraversalSource g) {
         for (int i = 0; i < times; i++) {
             // Get vertex clusters of people.  We expect there to be 2 clusters:
             // 1) A cluster with only Peter, he doesn't have a 'knows' relation to anybody.
@@ -58,7 +56,6 @@ public class OLAPQueryIntegrationTest extends CCMGraphTestsOLAPSupport {
                     Sets.newTreeSet(Lists.newArrayList("marko", "josh", "vadas"))
             );
         }
-        return triedHosts;
     }
 
     /**
