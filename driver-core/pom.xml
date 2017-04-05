@@ -228,70 +228,6 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>clirr-maven-plugin</artifactId>
-                <version>2.8</version>
-                <executions>
-                    <!--
-                        First execution to compare DSE classes against the previous JAR.
-                    -->
-                    <execution>
-                        <id>clirr-dse-packages</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <comparisonVersion>1.1.2</comparisonVersion>
-                            <includes>
-                                <!--
-                                    TODO replace with com/datastax/driver/** when we have a released version of dse-driver with the core classes included.
-                                -->
-                                <include>com/datastax/driver/dse/**</include>
-                            </includes>
-                            <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
-                        </configuration>
-                    </execution>
-                    <!--
-                        Second execution to compare core classes against the original OSS core.
-                        TODO remove this when we have a released version of dse-driver with the core classes included.
-                    -->
-                    <execution>
-                        <id>clirr-core-packages</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <comparisonArtifacts>
-                                <comparisonArtifact>
-                                    <groupId>com.datastax.cassandra</groupId>
-                                    <artifactId>cassandra-driver-core</artifactId>
-                                    <version>${oss-driver.version}</version>
-                                </comparisonArtifact>
-                            </comparisonArtifacts>
-                            <includes>
-                                <include>com/datastax/driver/core/**</include>
-                            </includes>
-                            <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
-                        </configuration>
-                    </execution>
-                </executions>
-                <!--
-                Workaround to make clirr plugin work with Java 8.
-                The bug is actually in the BCEL library,
-                see https://issues.apache.org/jira/browse/BCEL-173.
-                See also https://github.com/RichardWarburton/lambda-behave/issues/31#issuecomment-86052095
-                -->
-                <dependencies>
-                    <dependency>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>bcel-findbugs</artifactId>
-                        <version>6.0</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.2</version>
@@ -312,7 +248,7 @@
                 <!--
                   Default configuration, used by the `bundle` goal that is implicitly bound to the `package` phase
                   (because the project uses the `bundle` packaging)
-                  This generate the manifest for the 'shade-excluding-netty' artifact.
+                  This generates the manifest for the 'shade-excluding-netty' artifact.
                 -->
                 <configuration>
                     <instructions>
@@ -330,9 +266,6 @@
                                 !org.codehaus.jackson.*,
                                 ,*
                             ]]></Import-Package>
-                        <Export-Package>
-                            com.datastax.driver.core.*;version=${oss-driver.version},com.datastax.driver.dse.*
-                        </Export-Package>
                         <Private-Package>com.datastax.shaded.*</Private-Package>
                     </instructions>
                     <supportedProjectTypes>
