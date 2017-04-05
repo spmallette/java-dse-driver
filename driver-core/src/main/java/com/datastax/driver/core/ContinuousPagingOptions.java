@@ -47,7 +47,7 @@ public class ContinuousPagingOptions {
     /**
      * Returns the page size.
      *
-     * @see Builder#withPageSize(int, PageUnit)
+     * @see ContinuousPagingOptions.Builder#withPageSize(int, ContinuousPagingOptions.PageUnit)
      */
     public int getPageSize() {
         return pageSize;
@@ -56,7 +56,7 @@ public class ContinuousPagingOptions {
     /**
      * Returns the page unit.
      *
-     * @see Builder#withPageSize(int, PageUnit)
+     * @see ContinuousPagingOptions.Builder#withPageSize(int, ContinuousPagingOptions.PageUnit)
      */
     public PageUnit getPageUnit() {
         return pageUnit;
@@ -65,7 +65,7 @@ public class ContinuousPagingOptions {
     /**
      * Returns the maximum number of pages.
      *
-     * @see Builder#withMaxPages(int)
+     * @see ContinuousPagingOptions.Builder#withMaxPages(int)
      */
     public int getMaxPages() {
         return maxPages;
@@ -74,7 +74,7 @@ public class ContinuousPagingOptions {
     /**
      * Returns the maximum pages per second.
      *
-     * @see Builder#withMaxPagesPerSecond(int)
+     * @see ContinuousPagingOptions.Builder#withMaxPagesPerSecond(int)
      */
     public int getMaxPagesPerSecond() {
         return maxPagesPerSecond;
@@ -132,6 +132,5 @@ public class ContinuousPagingOptions {
             return new ContinuousPagingOptions(pageSize, pageUnit, maxPages, maxPagesPerSecond);
         }
     }
-
-
+    
 }
