@@ -80,6 +80,7 @@
     </properties>
 
     <profiles>
+
         <profile>
             <id>default</id>
             <properties>
@@ -89,35 +90,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-        </profile>
-
-        <!--
-        This profile excludes all JDK 8 dependent classes from
-        tests in the core module,
-        thus allowing tests to be run with legacy JDKs (6 or 7).
-        It is automatically activated when a legacy JDK is in use.
-        Note that running tests with a legacy JDK require
-        that you provide a non-legacy JDK for CCM through the
-        system property ccm.java.home.
-        -->
-        <profile>
-            <id>legacy-jdks</id>
-            <activation>
-                <jdk>[,1.8)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.16</version>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/Jdk8*.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -137,6 +109,7 @@
                 <test.groups>unit,short</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>long</id>
             <properties>
@@ -144,6 +117,7 @@
                 <test.groups>unit,short,long</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>duration</id>
             <properties>
@@ -151,6 +125,7 @@
                 <test.groups>unit,short,long,duration</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>doc</id>
             <properties>
@@ -158,6 +133,7 @@
                 <test.groups>unit,doc</test.groups>
             </properties>
         </profile>
+
         <profile>
             <!-- default profile settings for 'isolated' test group, will skip tests unless overridden in child module. -->
             <id>isolated</id>
@@ -172,11 +148,13 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>2.16</version>
                         <configuration>
-                            <property>
-                                <name>usedefaultlisteners</name>
-                                <value>false
-                                </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
-                            </property>
+                            <properties>
+                                <property>
+                                    <name>usedefaultlisteners</name>
+                                    <value>false
+                                    </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
+                                </property>
+                            </properties>
                             <skip>true</skip>
                             <forkCount>1</forkCount>
                             <reuseForks>false</reuseForks>
@@ -191,6 +169,7 @@
             </build>
         </profile>
 
+        <!-- Used during releases to enforce compilation with JDK 8 -->
         <profile>
             <id>enforce-java8</id>
             <build>
@@ -214,6 +193,38 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+        This profile excludes all JDK 8 dependent tests from being
+        run with legacy JDKs (6 or 7).
+        It is automatically activated when a legacy JDK is in use.
+        Note that running tests with a legacy JDK require
+        that you provide a non-legacy JDK for CCM through the
+        system property ccm.java.home.
+        -->
+        <profile>
+            <id>legacy-jdks</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- exclude Jdk* test classes from being run
+                        This is needed in event that code was built with JDK8
+                        and tests are ran with JDK6 or 7. -->
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Jdk8*.java</exclude>
+                                <exclude>**/jdk8/*.java</exclude>
+                            </excludes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
