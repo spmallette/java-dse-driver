@@ -382,20 +382,42 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>animal-sniffer-maven-plugin</artifactId>
                 <version>1.15</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java16</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
                 <executions>
+                    <!-- First check: all classes must comply with JDK 6,
+                    except those annotated with @IgnoreJDK6Requirement -->
                     <execution>
                         <id>check</id>
-                        <phase>compile</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java16</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                            <!-- each module must declare its own annotation -->
+                            <annotations>
+                                <annotation>com.datastax.driver.dse.IgnoreJDK6Requirement</annotation>
+                                <annotation>com.datastax.driver.extras.codecs.jdk8.IgnoreJDK6Requirement</annotation>
+                            </annotations>
+                        </configuration>
+                    </execution>
+                    <!-- Second check: all classes must comply with JDK 8 -->
+                    <execution>
+                        <id>check-jdk8</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java18</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
