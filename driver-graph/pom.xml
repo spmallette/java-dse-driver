@@ -130,7 +130,7 @@
                 </executions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.datastax.driver.java-dse-graph</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>com.datastax.driver.graph</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <_include>-osgi.bnd</_include>
                         <Import-Package><![CDATA[com.google.common.*;version="[16.0.1,22)",*]]></Import-Package>
