@@ -1,5 +1,60 @@
 ## Frequently Asked Questions
 
+### How do I use this driver as a drop-in replacement for `cassandra-driver-core` when it is a dependency of another project?
+
+It is not uncommon for users to use libraries that depend on
+[DataStax Java Driver for Apache Cassandra®](https://github.com/datastax/java-driver). Such
+libraries include [spring-data-cassandra](http://projects.spring.io/spring-data-cassandra/),
+[phantom](https://github.com/outworkers/phantom), and [quill](https://github.com/getquill/quill) among others.
+
+Since the Java driver for DataStax Enterprise is a drop-in replacement, you can declare it explicitly with
+your dependency management tool while excluding `cassandra-driver-core` as a dependency for the library
+you are using which currently depends on it.
+
+Ensure that the version of Java Driver for Apache Cassandra depended on by the third-party library is compatible
+with your target DataStax Enterprise Driver version.  Use the following table to identify the compatible versions:
+
+| Cassandra driver version | DSE driver version |
+| ------------------------ | ------------------ |
+| 3.1.x                    | 1.1.x              |
+| 3.2.x                    | 1.2.x              |
+
+To accomplish this with maven using spring-data-cassandra as an example, you may do the following:
+
+```xml
+<dependencies>
+   <dependency>
+       <groupId>org.springframework.data</groupId>
+       <artifactId>spring-data-cassandra</artifactId>
+       <exclusions>
+           <exclusion>
+               <groupId>com.datastax.cassandra</groupId>
+               <artifactId>cassandra-driver-core</artifactId>
+           </exclusion>
+       </exclusions>
+   </dependency>
+
+   <dependency>
+       <groupId>com.datastax.dse</groupId>
+       <artifactId>dse-java-driver-core</artifactId>
+   </dependency>
+</dependencies>
+```
+
+Alternatively, using gradle:
+
+```groovy
+dependencies {
+  compile ('org.springframework.data:spring-data-cassandra:$springDataVersion') {
+    exclude group: 'com.datastax.cassandra', module: 'cassandra-driver-core'
+  }
+  compile 'com.datastax.dse:dse-java-driver-core:$dseDriverVersion'
+}
+```
+
+Note that depending on how these libraries integrate with the driver, certain DSE specific features may not be directly
+available.
+
 ### How do I implement paging?
 
 When using [native protocol](../manual/native_protocol/) version 2 or
