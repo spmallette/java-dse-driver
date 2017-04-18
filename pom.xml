@@ -75,7 +75,7 @@
         <test.groups>unit</test.groups>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts />
-        <github_repo>java-driver-dse</github_repo>
+        <github_org>datastax</github_org>
     </properties>
 
     <profiles>
@@ -530,9 +530,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:datastax/${github_repo}.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/${github_repo}.git</developerConnection>
-        <url>https://github.com/datastax/${github_repo}</url>
+        <connection>scm:git:git@github.com:${github_org}/java-dse-driver.git</connection>
+        <developerConnection>scm:git:git@github.com:${github_org}/java-dse-driver.git</developerConnection>
+        <url>https://github.com/${github_org}/java-dse-driver</url>
         <tag>HEAD</tag>
     </scm>
 
