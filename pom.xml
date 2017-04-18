@@ -17,7 +17,7 @@
 
     <groupId>com.datastax.dse</groupId>
     <artifactId>dse-java-driver-parent</artifactId>
-    <version>1.2.3-SNAPSHOT</version>
+    <version>1.2.3</version>
     <packaging>pom</packaging>
     <name>DataStax Enterprise Java Driver</name>
     <description>
@@ -533,7 +533,7 @@
         <connection>scm:git:git@github.com:${github_org}/java-dse-driver.git</connection>
         <developerConnection>scm:git:git@github.com:${github_org}/java-dse-driver.git</developerConnection>
         <url>https://github.com/${github_org}/java-dse-driver</url>
-        <tag>HEAD</tag>
+        <tag>1.2.3</tag>
     </scm>
 
     <developers>
