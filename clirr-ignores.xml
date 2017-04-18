@@ -12,20 +12,4 @@
   @formatter:off
 -->
 <differences>
-
-    <difference>
-        <differenceType>7005</differenceType> <!-- Method Argument Type changed -->
-        <className>com/datastax/driver/dse/geometry/Geometry</className>
-        <method>Geometry(com.datastax.shaded.esri.ogc.OGCGeometry)</method>
-        <to>Geometry(com.esri.core.geometry.ogc.OGCGeometry)</to>
-        <justification>ESRI library was accidentally leaking through this method signature</justification>
-    </difference>
-
-    <difference>
-        <differenceType>7009</differenceType> <!-- Method is now Less Accessible -->
-        <className>com/datastax/driver/dse/geometry/Geometry</className>
-        <method>Geometry(com.datastax.shaded.esri.ogc.OGCGeometry)</method>
-        <justification>ESRI library was accidentally leaking through this method signature</justification>
-    </difference>
-
 </differences>
