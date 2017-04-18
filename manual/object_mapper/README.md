@@ -11,7 +11,7 @@ The mapper is published as a separate Maven artifact:
 <dependency>
   <groupId>com.datastax.dse</groupId>
   <artifactId>dse-java-driver-mapping</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
 </dependency>
 ```
 

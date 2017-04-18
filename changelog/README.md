@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.2.3 (in progress)
+### 1.2.3
 
 - [bug] JAVA-1433: Remove infinite recursion in Graph elements toString().
 
