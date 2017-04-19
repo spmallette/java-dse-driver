@@ -295,3 +295,7 @@ scalacOptions += "-Ybreak-cycles"
 [Parameters and Binding]: ../manual/statements/prepared/#parameters-and-binding
 [Mapper options]: ../manual/object_mapper/using/#mapper-options
 [SI-3809]: https://issues.scala-lang.org/browse/SI-3809
+
+### I'm using the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) and cannot compile my application because of an unresolved dependency `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4`
+
+This is a known problem. See our documentation on the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) for an explanation and possible workarounds.
