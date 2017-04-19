@@ -90,12 +90,14 @@ class DefaultGraphNode implements GraphNode {
 
     @Override
     public boolean isVertex() {
-        return VERTEX_TYPE.equals(delegate.get(TYPE).asText());
+        JsonNode type = delegate.get(TYPE);
+        return type != null && VERTEX_TYPE.equals(type.asText());
     }
 
     @Override
     public boolean isEdge() {
-        return EDGE_TYPE.equals(delegate.get(TYPE).asText());
+        JsonNode type = delegate.get(TYPE);
+        return type != null && EDGE_TYPE.equals(type.asText());
     }
 
     @Override
