@@ -284,6 +284,7 @@
                         <link>http://fasterxml.github.io/jackson-core/javadoc/2.6/</link>
                         <link>http://fasterxml.github.io/jackson-databind/javadoc/2.6/</link>
                         <link>https://javaee-spec.java.net/nonav/javadocs/</link>
+                        <link>https://tinkerpop.apache.org/javadocs/${tinkerpop.version}/full/</link>
                     </links>
                     <!-- optional dependencies from other modules (must be explicitly declared here in order to be correctly resolved) -->
                     <additionalDependencies>
