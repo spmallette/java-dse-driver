@@ -6,6 +6,7 @@
 - [documentation] JAVA-1451: Apache TinkerPop client integration doc updates.
 - [improvement] JAVA-1452: Provide external links to Apache TinkerPop in javadoc.
 - [improvement] JAVA-1453: Change call to TinkerIoRegistry#instance() to the backward compatible one.
+- [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
 
 
 ### 1.2.3
