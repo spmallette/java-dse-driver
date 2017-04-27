@@ -35,7 +35,7 @@ public class GraphSONUtils {
     private static final GraphSONMapper GRAPHSON_MAPPER_2_0 = GraphSONMapper.build()
             .version(GraphSONVersion.V2_0)
             .typeInfo(TypeInfo.PARTIAL_TYPES)
-            .addRegistry(TinkerIoRegistryV2d0.instance())
+            .addRegistry(TinkerIoRegistryV2d0.getInstance())
             .addCustomModule(GraphSONXModuleV2d0.build().create(false))
             .addCustomModule(new DseGraphModule())
             .addCustomModule(new DriverObjectsModule())
