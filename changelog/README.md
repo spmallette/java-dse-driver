@@ -5,6 +5,7 @@
 - [improvement] JAVA-1460: Add speculative execution number to ExecutionInfo.
 - [bug] JAVA-1428: Update non-required dependencies that have security vulnerabilities.
 - [bug] JAVA-1425: Upgrade to Jackson 2.8.8.
+- [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
 
 Merged from OSS 3.x:
 
