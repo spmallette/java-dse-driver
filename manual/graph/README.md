@@ -6,7 +6,14 @@ with a _DataStax Enterprise Graph_ Server.
 Note that, as an alternative to those native APIs, the driver also provides an 
 [integration with Apache Tinkerpop](../tinkerpop/).
 
-### DseSession usage
+This documentation is divided into the following sections:
+
+- [Executing a query](#executing-a-query)
+- [Handling results](#handling-results)
+- [Graph options](#graph-options)
+- [Query parameters](#query-parameters)
+
+### Executing a query
 
 `DseSession` has dedicated methods to execute graph queries:
 
@@ -24,64 +31,16 @@ GraphResultSet rs = dseSession.executeGraph(s2);
 System.out.println(rs.one().asVertex());
 ```
 
-Note: you need to set `schema_mode: Development` in `dse.yaml` to run the example above.
+_Note: you need to set `schema_mode: Development` in `dse.yaml` to run the example above._
 
-### Graph options
+A graph query can be executed either via the `executeGraph()` method that accepts a string query in parameter,
+or the `executeGraph()` method that accepts a `GraphStatement`. A simple implementation of
+a `GraphStatament` is the `SimpleGraphStatement`, which accepts a query string, and allows
+to set specific graph options to this statement instance.
 
-You can set default graph options when initializing the cluster. They will be used for all graph statements. For
-example, to avoid repeating `setGraphName("demo")` on each statement:
+#### Asynchronous execution
 
-```java
-DseCluster dseCluster = DseCluster.builder()
-        .addContactPoint("127.0.0.1")
-        .withGraphOptions(new GraphOptions().setGraphName("demo"))
-        .build();
-```
-
-You can also retrieve and change the options at runtime (be careful about concurrency though, the changes will be
-visible across all client threads):
-
-```java
-GraphOptions graphOptions = dseCluster.getConfiguration().getGraphOptions();
-graphOptions.setGraphName("demo2");
-```
-
-If an option is set manually on a `GraphStatement`, it always takes precedence; otherwise the default option is used.
-This might be a problem if a default graph name is set, but you explicitly want to execute a statement targeting
-`system`, for which no graph name must be set. In that situation, use `GraphStatement#setSystemQuery()`:
-
-```java
-GraphStatement s = new SimpleGraphStatement("system.graph('demo').ifNotExists().create()")
-        .setSystemQuery();
-dseSession.executeGraph(s);
-```
-
-#### Timeouts
-
-The higher time limit for executing a Graph query is defined server side, in `dse.yaml`.
-
-By default the Java driver will rely on that option that is declared server-side. This means that by default,
-after sending a request, the driver will wait until the server responds with a result or an error message, or times out.
-
-This can be changed if the client needs a lower timeout. A timeout for the client can be set either on the Cluster's
-`GraphOptions` object and will apply to all Graph queries, or individually on each `GraphStatement` object, through
-the methods `setReadTimeoutMillis()`. Note that the server will abort a query once the client has stopped waiting for
-it, so there's no risk of leaving long-running queries on the server.
-
-### Query execution
-
-As seen already, graph statements can be executed with the session's `executeGraph` method. There is also an
-asynchronous equivalent called `executeGraphAsync`.
-
-If you don't need any specific configuration on the statement, `DseSession` provides a convenient shortcut that accepts
-the query string directly:
-
-```java
-GraphResultSet rs = dseSession.executeGraph("g.V()");
-
-// Is the same as:
-GraphResultSet rs2 = dseSession.executeGraph(new SimpleGraphStatement("g.V()"));
-```
+Graph queries and statements can also be executed asynchronously via the `executeGraphAsync` methods.
 
 ### Handling results
 
@@ -126,7 +85,7 @@ if (n.isObject()) {
 }
 ```
 
-The driver also exposes more general purpose methods to handle results in the form of _Maps_ and _Lists_:
+The driver also exposes general purpose methods to handle results in the form of _Maps_ and _Lists_:
 
 ```java
 GraphNode n = dseSession.executeGraph("g.V().valueMap()").one();
@@ -135,7 +94,7 @@ Map<String, Object> values = n.asMap();
 
 #### Graph structural types
 
-The driver also has client-side representations for Vertex, Edge, Path, VertexProperty, and Property.
+The driver has client-side representations for Vertex, Edge, Path, VertexProperty, and Property.
 
 These are accessible via the corresponding `GraphNode#asXXXX()` methods:
 
@@ -153,18 +112,77 @@ n = dseSession.executeGraph("g.V().hasLabel('test_vertex').next().property('prop
 VertexProperty vertexProperty = n.asVertexProperty();
 ```
 
-##### A word on Properties
+#### Data types compatibility matrix
 
-Vertices' _VertexProperty_ respect the same behaviour than defined by Apache TinkerPop. A _VertexProperty_ 
-is first a property itself, with a value. But also can, in addition, have a list of _Property_ associated
-to it. This is called a _MetaProperty_. 
+_DSE Graph_ exposes several [data types](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/reference/refDSEGraphDataTypes.html)
+when defining a schema for a graph.
 
-Moreover, a _Vertex_ can have multiple _VertexProperty_ with the same name/key. This is
-called a _multi value property_.
+Those data types server-side translate into specific Java classes when the data is returned from the server.
 
-Altogether, a _Vertex_ can potentially have _multi value MetaProperties_.
+Here is the exhaustive list of possible _DSE Graph_ data types, and their corresponding class
+in the Java driver:
 
-Here is the syntax for dealing with properties with the _DataStax Java driver_ Graph types:
+<table border="1" width="100%">
+<tr><th>DSE Graph</th><th>Java Driver</th></tr>
+<tr><td>bigint</td><td><tt>Long</tt></td></tr>
+<tr><td>int</td><td><tt>Integer</tt></td></tr>
+<tr><td>double</td><td><tt>Double</tt></td></tr>
+<tr><td>float</td><td><tt>Float</tt></td></tr>
+<tr><td>uuid</td><td><tt>UUID</tt></td></tr>
+<tr><td>bigdecimal</td><td><tt>BigDecimal</tt></td></tr>
+<tr><td>duration</td><td><tt>java.time.Duration</tt></td></tr>
+<tr><td>inet</td><td><tt>InetAddress</tt></td></tr>
+<tr><td>timestamp</td><td><tt>java.time.Instant</tt></td></tr>
+<tr><td>time</td><td><tt>java.time.LocalTime</tt></td></tr>
+<tr><td>date</td><td><tt>java.time.LocalDate</tt></td></tr>
+<tr><td>smallint</td><td><tt>Short</tt></td></tr>
+<tr><td>varint</td><td><tt>BigInteger</tt></td></tr>
+<tr><td>polygon</td><td><tt>Polygon</tt></td></tr>
+<tr><td>point</td><td><tt>Point</tt></td></tr>
+<tr><td>linestring</td><td><tt>LineString</tt></td></tr>
+<tr><td>blob</td><td><tt>byte[]</tt></td></tr>
+</table>
+
+#### Deserializing complex data types
+
+The driver exposes methods to deserialize the data and return it into more complex data
+types, as long as the server side data type associated corresponds. Doing so requires to use 
+the `GraphNode#as(Class<T> clazz)` method:
+
+```java
+GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
+Vertex vertex = n.asVertex();
+UUID uuidProp = vertex.getProperty("uuidProp").getValue().as(UUID.class);
+```
+
+#### Java 8 Time types
+
+The _DSE Java driver_ is compatible with Java from version 6. The driver is able to 
+automatically determine whether the application it's used with is running with a
+Java runtime version less than version 6, and will be able to deserialize objects 
+differently accordingly.
+
+If using the driver with Java version 8 or higher, `java.time` types will be usable when 
+retrieving the data from a Traversal (see the types matrix above). 
+If the driver is used with an inferior version of Java, other classes will be usable when 
+retrieving the data sent by the server.
+
+For Java versions < 8, the `Duration()` and `Time()` DSE Graph types will be exposed as Strings.
+`Timestamp()` will be exposed as a `java.util.Date`, and `Date()` as a `com.datastax.driver.core.LocalDate`.
+
+#### A word on Properties
+
+The vertex properties exposed by the driver (_VertexProperty_) respect the same behaviour as 
+in Apache TinkerPop. First, A _VertexProperty_ is a property, with a simple value. But in 
+addition to that, a _VertexProperty_ can be the parent of a sublist of _Property_. 
+If that's the case, the _VertexProperty_ is a _meta property_.
+
+Moreover, for a _Vertex_ the *same* property key can be associated to multiple properties. 
+This is called a _multi value property_.
+
+Altogether, a _Vertex_ can potentially have _multi value meta properties_.
+
+Here is the syntax for dealing with properties with the _DataStax Java driver_ graph types:
 
 ```java
 GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex_meta_props')").one();
@@ -188,69 +206,52 @@ VertexProperty metaProp2 = metaProps.next();
 [...]
 ```
 
-More on how to create multi value meta properties in the
+More on how to create and query multi value meta properties in the
 [Apache Tinkerpop documentation](http://tinkerpop.apache.org/docs/3.2.3/reference/#vertex-properties).
 
-#### Deserializing complex data types
+### Graph options
 
-The driver exposes methods to deserialize the data and return it into more complex data
-types, as long as the server side data type associated corresponds. Doing so requires to use 
-the `GraphNode#as(Class<T> clazz)` method:
+You can set default graph options when initializing the cluster. They will be used for all graph statements. For
+example, to avoid repeating `setGraphName("demo")` on each statement:
 
 ```java
-GraphNode n = dseSession.executeGraph("g.V().hasLabel('test_vertex')").one();
-Vertex vertex = n.asVertex();
-UUID uuidProp = vertex.getProperty("uuidProp").getValue().as(UUID.class);
+DseCluster dseCluster = DseCluster.builder()
+        .addContactPoint("127.0.0.1")
+        .withGraphOptions(new GraphOptions().setGraphName("demo"))
+        .build();
 ```
 
-#### DataTypes compatibility matrix
+You can also retrieve and change the options at runtime (be careful about concurrency though, the changes will be
+visible across all client threads):
 
-_DSE Graph_ exposes several [data types](http://docs.datastax.com/en/latest-dse/datastax_enterprise/graph/reference/refDSEGraphDataTypes.html)
-when defining a Graph with the Schema API.
+```java
+GraphOptions graphOptions = dseCluster.getConfiguration().getGraphOptions();
+graphOptions.setGraphName("demo2");
+```
 
-Those data types server-side translate into specific data types when the data is returned from the server.
+If an option is set manually on a `GraphStatement`, it always takes precedence; otherwise the default option is used.
+This might be a problem if a default graph name is set, but you explicitly want to execute a statement targeting
+`system`, for which no graph name must be set. In that situation, use `GraphStatement#setSystemQuery()`:
 
-Here is the exhaustive list of possible _DSE Graph_ data types, and their corresponding class
-in the Java driver.
+```java
+GraphStatement s = new SimpleGraphStatement("system.graph('demo').ifNotExists().create()")
+        .setSystemQuery();
+dseSession.executeGraph(s);
+```
 
-<table border="1" width="100%">
-<tr><th>DSE Graph</th><th>Java Driver</th></tr>
-<tr><td>bigint</td><td><tt>Long</tt></td></tr>
-<tr><td>int</td><td><tt>Integer</tt></td></tr>
-<tr><td>double</td><td><tt>Double</tt></td></tr>
-<tr><td>float</td><td><tt>Float</tt></td></tr>
-<tr><td>uuid</td><td><tt>UUID</tt></td></tr>
-<tr><td>bigdecimal</td><td><tt>BigDecimal</tt></td></tr>
-<tr><td>duration</td><td><tt>java.time.Duration</tt></td></tr>
-<tr><td>inet</td><td><tt>InetAddress</tt></td></tr>
-<tr><td>timestamp</td><td><tt>java.time.Instant</tt></td></tr>
-<tr><td>time</td><td><tt>java.time.LocalTime</tt></td></tr>
-<tr><td>date</td><td><tt>java.time.LocalDate</tt></td></tr>
-<tr><td>smallint</td><td><tt>Short</tt></td></tr>
-<tr><td>varint</td><td><tt>BigInteger</tt></td></tr>
-<tr><td>polygon</td><td><tt>Polygon</tt></td></tr>
-<tr><td>point</td><td><tt>Point</tt></td></tr>
-<tr><td>linestring</td><td><tt>LineString</tt></td></tr>
-<tr><td>blob</td><td><tt>byte[]</tt></td></tr>
-</table>
+#### Timeouts
 
-#### Java 8 Time types
+The higher time limit for executing a Graph query is defined server side, in `dse.yaml`.
 
-The _DSE Java driver_ is compatible with Java from version 6. The driver is able to 
-automatically determine whether the application it's used with is running with a
-Java runtime version less than version 6, and will be able to deserialize objects 
-differently accordingly.
+By default the Java driver will rely on that option that is declared server-side. This means that by default, after sending a request, the driver will wait until the server responds with a result or an error message, or times out.
 
-If using the driver with Java version 8 or higher, `java.time` types will be usable when 
-retrieving the data from a Traversal (see the types matrix above). 
-If the driver is used with an inferior version of Java, other classes will be usable when 
-retrieving the data sent by the server.
+This can be changed if the client needs a lower timeout. A timeout for the client can be 
+set either on the Cluster’s GraphOptions object and will apply to all Graph queries, or 
+individually on each GraphStatement object, through the methods setReadTimeoutMillis(). Note 
+that the server will abort a query once the client has stopped waiting for it, so there’s 
+no risk of leaving long-running queries on the server.
 
-For Java versions < 8, the `Duration()` and `Time()` DSE Graph types will be exposed as Strings.
-`Timestamp()` will be exposed as a Java `Date`, and `Date()` as a _DataStax Java Driver_'s
-`LocalDate` (warning: **not** a `java.time.LocalDate` - the Java Driver has a specific one).
-
-### Parameters
+### Query Parameters
 
 Graph query parameters are always named. Parameter bindings are passed as a `Map<String, Object>` alongside the query
 (Guava's `ImmutableMap` provides a convenient way to build maps on the fly):
@@ -269,7 +270,7 @@ dseSession.executeGraph("g.addV(label, vertexLabel)",
                 .build());
 ```
 
-Another way to specify parameters is to chain `set()` calls on a statement:
+Another way to specify parameters is to use the `set()` call on a `SimpleGraphStatement`:
 
 ```java
 SimpleGraphStatement s = new SimpleGraphStatement("g.addV(label, vertexLabel)")
@@ -279,12 +280,7 @@ dseSession.executeGraph(s);
 
 Note that, unlike in CQL, Gremlin placeholders are not prefixed with ":".
 
-Parameters can have the following types:
-
-* `null`;
-* boolean, numeric or `String`;
-* Java arrays or `List` instances;
-* Java maps.
+The classes supported for the parameters are listed in the [Data types compatibility matrix](#data-types-compatibility-matrix).
 
 In addition, you can inject:
 
@@ -317,15 +313,6 @@ In addition, you can inject:
             .set("id1", v1)
             .set("id2", v2);
 
-    dseSession.executeGraph(s);
-    ```
-
-* a geospatial type:
-
-    ```java
-    SimpleGraphStatement s = new SimpleGraphStatement(
-            "g.V().hasLabel('test_vertex').property('location', coords)"
-    ).set("coords", new Point(38.8895, 77.0352));
     dseSession.executeGraph(s);
     ```
 
