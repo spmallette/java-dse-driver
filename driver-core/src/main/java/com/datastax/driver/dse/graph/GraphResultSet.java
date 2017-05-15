@@ -12,7 +12,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.DriverException;
 import com.datastax.driver.dse.DseSession;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -32,7 +32,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
             if (row != null) {
                 String jsonString = row.getString("gremlin");
                 try {
-                    return GraphJsonUtils.readStringAsTree(jsonString).get("result");
+                    return GraphJsonUtils.readStringAsTree(jsonString);
                 } catch (RuntimeException e) {
                     throw new DriverException("Could not parse the result returned by the Graph server as a JSON string : " + jsonString, e);
                 }
@@ -41,6 +41,9 @@ public class GraphResultSet implements Iterable<GraphNode> {
             }
         }
     };
+
+    private long bulk = 0;
+    private GraphNode lastGraphNode = null;
 
     private final ResultSet wrapped;
     private final Function<Row, GraphNode> transformResultFunction;
@@ -73,7 +76,21 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * @return the next result, or {@code null} if there are no more of them.
      */
     public GraphNode one() {
-        return this.transformResultFunction.apply(wrapped.one());
+        if (bulk > 1) {
+            bulk--;
+            // TODO: return a copy? Not sure it's useful because the content of this is supposed to be immutable.
+            return lastGraphNode;
+        }
+        GraphNode container = this.transformResultFunction.apply(wrapped.one());
+        assert container != null;
+
+        if (container.get("bulk") != null) {
+            bulk = container.get("bulk").asLong();
+        }
+
+        GraphNode results = container.get("result");
+        lastGraphNode = results;
+        return results;
     }
 
     /**
@@ -87,7 +104,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * {@link #isExhausted() exhausted}. The result set will be exhausted after a call to this method.
      */
     public List<GraphNode> all() {
-        return Lists.transform(wrapped.all(), this.transformResultFunction);
+        return ImmutableList.copyOf(iterator());
     }
 
     /**
