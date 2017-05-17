@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -32,15 +31,14 @@ class DefaultInetAddressDeserializer<T extends InetAddress> extends StdDeseriali
 
     @Override
     public T deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
-        JsonLocation currentLocation = parser.getCurrentLocation();
         String ip = parser.readValueAs(String.class);
         try {
             InetAddress inet = InetAddresses.forString(ip);
             return inetClass.cast(inet);
         } catch (ClassCastException e) {
-            throw new JsonParseException(String.format("Inet address cannot be cast to %s: %s", inetClass.getSimpleName(), ip), currentLocation, e);
+            throw new JsonParseException(parser, String.format("Inet address cannot be cast to %s: %s", inetClass.getSimpleName(), ip), e);
         } catch (IllegalArgumentException e) {
-            throw new JsonParseException(String.format("Expected inet address, got %s", ip), currentLocation, e);
+            throw new JsonParseException(parser, String.format("Expected inet address, got %s", ip), e);
         }
     }
 

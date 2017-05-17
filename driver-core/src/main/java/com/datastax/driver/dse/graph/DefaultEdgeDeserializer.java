@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -85,10 +84,9 @@ class DefaultEdgeDeserializer extends StdDeserializer<DefaultEdge> {
     }
 
     private DefaultEdge readType(DefaultEdge edge, JsonParser parser) throws IOException {
-        JsonLocation currentLocation = parser.getCurrentLocation();
         String type = parser.readValueAs(String.class);
         if (type == null || !type.equals("edge"))
-            throw new JsonParseException(String.format("Expected 'edge' type, got '%s'", type), currentLocation);
+            throw new JsonParseException(parser, String.format("Expected 'edge' type, got '%s'", type));
         return edge;
     }
 

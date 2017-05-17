@@ -10,7 +10,6 @@ import com.datastax.driver.dse.geometry.Geometry;
 import com.datastax.driver.dse.geometry.LineString;
 import com.datastax.driver.dse.geometry.Point;
 import com.datastax.driver.dse.geometry.Polygon;
-import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -34,7 +33,6 @@ class DefaultGeometryDeserializer<T extends Geometry> extends StdDeserializer<T>
 
     @Override
     public T deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
-        JsonLocation currentLocation = parser.getCurrentLocation();
         String wkt = parser.readValueAs(String.class);
         Geometry geometry;
         if (wkt.startsWith("POINT"))
@@ -44,7 +42,7 @@ class DefaultGeometryDeserializer<T extends Geometry> extends StdDeserializer<T>
         else if (wkt.startsWith("POLYGON"))
             geometry = Polygon.fromWellKnownText(wkt);
         else
-            throw new JsonParseException("Unknown geometry type: " + wkt, currentLocation);
+            throw new JsonParseException(parser, "Unknown geometry type: " + wkt);
         return geometryClass.cast(geometry);
     }
 

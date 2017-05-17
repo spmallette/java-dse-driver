@@ -10,8 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +19,7 @@ import java.util.Map;
  * Provides quick lookup for Type deserialization extracted from the JSON payload. As well as the Java Object to types
  * compatible for the version 2.0 of GraphSON.
  */
-class GraphSONTypeIdResolver implements TypeIdResolver {
+class GraphSONTypeIdResolver extends TypeIdResolverBase {
 
     private final Map<String, JavaType> idToType = new HashMap<String, JavaType>();
 
@@ -31,10 +30,6 @@ class GraphSONTypeIdResolver implements TypeIdResolver {
         getIdToType().put(name, objectMapper.getTypeFactory().constructType(clasz));
         getTypeToId().put(clasz, name);
         return this;
-    }
-
-    @Override
-    public void init(final JavaType javaType) {
     }
 
     @Override
@@ -55,23 +50,17 @@ class GraphSONTypeIdResolver implements TypeIdResolver {
     }
 
     @Override
-    public String idFromBaseType() {
-        return null;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public JavaType typeFromId(final String s) {
-        return typeFromId(null, s);
-    }
-
-    @Override
     public JavaType typeFromId(final DatabindContext databindContext, final String s) {
         // Get the type from the string from the stored Map. If not found, default to deserialize as a String.
         return getIdToType().containsKey(s)
                 ? getIdToType().get(s)
                 // TODO: shouldn't we fail instead, if the type is not found? Or log something?
-                : TypeFactory.defaultInstance().constructType(String.class);
+                : databindContext.constructType(String.class);
+    }
+
+    @Override
+    public String getDescForKnownTypeIds() {
+        return "GraphSONType";
     }
 
     @Override

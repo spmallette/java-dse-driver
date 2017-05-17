@@ -6,7 +6,6 @@
  */
 package com.datastax.driver.dse.graph;
 
-import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -35,20 +34,20 @@ class DefaultVertexDeserializer extends StdDeserializer<DefaultVertex> {
             parser.nextToken();
             if ("id".equals(name)) {
                 assert parser.getCurrentToken() == START_OBJECT;
-                vertex = readId(vertex, parser, ctx);
+                vertex = readId(vertex, parser);
             } else if ("label".equals(name)) {
                 assert parser.getCurrentToken() == VALUE_STRING;
-                vertex = readLabel(vertex, parser, ctx);
+                vertex = readLabel(vertex, parser);
             } else if ("type".equals(name)) {
                 assert parser.getCurrentToken() == VALUE_STRING;
-                vertex = readType(vertex, parser, ctx);
+                vertex = readType(vertex, parser);
             } else if ("properties".equals(name)) {
                 assert parser.getCurrentToken() == START_OBJECT;
                 while (parser.nextToken() != END_OBJECT) {
                     assert parser.getCurrentToken() == FIELD_NAME;
                     String key = parser.getCurrentName();
                     parser.nextToken();
-                    vertex = readProperty(vertex, key, parser, ctx);
+                    vertex = readProperty(vertex, key, parser);
                 }
             } else {
                 parser.nextToken();
@@ -58,26 +57,25 @@ class DefaultVertexDeserializer extends StdDeserializer<DefaultVertex> {
         return vertex;
     }
 
-    private DefaultVertex readId(DefaultVertex vertex, JsonParser parser, DeserializationContext ctx) throws IOException {
+    private DefaultVertex readId(DefaultVertex vertex, JsonParser parser) throws IOException {
         JsonNode jacksonNode = parser.readValueAsTree();
         vertex.id = new DefaultGraphNode(jacksonNode, (ObjectMapper) parser.getCodec());
         return vertex;
     }
 
-    private DefaultVertex readLabel(DefaultVertex vertex, JsonParser parser, DeserializationContext ctx) throws IOException {
+    private DefaultVertex readLabel(DefaultVertex vertex, JsonParser parser) throws IOException {
         vertex.label = parser.readValueAs(String.class);
         return vertex;
     }
 
-    private DefaultVertex readType(DefaultVertex vertex, JsonParser parser, DeserializationContext ctx) throws IOException {
-        JsonLocation currentLocation = parser.getCurrentLocation();
+    private DefaultVertex readType(DefaultVertex vertex, JsonParser parser) throws IOException {
         String type = parser.readValueAs(String.class);
         if (type == null || !type.equals("vertex"))
-            throw new JsonParseException(String.format("Expected 'vertex' type, got '%s'", type), currentLocation);
+            throw new JsonParseException(parser, String.format("Expected 'vertex' type, got '%s'", type));
         return vertex;
     }
 
-    private DefaultVertex readProperty(DefaultVertex vertex, String propertyName, JsonParser parser, DeserializationContext ctx) throws IOException {
+    private DefaultVertex readProperty(DefaultVertex vertex, String propertyName, JsonParser parser) throws IOException {
         if (vertex.properties == null) {
             vertex.properties = MultimapBuilder
                     .linkedHashKeys()
