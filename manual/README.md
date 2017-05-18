@@ -282,7 +282,7 @@ simply navigate to each sub-directory.
 
 [DseCluster]:               http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.html
 [DseCluster.Builder]:       http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.Builder.html
-[DseSession]:               http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/DseSession.html
+[DseSession]:               http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseSession.html
 [ResultSet]:                http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/ResultSet.html
 [Row]:                      http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/Row.html
 [NettyOptions]:             http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/NettyOptions.html
