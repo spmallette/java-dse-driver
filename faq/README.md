@@ -299,3 +299,45 @@ scalacOptions += "-Ybreak-cycles"
 ### I'm using the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) and cannot compile my application because of an unresolved dependency `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4`
 
 This is a known problem. See our documentation on the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) for an explanation and possible workarounds.
+
+### I am getting a "No such property: g for class: ScriptXXXX" error message when using `executeGraph()`.
+
+Remember that executing a query with the String execution method for DSE Graph will have the DSE Graph server
+interpret this String as a Groovy script. On the server side, to ease the use of DSE Graph,
+some variables are predefined before the execution of each script.
+
+When no graph name is defined on the request, the DSE Graph server will predefine the Graph system
+management variable, named `system`. Hence if no graph name is defined on a request, only the `system`
+variable will be accessible. 
+
+On the other hand, if a graph name is defined for the request, the DSE Graph server will 
+automatically predefine a `GraphTraversalSource` variable named `g` bound to the graph 
+specified in the graph name, so that users can easily create and execute traversals with it. 
+If no graph name is specified for a query and you try to use the variable `g`, the error 
+message mentioned above will be thrown.
+
+A graph name can be specified as a global option (via the `DseCluster`'s `GraphOptions`) or
+per-statement (via the method [GraphStatement#setGraphName][setGraphName]), here's an example
+showing when the `system` variable is accessible, or when `g` is:
+
+```java
+DseCluster dseCluster = DseCluster.builder().addContactPoint("localhost").build();
+DseSession dseSession = dseCluster.connect();
+
+// upon successful completion, the graph is created
+dseSession.executeGraph("system.graph('demo').ifNotExists().create()");
+
+// Now I can either set the graph name on each GraphStatement
+dseSession.executeGraph(new SimpleGraphStatement("g.V()").setGraphName("demo"));
+
+// Or go modify the global GraphOptions which are applied to all queries, unless overridden on a GraphStatement
+dseCluster.getConfiguration().getGraphOptions().setGraphName("demo");
+// At this point, the "system" variable is not available anymore unless you reset the Cluster's Graph name to null
+dseSession.executeGraph("g.V()");
+```
+
+`DseCluster`'s builder also has a [withGraphOptions()][withGraphOptions] method to help 
+specifying a global graph name at the time of building the `DseCluster`.
+
+[setGraphName]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphStatement.html#setGraphName-java.lang.String-
+[withGraphOptions]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.Builder.html#withGraphOptions-com.datastax.driver.dse.graph.GraphOptions-
