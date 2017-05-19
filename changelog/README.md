@@ -3,6 +3,7 @@
 ### 1.2.4 (in progress)
 
 - [bug] JAVA-1447: Avoid NPE when checking GraphNode type.
+- [documentation] JAVA-1451: Apache TinkerPop client integration doc updates.
 
 
 ### 1.2.3
