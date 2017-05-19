@@ -6,6 +6,7 @@
  */
 package com.datastax.dse.graph.remote;
 
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphFixtures;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
@@ -26,9 +27,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.datastax.dse.graph.TinkerGraphAssertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
@@ -157,6 +161,7 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
      * edges that connect them.
      */
     @Test(groups = "short")
+    @DseVersion("5.0.4")
     public void should_handle_subgraph() {
         // retrieve a subgraph on the knows relationship, this omits the created edges.
         Graph graph = (Graph) g.E().hasLabel("knows").subgraph("subGraph").cap("subGraph").next();
@@ -406,6 +411,39 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
             validatePathObjects(path);
             for (int i = 0; i < 5; i++)
                 assertThat(path).hasNoLabel(i);
+        }
+    }
+
+    @Test(groups = "short")
+    public void should_handle_asynchronous_execution() {
+        StringBuilder names = new StringBuilder();
+
+        CompletableFuture<List<Vertex>> future = g.V().hasLabel("person").promise(Traversal::toList);
+        try {
+            // dumb processing to make sure the completable future works correctly and correct results are returned
+            future.thenAccept(vertices -> vertices.forEach(vertex -> names.append((String)vertex.value("name")))).get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail("Shouldn't have thrown an exception waiting for the result to complete");
+        }
+
+        assertThat(names.toString()).contains("peter", "marko", "vadas", "josh");
+    }
+
+    /**
+     * Validates that if a traversal is made that encounters an error on the server side that the exception
+     * is set on the future.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    @DseVersion("5.1.0")
+    public void should_fail_future_returned_from_promise_on_query_error() throws Exception {
+        CompletableFuture<?> future = g.V("invalidid").promise(Traversal::next);
+
+        try {
+            future.get();
+        } catch (ExecutionException e) {
+            assertThat(e.getCause()).isInstanceOf(InvalidQueryException.class);
         }
     }
 
