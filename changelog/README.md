@@ -4,6 +4,7 @@
 
 - [bug] JAVA-1447: Avoid NPE when checking GraphNode type.
 - [documentation] JAVA-1451: Apache TinkerPop client integration doc updates.
+- [improvement] JAVA-1452: Provide external links to Apache TinkerPop in javadoc.
 
 
 ### 1.2.3
