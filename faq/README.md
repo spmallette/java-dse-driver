@@ -216,7 +216,27 @@ fields set to `null`.  This also causes tombstones to be inserted unless
 setting `saveNullFields` option to false.  See [Mapper options] for more
 details.
 
+### Why am I encountering an 'illegal cyclic reference' error when using the driver with Scala?
+
+There is a known issue with the Scala compiler ([SI-3809]) that prevents
+Scala code from compiling when using `DseCluster`.
+
+An example of such a compiler error:
+
+```
+src/main/scala/app/App.scala:18: illegal cyclic reference involving class Cluster 
+```
+
+To work around this issue, it is recommended to add `-Ybreak-cycles` to
+`scalac`'s compiler arguments.  To accomplish this using sbt, add the
+following to your sbt project file:
+
+```scala
+scalacOptions += "-Ybreak-cycles"
+```
+
 [Blobs.java]: https://github.com/datastax/java-driver/tree/3.2.0/driver-examples/src/main/java/com/datastax/driver/examples/datatypes/Blobs.java
 [CASSANDRA-7304]: https://issues.apache.org/jira/browse/CASSANDRA-7304
 [Parameters and Binding]: ../manual/statements/prepared/#parameters-and-binding
 [Mapper options]: ../manual/object_mapper/using/#mapper-options
+[SI-3809]: https://issues.scala-lang.org/browse/SI-3809
