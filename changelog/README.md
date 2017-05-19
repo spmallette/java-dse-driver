@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.2.4 (in progress)
+
+- [bug] JAVA-1447: Avoid NPE when checking GraphNode type.
+
+
 ### 1.2.3
 
 - [bug] JAVA-1433: Remove infinite recursion in Graph elements toString().

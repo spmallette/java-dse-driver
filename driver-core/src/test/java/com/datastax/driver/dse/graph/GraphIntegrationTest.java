@@ -438,4 +438,86 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
 
         session().executeGraph(stmt);
     }
+
+    /**
+     * Ensures that all kinds of nodes known to the GraphNode interface are correctly detected.
+     *
+     * @jira_ticket JAVA-1447
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_detect_all_node_types() {
+
+        GraphNode root = session().executeGraph(
+                "return [ root: [" +
+                        "object: [foo:42], " +
+                        "array: [1,2,3], " +
+                        "vertex: g.V().next(), " +
+                        "edge: g.E().next(), " +
+                        "value: 42, " +
+                        "nil: null " +
+                        "]]").one().get("root");
+
+        GraphNode object = root.get("object");
+        GraphNode array = root.get("array");
+        GraphNode vertex = root.get("vertex");
+        GraphNode edge = root.get("edge");
+        GraphNode value = root.get("value");
+        GraphNode nil = root.get("nil");
+
+        // object node
+        assertThat(object).isNotNull();
+        assertThat(object.isObject()).isTrue();
+        assertThat(object.isVertex()).isFalse();
+        assertThat(object.isEdge()).isFalse();
+        assertThat(object.isArray()).isFalse();
+        assertThat(object.isValue()).isFalse();
+        assertThat(object.isNull()).isFalse();
+
+        // array node
+        assertThat(array).isNotNull();
+        assertThat(array.isObject()).isFalse();
+        assertThat(array.isVertex()).isFalse();
+        assertThat(array.isEdge()).isFalse();
+        assertThat(array.isArray()).isTrue();
+        assertThat(array.isValue()).isFalse();
+        assertThat(array.isNull()).isFalse();
+
+        // vertex node
+        assertThat(vertex).isNotNull();
+        assertThat(vertex.isObject()).isTrue();
+        assertThat(vertex.isVertex()).isTrue();
+        assertThat(vertex.isEdge()).isFalse();
+        assertThat(vertex.isArray()).isFalse();
+        assertThat(vertex.isValue()).isFalse();
+        assertThat(vertex.isNull()).isFalse();
+
+        // edge node
+        assertThat(edge).isNotNull();
+        assertThat(edge.isObject()).isTrue();
+        assertThat(edge.isVertex()).isFalse();
+        assertThat(edge.isEdge()).isTrue();
+        assertThat(edge.isArray()).isFalse();
+        assertThat(edge.isValue()).isFalse();
+        assertThat(edge.isNull()).isFalse();
+
+        // value node
+        assertThat(value).isNotNull();
+        assertThat(value.isObject()).isFalse();
+        assertThat(value.isVertex()).isFalse();
+        assertThat(value.isEdge()).isFalse();
+        assertThat(value.isArray()).isFalse();
+        assertThat(value.isValue()).isTrue();
+        assertThat(value.isNull()).isFalse();
+
+        // null node
+        assertThat(nil).isNotNull();
+        assertThat(nil.isObject()).isFalse();
+        assertThat(nil.isVertex()).isFalse();
+        assertThat(nil.isEdge()).isFalse();
+        assertThat(nil.isArray()).isFalse();
+        assertThat(nil.isValue()).isTrue(); // null node is a value node
+        assertThat(nil.isNull()).isTrue();
+    }
+
 }
