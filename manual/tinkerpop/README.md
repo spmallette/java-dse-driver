@@ -1,7 +1,7 @@
-## Apache TinkerPop client integration
+## Apache TinkerPop™ client integration
 
 As an alternative to its [native graph API](../graph/), the DataStax Enterprise Java driver provides an integration 
-layer to interact with DSE through the [Apache TinkerPop][tinkerpop] library.
+layer to interact with DSE through the [Apache TinkerPop™][tinkerpop] library.
 
 This component is published in Maven central as a separate artifact:
 
@@ -14,6 +14,70 @@ This component is published in Maven central as a separate artifact:
 ```
 
 [tinkerpop]: http://tinkerpop.apache.org/
+
+Note: The TinkerPop integration layer has a direct dependency on `org.apache.tinkerpop:gremlin-groovy`, 
+which in turn as a dependency on `com.github.jeremyh:jBCrypt` – an artifact that is not available
+from Maven Central. 
+
+This is a [known problem](https://issues.apache.org/jira/browse/TINKERPOP-1633), and until it is solved, users need to either:
+
+1. Exclude the `com.github.jeremyh:jBCrypt` dependency and add a dependency to `org.mindrot:jbcrypt:0.4`, the official Maven artifact for the jBCrypt library:
+```xml
+<dependency>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-graph</artifactId>
+  <version>1.2.3</version>
+  <exclusions>
+    <exclusion>
+      <groupId>com.github.jeremyh</groupId>
+      <artifactId>jBCrypt</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+
+<dependency>
+  <groupId>org.mindrot</groupId>
+  <artifactId>jbcrypt</artifactId>
+  <version>0.4</version>
+</dependency>
+```
+With Gradle:
+```groovy
+dependencies {
+  compile('com.datastax.dse:dse-java-driver-graph:1.2.3') {
+     exclude group: 'com.github.jeremyh', module: 'jBCrypt' 
+  }
+  compile('corg.mindrot:jbcrypt:0.4')
+}
+```
+With sbt:
+```scala
+ "com.datastax.dse" % "dse-java-driver-graph" % "1.2.3" exclude("com.github.jeremyh","jBCrypt"),
+ "org.mindrot" % "jbcrypt" % "0.4"
+```
+2. Manually install `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4` in their local and/or corporate Maven repository. Simply [clone this project](https://github.com/jeremyh/jBCrypt) and `mvn install` it. 
+3. Use [Jitpack](https://jitpack.io/). Jitpack is a repository that serves artifacts whose source code is hosted on Github.
+With Maven:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+With Gradle:
+```groovy
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+With sbt:
+```scala
+resolvers += "jitpack" at "https://jitpack.io"
+```
 
 ### DataStax drivers execution compatibility
 
