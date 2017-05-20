@@ -10,6 +10,7 @@ import com.datastax.driver.core.TypeTokens;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.*;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
+import com.datastax.dse.graph.internal.utils.GraphSONUtils;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
@@ -181,6 +182,22 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
                 statementFromTraversal(g.V().hasLabel("notALabel"))
         );
         assertThat(rs.getAvailableWithoutFetching()).isZero();
+    }
+
+    /**
+     * Ensures a traversal that yields no results is properly retrieved and is empty,
+     * using GraphSON2 and the TinkerPop transform results function.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_return_zero_results_graphson_2() {
+        SimpleGraphStatement simpleGraphStatement = new SimpleGraphStatement("g.V().hasLabel('notALabel')");
+        simpleGraphStatement.setGraphInternalOption("graph-results", "graphson-2.0");
+        simpleGraphStatement.setTransformResultFunction(GraphSONUtils.ROW_TO_GRAPHSON2_TINKERPOP_OBJECTGRAPHNODE);
+
+        GraphResultSet rs = session().executeGraph(simpleGraphStatement);
+        assertThat(rs.one()).isNull();
     }
 
 
