@@ -33,10 +33,10 @@ System.out.println(rs.one().asVertex());
 
 _Note: you need to set `schema_mode: Development` in `dse.yaml` to run the example above._
 
-A graph query can be executed either via the [executeGraph()][executeGraphString] method that accepts a string query in parameter,
-or the [executeGraph()][executeGraphStatement] method that accepts a [GraphStatement]. A simple implementation of
-a [GraphStatament] is the [SimpleGraphStatement], which accepts a query string, and allows
-to set specific graph options to this statement instance.
+A graph query can be executed either via the [executeGraph()][executeGraphString] method that accepts a string query in
+parameter, or the [executeGraph()][executeGraphStatement] method that accepts a [GraphStatement]. A simple
+implementation of a [GraphStatement] is the [SimpleGraphStatement], which accepts a query string, and allows
+setting specific graph options on the statement instance.
 
 #### Asynchronous execution
 
@@ -44,7 +44,7 @@ Graph queries and statements can also be executed asynchronously via the [execut
 
 ### Handling results
 
-Graph queries return a `GraphResultSet`, which is essentially an iterable of `GraphNode`:
+Graph queries return a [GraphResultSet], which is essentially an iterable of [GraphNode]:
 
 ```java
 GraphResultSet rs = dseSession.executeGraph("g.V()");
@@ -119,7 +119,7 @@ when defining a schema for a graph.
 
 Those data types server-side translate into specific Java classes when the data is returned from the server.
 
-Here is the exhaustive list of possible _DSE Graph_ data types, and their corresponding class
+Here is the exhaustive list of possible _DSE Graph_ data types, and their corresponding classes
 in the Java driver:
 
 <table border="1" width="100%">
@@ -146,7 +146,7 @@ in the Java driver:
 #### Deserializing complex data types
 
 The driver exposes methods to deserialize data into more complex data types, 
-as long as the server-side data type associated corresponds. Doing so requires to use 
+as long as the server-side data type associated corresponds. Doing so requires using
 the `GraphNode#as(Class<T> clazz)` method:
 
 ```java
@@ -158,7 +158,7 @@ UUID uuidProp = vertex.getProperty("uuidProp").getValue().as(UUID.class);
 #### Java 8 Time types
 
 The _DSE Java driver_ is compatible with Java from version 6. The driver is able to 
-automatically determine whether the application it's used with is running on such legacy Java version, 
+automatically determine whether the application it's used with is running on such a legacy Java version,
 and will be able to deserialize objects differently accordingly.
 
 If using the driver with Java version 8 or higher, `java.time` types will be usable when 
@@ -171,7 +171,7 @@ retrieving the data sent by the server. For Java versions < 8, the `Duration()` 
 #### A word on Properties
 
 The vertex properties exposed by the driver (_VertexProperty_) respect the same behaviour as 
-in Apache TinkerPop. First, A _VertexProperty_ is a property, with a simple value. But in 
+in Apache TinkerPop. First, a _VertexProperty_ is a property, with a simple value. But in
 addition to that, a _VertexProperty_ can be the parent of a sublist of _Property_. 
 If that's the case, the sub properties of _VertexProperty_ are called _meta-properties_.
 
@@ -202,7 +202,7 @@ VertexProperty vertexProp2 = vertexProps.next();
 [...]
 ```
 
-More on how to create and query multi value properties and meta properties in the
+More on how to create and query multi-valued properties and meta-properties is in the
 [Apache Tinkerpop documentation](http://tinkerpop.apache.org/docs/3.2.3/reference/#vertex-properties).
 
 ### Graph options
@@ -245,7 +245,7 @@ result or an error message, or times out.
 
 This can be changed if the client needs a lower timeout. A timeout for the client can be 
 set either on the Cluster’s `GraphOptions` object and will apply to all Graph queries, or 
-individually on each `GraphStatement` object, through the methods [setReadTimeoutMillis()][setReadTimeoutMillis]. Note 
+individually on each `GraphStatement` object, through the [setReadTimeoutMillis()][setReadTimeoutMillis] method. Note
 that the server will abort a query once the client has stopped waiting for it, so there’s 
 no risk of leaving long-running queries on the server.
 
@@ -329,6 +329,7 @@ Prepared graph statements are not supported by DSE yet (they will be added in th
 [Property]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/Property.html
 [Node]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/serde/Node.html
 [GraphNode]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphNode.html
+[GraphResultSet]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphResultSet.html
 [localdate]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/LocalDate.html
 [timeout-conf]: http://docs.datastax.com/en/dse/5.1/dse-admin/datastax_enterprise/graph/config/configCassSettings.html
 [setReadTimeoutMillis]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphStatement.html#setReadTimeoutMillis-int-
