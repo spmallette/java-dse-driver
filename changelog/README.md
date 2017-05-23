@@ -6,7 +6,6 @@
 - [documentation] JAVA-1451: Apache TinkerPop client integration doc updates.
 - [improvement] JAVA-1452: Provide external links to Apache TinkerPop in javadoc.
 - [improvement] JAVA-1453: Change call to TinkerIoRegistry#instance() to the backward compatible one.
-- [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
 - [improvement] JAVA-1427: DseGSSAPIAuthProvider should provide method for existing Subject.
 - [documentation] JAVA-1331: "g not defined" graph error topic in FAQ.
 - [bug] JAVA-1432: Check null results in Row-to-TinkerPop/GraphSON2 function.
