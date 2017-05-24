@@ -32,6 +32,7 @@ public class GraphSONUtils {
 
     public static final String BYTECODE_GRAPHSON_GRAPH_LANGUAGE = "bytecode-json";
 
+    @SuppressWarnings("deprecation")
     private static final GraphSONMapper GRAPHSON_MAPPER_2_0 = GraphSONMapper.build()
             .version(GraphSONVersion.V2_0)
             .typeInfo(TypeInfo.PARTIAL_TYPES)

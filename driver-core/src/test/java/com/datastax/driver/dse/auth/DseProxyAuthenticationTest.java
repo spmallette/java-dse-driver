@@ -225,7 +225,9 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
      */
     @Test(groups = "long")
     public void should_allow_kerberos_authorized_user_to_execute_as() throws Exception {
-        DseGSSAPIAuthProvider authProvider = new DseGSSAPIAuthProvider(keytabClient(charlieKeytab, charliePrincipal));
+        DseGSSAPIAuthProvider authProvider = DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(charlieKeytab, charliePrincipal))
+                .build();
         Row row = connectAndQuery(authProvider, "alice");
         assertThat(row).isNotNull();
     }
@@ -276,7 +278,9 @@ public class DseProxyAuthenticationTest extends CCMDseTestsSupport {
      */
     @Test(groups = "long")
     public void should_not_allow_kerberos_unauthorized_user_to_execute_as() throws Exception {
-        DseGSSAPIAuthProvider authProvider = new DseGSSAPIAuthProvider(keytabClient(bobKeytab, bobPrincipal));
+        DseGSSAPIAuthProvider authProvider = DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(bobKeytab, bobPrincipal))
+                .build();
         try {
             connectAndQuery(authProvider, "alice");
             fail("Should have thrown an exception");

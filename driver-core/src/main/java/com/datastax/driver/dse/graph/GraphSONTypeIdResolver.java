@@ -60,6 +60,7 @@ class GraphSONTypeIdResolver implements TypeIdResolver {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public JavaType typeFromId(final String s) {
         return typeFromId(null, s);
     }

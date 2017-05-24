@@ -187,6 +187,8 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *
      * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider() {
         this(null, null, null, null);
     }
@@ -198,6 +200,8 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
      * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(Configuration loginConfiguration) {
         this(loginConfiguration, null, null, null);
     }
@@ -210,6 +214,8 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *                     Kerberos service principal used by the DSE server.
      * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(String saslProtocol) {
         this(null, null, saslProtocol, null);
     }
@@ -223,6 +229,8 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *                           Kerberos service principal used by the DSE server.
      * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol) {
         this(loginConfiguration, null, saslProtocol, null);
     }
@@ -299,6 +307,7 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
             }
         }
 
+        @Override
         public byte[] getMechanism() {
             return MECHANISM.clone();
         }

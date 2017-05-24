@@ -153,7 +153,10 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
     @CCMConfig(ccmProvider = "configureAlternateCCM")
     @Test(groups = "long")
     public void should_authenticate_using_kerberos_with_keytab_and_alternate_service_principal() throws Exception {
-        AuthProvider auth = new DseGSSAPIAuthProvider(keytabClient(userKeytab, userPrincipal), "alternate");
+        AuthProvider auth = DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(userKeytab, userPrincipal))
+                .withSaslProtocol("alternate")
+                .build();
         connectAndQuery(auth);
     }
 
@@ -207,7 +210,7 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
      * Connects using {@link DseGSSAPIAuthProvider} and the given config file for jaas.
      */
     private void connectAndQuery(Configuration configuration) {
-        connectAndQuery(new DseGSSAPIAuthProvider(configuration));
+        connectAndQuery(DseGSSAPIAuthProvider.builder().withLoginConfiguration(configuration).build());
     }
 
     private void connectAndQuery(AuthProvider authProvider) {

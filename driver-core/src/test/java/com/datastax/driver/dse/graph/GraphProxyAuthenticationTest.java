@@ -166,7 +166,9 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "long")
     public void should_make_traversal_using_kerberos_with_proxy_execution() {
-        queryWithExecuteAs(new DseGSSAPIAuthProvider(keytabClient(charlieKeytab, charliePrincipal)));
+        queryWithExecuteAs(DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(charlieKeytab, charliePrincipal))
+                .build());
     }
 
     private void query(AuthProvider authProvider) {
