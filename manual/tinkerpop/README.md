@@ -10,7 +10,7 @@ This component is published in Maven central as a separate artifact:
 <dependency>
   <groupId>com.datastax.dse</groupId>
   <artifactId>dse-java-driver-graph</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 ```
 
@@ -26,7 +26,7 @@ This is a [known problem](https://issues.apache.org/jira/browse/TINKERPOP-1633),
 <dependency>
   <groupId>com.datastax.dse</groupId>
   <artifactId>dse-java-driver-graph</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
   <exclusions>
     <exclusion>
       <groupId>com.github.jeremyh</groupId>
@@ -44,7 +44,7 @@ This is a [known problem](https://issues.apache.org/jira/browse/TINKERPOP-1633),
 With Gradle:
 ```groovy
 dependencies {
-  compile('com.datastax.dse:dse-java-driver-graph:1.2.3') {
+  compile('com.datastax.dse:dse-java-driver-graph:1.2.4') {
      exclude group: 'com.github.jeremyh', module: 'jBCrypt' 
   }
   compile('corg.mindrot:jbcrypt:0.4')
@@ -52,7 +52,7 @@ dependencies {
 ```
 With sbt:
 ```scala
- "com.datastax.dse" % "dse-java-driver-graph" % "1.2.3" exclude("com.github.jeremyh","jBCrypt"),
+ "com.datastax.dse" % "dse-java-driver-graph" % "1.2.4" exclude("com.github.jeremyh","jBCrypt"),
  "org.mindrot" % "jbcrypt" % "0.4"
 ```
 2. Manually install `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4` in their local and/or corporate Maven repository. Simply [clone this project](https://github.com/jeremyh/jBCrypt) and `mvn install` it. 
