@@ -369,6 +369,10 @@
                 </executions>
                 <configuration>
                     <comparisonVersion>1.2.3</comparisonVersion>
+                    <includes>
+                        <include>com/datastax/driver/**</include>
+                        <include>com/datastax/dse/graph/api/**</include>
+                    </includes>
                     <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
                 </configuration>
                 <!--
