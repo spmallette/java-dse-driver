@@ -12,4 +12,9 @@
   @formatter:off
 -->
 <differences>
+    <difference>
+        <differenceType>8001</differenceType> <!-- class removed -->
+        <className>com/datastax/driver/dse/graph/ToStringGraphSONSerializer</className>
+        <justification>This class was never used. It shouldn't have been published at all.</justification>
+    </difference>
 </differences>
