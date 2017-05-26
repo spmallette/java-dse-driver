@@ -169,7 +169,7 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
     private void validateVertexResult(GraphResultSet resultSet, String vertexLabel, String propertyName, Object
             expectedResult) {
         // Ensure the created vertex is returned and the property value matches what was provided.
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Vertex v = resultSet.one().asVertex();
         VertexAssert a = assertThat(v).hasLabel(vertexLabel);
 

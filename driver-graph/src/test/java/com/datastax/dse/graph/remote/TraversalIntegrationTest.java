@@ -22,6 +22,8 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -471,5 +473,16 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
                     .hasProperty("name", "ripple")
                     .hasProperty("lang", "java");
         }
+    }
+
+    @Test(groups = "short")
+    public void should_return_correct_results_when_bulked() {
+        List<String> results = g.E().label().barrier().toList();
+        Collections.sort(results);
+
+        List<String> expected = Arrays.asList("knows", "created", "created", "knows", "created", "created");
+        Collections.sort(expected);
+
+        assertThat(results).isEqualTo(expected);
     }
 }

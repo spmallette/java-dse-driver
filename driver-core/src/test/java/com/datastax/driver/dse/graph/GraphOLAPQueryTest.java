@@ -27,7 +27,7 @@ public class GraphOLAPQueryTest extends CCMGraphTestsOLAPSupport {
         Collection<Host> triedHosts = Lists.newArrayListWithCapacity(times);
         for (int i = 0; i < times; i++) {
             GraphResultSet result = session().executeGraph(statement);
-            assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
+            assertThat(result.all().size()).isEqualTo(1);
             GraphNode r = result.one();
             assertThat(r.asInt()).isEqualTo(6);
 

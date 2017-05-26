@@ -54,12 +54,12 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet resultSet = session().executeGraph(
                 new SimpleGraphStatement("g.V().hasLabel('person').has('name', name)").set("name", "marko"));
 
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Vertex marko = resultSet.one().asVertex();
         assertThat(marko).hasProperty("name", "marko");
 
         resultSet = session().executeGraph(new SimpleGraphStatement("g.V(myV)").set("myV", marko.getId()));
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Vertex marko2 = resultSet.one().asVertex();
 
         // Ensure that the returned vertex is the same as the first.
@@ -78,7 +78,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet resultSet = session().executeGraph(
                 new SimpleGraphStatement("g.V().hasLabel('person').has('name', name)").set("name", "marko"));
 
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Vertex marko = resultSet.one().asVertex();
         assertThat(marko).hasProperty("name", "marko");
 
@@ -113,12 +113,12 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
         GraphResultSet resultSet = session().executeGraph(
                 new SimpleGraphStatement("g.E().has('weight', weight)").set("weight", 0.2));
 
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Edge created = resultSet.one().asEdge();
         assertThat(created).hasProperty("weight", 0.2).hasInVLabel("software").hasOutVLabel("person");
 
         resultSet = session().executeGraph(new SimpleGraphStatement("g.E(myE).inV()").set("myE", created.getId()));
-        assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(resultSet.all().size()).isEqualTo(1);
         Vertex lop = resultSet.one().asVertex();
 
         assertThat(lop).hasLabel("software").hasProperty("name", "lop").hasProperty("lang", "java");
@@ -241,7 +241,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
                 "by(__.in('created').fold())");
 
 
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        assertThat(rs.all().size()).isEqualTo(2);
         List<GraphNode> results = rs.all();
 
         // Ensure that we got 'lop' and 'ripple' for property a.
@@ -287,7 +287,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
     public void should_handle_subgraph() {
         GraphResultSet rs = session().executeGraph("g.E().hasLabel('knows').subgraph('subGraph').cap('subGraph')");
 
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(rs.all().size()).isEqualTo(1);
 
         GraphNode result = rs.one();
         assertThat(result)
@@ -321,7 +321,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
     @Test(groups = "short")
     public void should_return_zero_results() {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('notALabel')");
-        assertThat(rs.getAvailableWithoutFetching()).isZero();
+        assertThat(rs.all().size()).isZero();
     }
 
     /**

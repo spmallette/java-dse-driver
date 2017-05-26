@@ -67,7 +67,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * @return whether there are more results.
      */
     public boolean isExhausted() {
-        return wrapped.isExhausted();
+        return wrapped.isExhausted() && bulk <= 1;
     }
 
     /**
@@ -100,8 +100,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * remaining results from the server, holding them all in memory. It is thus recommended to prefer iterations
      * through {@code iterator()} when possible, especially when there is a large number of results.
      *
-     * @return a list containing the remaining results. The returned list is empty if and only this result set is
-     * {@link #isExhausted() exhausted}. The result set will be exhausted after a call to this method.
+     * @return a list containing the remaining results. The result set will be exhausted after a call to this method.
      */
     public List<GraphNode> all() {
         return ImmutableList.copyOf(iterator());
@@ -111,7 +110,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * Returns an iterator over the results.
      * <p/>
      * The {@link Iterator#next} method is equivalent to calling {@link #one}. After a full iteration, the result set
-     * will be {@link #isExhausted() exhausted}.
+     * will be exhausted.
      * <p/>
      * The returned iterator does not support the {@link Iterator#remove} method.
      *
@@ -121,7 +120,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
         return new Iterator<GraphNode>() {
             @Override
             public boolean hasNext() {
-                return !wrapped.isExhausted();
+                return !isExhausted();
             }
 
             @Override
@@ -142,11 +141,14 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * @return the number of results readily available. If {@link #isFullyFetched()}, this is the total number of
      * results remaining, otherwise going past that limit will trigger background fetches.
      */
+    @Deprecated
     public int getAvailableWithoutFetching() {
         return wrapped.getAvailableWithoutFetching();
     }
 
     /**
+     * This method has been deprecated because paging is not implemented for DSE Graph.
+     * <p/>
      * Whether all results have been fetched from the database.
      * <p/>
      * If {@code isFullyFetched()}, then {@link #getAvailableWithoutFetching} will return the number of results
@@ -157,11 +159,14 @@ public class GraphResultSet implements Iterable<GraphNode> {
      *
      * @return whether all results have been fetched.
      */
+    @Deprecated
     public boolean isFullyFetched() {
         return wrapped.isFullyFetched();
     }
 
     /**
+     * This method has been deprecated because paging is not implemented for DSE Graph.
+     * <p/>
      * Force fetching the next page of results for this result set, if any.
      * <p/>
      * This method is entirely optional. It will be called automatically while
@@ -201,6 +206,7 @@ public class GraphResultSet implements Iterable<GraphNode> {
      * thrown (you should thus call {@code isFullyFetched() to know if calling this
      * method can be of any use}).
      */
+    @Deprecated
     public ListenableFuture<GraphResultSet> fetchMoreResults() {
         return Futures.transform(wrapped.fetchMoreResults(), new Function<ResultSet, GraphResultSet>() {
             @Override

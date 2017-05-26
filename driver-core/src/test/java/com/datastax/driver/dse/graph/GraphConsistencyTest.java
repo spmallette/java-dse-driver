@@ -70,7 +70,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
                 .setGraphWriteConsistencyLevel(ALL)
                 .setConsistencyLevel(ALL));
 
-        assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(result.all().size()).isEqualTo(1);
     }
 
     /**
@@ -86,7 +86,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
         GraphResultSet result = session().executeGraph(new SimpleGraphStatement("g.V().limit(1)")
                 .setConsistencyLevel(ONE));
 
-        assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(result.all().size()).isEqualTo(1);
     }
 
     /**
@@ -142,7 +142,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
                 .setGraphReadConsistencyLevel(ALL)
                 .setConsistencyLevel(ALL));
 
-        assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(result.all().size()).isEqualTo(1);
         assertThat(result.one()).asVertex().hasProperty("name", "don");
     }
 
@@ -159,7 +159,7 @@ public class GraphConsistencyTest extends CCMGraphTestsSupport {
         GraphResultSet result = session().executeGraph(new SimpleGraphStatement("graph.addVertex(label, 'person', 'name', 'don2', 'age', 37)")
                 .setConsistencyLevel(ONE));
 
-        assertThat(result.getAvailableWithoutFetching()).isEqualTo(1);
+        assertThat(result.all().size()).isEqualTo(1);
         assertThat(result.one()).asVertex().hasProperty("name", "don2");
     }
 

@@ -30,7 +30,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
     public void should_resolve_path_with_some_labels() {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
                 ".outE('knows').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        assertThat(rs.all().size()).isEqualTo(2);
         for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
@@ -54,7 +54,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
     public void should_resolve_path_with_labels() {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko').as('a')" +
                 ".outE('knows').as('b').inV().as('c', 'd').outE('created').as('e', 'f', 'g').inV().as('h').path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        assertThat(rs.all().size()).isEqualTo(2);
         for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
@@ -78,7 +78,7 @@ public class PathIntegrationTest extends CCMGraphTestsSupport {
     public void should_resolve_path_without_labels() {
         GraphResultSet rs = session().executeGraph("g.V().hasLabel('person').has('name', 'marko')" +
                 ".outE('knows').inV().outE('created').inV().path()");
-        assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
+        assertThat(rs.all().size()).isEqualTo(2);
         for (GraphNode result : rs) {
             Path path = result.asPath();
             validatePathObjects(path);
