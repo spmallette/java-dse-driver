@@ -277,7 +277,7 @@ for (ColumnDefinitions.Definition definition : row.getColumnDefinitions()) {
 If you're reading this from the [generated HTML documentation on
 datastax.com](http://docs.datastax.com/en/developer/java-driver-dse/1.1/), use the "Contents"
 menu on the right hand side to navigate sub-sections. If you're [browsing the source files on
-github.com](https://github.com/datastax/java-driver-dse/tree/1.x/manual),
+github.com](https://github.com/datastax/java-dse-driver/tree/1.x/manual),
 simply navigate to each sub-directory.
 
 [DseCluster]:               http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.html
