@@ -46,12 +46,16 @@ import org.apache.directory.server.protocol.shared.transport.UdpTransport;
 import org.apache.directory.shared.kerberos.KerberosTime;
 import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
 import org.apache.directory.shared.kerberos.components.EncryptionKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -64,7 +68,10 @@ import java.util.UUID;
  * <p/>
  * <b>Note:</b> This should only be used for development and testing purposes.
  */
+
 public class EmbeddedADS {
+
+    Logger logger = LoggerFactory.getLogger(EmbeddedADS.class);
 
     private final String dn;
 
@@ -76,7 +83,9 @@ public class EmbeddedADS {
 
     private final boolean kerberos;
 
-    private final String address;
+    private InetAddress address;
+
+    private String hostname;
 
     private File confDir;
 
@@ -95,7 +104,13 @@ public class EmbeddedADS {
     private EmbeddedADS(String dn, String realm, String address, int ldapPort, boolean kerberos, int kdcPort, File confDir) {
         this.dn = dn;
         this.realm = realm;
-        this.address = address;
+        try {
+            this.address = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            logger.error("Failure resolving address '{}', falling back to loopback.", address, e);
+            this.address = InetAddress.getLoopbackAddress();
+        }
+        this.hostname = this.address.getHostName().toLowerCase();
         this.ldapPort = ldapPort;
         this.kerberos = kerberos;
         this.kdcPort = kdcPort;
@@ -206,7 +221,7 @@ public class EmbeddedADS {
             service.getAdminSession().add(kerberize(tgtEntry));
 
             // LDAP SASL principal.
-            String saslPrincipal = "ldap/" + address + "@" + realm;
+            String saslPrincipal = "ldap/" + hostname + "@" + realm;
             ldapServer.setSaslPrincipal(saslPrincipal);
             Dn ldapDN = usersDN.add(dnFactory.create("uid=ldap"));
             Entry ldapEntry = service.newEntry(ldapDN);
@@ -230,12 +245,13 @@ public class EmbeddedADS {
     private File createKrb5Conf() throws IOException {
         File krb5Conf = new File(confDir, "krb5.conf");
         String config = String.format("[libdefaults]%n" +
-                "default_realm = %s%n%n" +
+                "default_realm = %s%n" +
+                "default_tgs_enctypes = aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96%n%n" +
                 "[realms]%n" +
                 "%s = {%n" +
                 "  kdc = %s:%d%n" +
                 "  admin_server = %s:%d%n" +
-                "}%n", realm, realm, address, kdcPort, address, kdcPort);
+                "}%n", realm, realm, hostname, kdcPort, hostname, kdcPort);
 
         FileOutputStream fios = new FileOutputStream(krb5Conf);
         try {
@@ -291,7 +307,7 @@ public class EmbeddedADS {
                 0,
                 timeStamp,
                 (byte) 0,
-                keys.get(EncryptionType.AES256_CTS_HMAC_SHA1_96));
+                keys.get(EncryptionType.AES128_CTS_HMAC_SHA1_96));
 
         keytab.setEntries(Collections.singletonList(keytabEntry));
         keytab.write(keytabFile);
@@ -346,6 +362,13 @@ public class EmbeddedADS {
     }
 
     /**
+     * @return The evaluated hostname that the server is listening with.
+     */
+    public String getHostname() {
+        return this.hostname;
+    }
+
+    /**
      * Adds attributes to the given Entry which will enable krb5key attributes to be added to them.
      *
      * @param entry Entry to add attributes to.
@@ -389,13 +412,13 @@ public class EmbeddedADS {
         // GSSAPI is required for kerberos.
         mechanismHandlerMap.put(SupportedSaslMechanisms.GSSAPI, new GssapiMechanismHandler());
         ldapServer.setSaslMechanismHandlers(mechanismHandlerMap);
-        ldapServer.setSaslHost(address);
+        ldapServer.setSaslHost(hostname);
         // Realms only used by DIGEST_MD5 and GSSAPI.
         ldapServer.setSaslRealms(Collections.singletonList(realm));
         ldapServer.setSearchBaseDn(dn);
 
         ldapPort = ldapPort != -1 ? ldapPort : findAvailablePort(10389);
-        ldapServer.setTransports(new TcpTransport(address, ldapPort));
+        ldapServer.setTransports(new TcpTransport(address.getHostAddress(), ldapPort));
         ldapServer.setDirectoryService(service);
         if (kerberos) {
             // Add an interceptor to attach krb5keys to created principals.
@@ -407,25 +430,25 @@ public class EmbeddedADS {
     }
 
     /**
-     * Starts the Kerberos Key Distribution Server supporting AES256 using the given principal for the Ticket-granting
+     * Starts the Kerberos Key Distribution Server supporting AES128 using the given principal for the Ticket-granting
      * ticket.
      *
      * @param servicePrincipal TGT principcal service.
      */
     private void startKDC(String servicePrincipal) throws Exception {
         KerberosConfig config = new KerberosConfig();
-        // We choose AES256_CTS_HMAC_SHA1_96 for our generated keytabs (this requires JCE).
-        config.setEncryptionTypes(Sets.newHashSet(EncryptionType.AES256_CTS_HMAC_SHA1_96));
+        // We choose AES128_CTS_HMAC_SHA1_96 for our generated keytabs so we don't need JCE.
+        config.setEncryptionTypes(Sets.newHashSet(EncryptionType.AES128_CTS_HMAC_SHA1_96));
         config.setSearchBaseDn(dn);
         config.setServicePrincipal(servicePrincipal);
 
         kdcServer = new KdcServer(config);
         kdcServer.setDirectoryService(service);
 
-        kdcServer.setTransports(new TcpTransport(address, kdcPort), new UdpTransport(address, kdcPort));
+        kdcServer.setTransports(new TcpTransport(address.getHostAddress(), kdcPort),
+                new UdpTransport(address.getHostAddress(), kdcPort));
         kdcServer.start();
     }
-
 
     public static Builder builder() {
         return new Builder();
@@ -480,21 +503,20 @@ public class EmbeddedADS {
 
         /**
          * Configures the port to use for LDAP.  Defaults to the first available port from 10389+.  Must be
-         * greater than 1024.
+         * greater than 0.
          */
         public Builder withLdapPort(int port) {
-            Preconditions.checkArgument(port > 1024);
+            Preconditions.checkArgument(port > 0);
             this.ldapPort = port;
             return this;
         }
 
-
         /**
          * Configures the port to use for Kerberos KDC.  Defaults to the first available port for 60088+.  Must be
-         * greater than 1024.
+         * greater than 0.
          */
         public Builder withKerberos(int port) {
-            Preconditions.checkArgument(port > 1024);
+            Preconditions.checkArgument(port > 0);
             this.kdcPort = port;
             return withKerberos();
         }

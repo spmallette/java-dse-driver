@@ -51,11 +51,10 @@ class DefaultVertexProperty extends DefaultElement implements VertexProperty {
     public String toString() {
         return "DefaultVertexProperty{" +
                 "id=" + id +
-                ", label='" + label + '\'' +
                 ", properties=" + properties +
                 ", name=" + getName() +
                 ", value=" + value +
-                ", parent=" + parent +
+                ", parent-id=" + parent.getId() +
                 '}';
     }
 }

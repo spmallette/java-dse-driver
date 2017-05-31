@@ -8,11 +8,11 @@ package com.datastax.dse.graph.remote;
 
 import com.datastax.driver.core.CCMConfig;
 import com.datastax.driver.core.CCMWorkload;
+import com.datastax.driver.core.VersionNumber;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphFixtures;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
 import com.datastax.dse.graph.api.predicates.Geo;
-import com.datastax.dse.graph.api.predicates.Search;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
@@ -26,9 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DseVersion(value = "5.0.3", description = "DSE 5.0.3 required for remote TinkerPop support")
 @CCMConfig(workloads = @CCMWorkload({"solr", "graph"}), jvmArgs = "-Duser.language=en")
 @SuppressWarnings("unchecked")
-public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
+public class GeoPredicatesIntegrationTest extends CCMTinkerPopTestsSupport {
 
-    SearchIntegrationTest() {
+    GeoPredicatesIntegrationTest(){
         super(true);
     }
 
@@ -36,58 +36,54 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
         executeGraph(GraphFixtures.addressBook(ccm().getDSEVersion()));
-        // arbitrary sleep to deal with index time.
-        // TODO: Find a better way of dealing with this uncertainty.
-        Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);
+        if (ccm().getDSEVersion().compareTo(VersionNumber.parse("5.1.0")) < 0) {
+            // In DSE 5.0, it appears that when schema is created it isn't guaranteed
+            // that the solr core exists, sleep for 20 seconds to allow it to be created.
+            Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);
+        }
+        // reindex to ensure data is indexed.
+        ccm().reloadCore(1, graphName(), "user_p", true);
     }
 
     /**
-     * Validates that a graph traversal can be made by using a Search prefix predicate on a string-search-indexed
-     * property.
+     * Validates correctness of {@link Geo#point} with the fluent API.
      * <p/>
-     * Finds all 'user' vertices having a 'full_name' property beginning with 'Paul'.
+     * Finds the only user that has the point (-92.46295 44.0234) as defined in {@link com.datastax.driver.dse.graph.GraphFixtures}.
      *
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    public void search_by_prefix() {
-        // Only one user with full_name starting with Paul.
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "full_name", Search.prefix("Paul")).values("full_name");
+    public void should_find_geo_point_with_fluent_api() {
+        GraphTraversal<Vertex, String> traversal = g.V().hasLabel("user").has("coordinates", Geo.point(-92.46295, 44.0234)).values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe");
     }
 
     /**
-     * Validates that a graph traversal can be made by using a Search regex predicate on a string-search-indexed
-     * property.
+     * Validates correctness of {@link Geo#lineString} with the fluent API.
      * <p/>
-     * Finds all 'user' vertices having a 'full_name' property matching regex '.*Paul.*'.
+     * Finds the only user that has the lineString (30 10, 10 30, 40 40) as defined in {@link com.datastax.driver.dse.graph.GraphFixtures}.
      *
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    public void search_by_regex() {
-        // Only two people with names containing pattern for Paul.
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "full_name", Search.regex(".*Paul.*")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
+    public void should_find_geo_linestring_with_fluent_api() {
+        GraphTraversal<Vertex, String> traversal = g.V().hasLabel("user").has("linestringProp", Geo.lineString(30, 10, 10, 30, 40, 40)).values("full_name");
+        assertThat(traversal.toList()).containsOnly("George Bill Steve");
     }
 
     /**
-     * Validates that a graph traversal can be made by using a Search fuzzy predicate on a string-search-indexed
-     * property.
+     * Validates correctness of {@link Geo#polygon} with the fluent API.
      * <p/>
-     * Finds all 'user' vertices having a 'alias' property matching 'mario' with a fuzzy distance of 1.
+     * Finds the only user that has the polygon (30 10, 40 40, 20 40, 10 20, 30 10) as defined in {@link com.datastax.driver.dse.graph.GraphFixtures}.
      *
      * @test_category dse:graph
      */
     @Test(groups = "long")
-    @DseVersion("5.1.0")
-    public void search_by_fuzzy() {
-        // Alias matches 'mario' fuzzy
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "alias", Search.fuzzy("mario", 1)).values("full_name");
-        // Should match 'Paul Thomas Joe' since alias is 'mario'
-        // Should match 'George Bill Steve' since alias is 'wario' witch matches 'mario' within a distance of 1.
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "George Bill Steve");
+    public void should_find_geo_polygon_with_fluent_api() {
+        GraphTraversal<Vertex, String> traversal = g.V().hasLabel("user").has("polygonProp", Geo.polygon(30, 10, 40, 40, 20, 40, 10, 20, 30, 10)).values("full_name");
+        assertThat(traversal.toList()).containsOnly("James Paul Joe");
     }
+
 
     /**
      * Validates that a graph traversal can be made by using an 'inside' distance predicate on a string-search-indexed
@@ -158,7 +154,8 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long", enabled = false, description = "Disabled until Cartesian Predicate is Supported by DSE")
+    @Test(groups = "long")
+    @DseVersion(value = "5.1.0", description = "Requires 5.1.0 for insideCartesian predicate")
     public void search_by_polygon_area() {
         // 10 clicks from La Crosse, WI should include Chicago, Rochester and Minneapolis, this is needed to filter
         // down the traversal set using the search index as Geo.inside(polygon) is not supported for search indices.
@@ -168,82 +165,4 @@ public class SearchIntegrationTest extends CCMTinkerPopTestsSupport {
                 .values("full_name");
         assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
     }
-
-    /**
-     * Validates that a graph traversal can be made by using a Search token predicate on a text-search-indexed property.
-     * <p/>
-     * Finds all 'user' vertices having a 'description' property containing the token 'cold'.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "long")
-    public void search_by_token() {
-        // Description containing token 'cold'
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "description", Search.token("cold")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Jill Alice", "George Bill Steve");
-    }
-
-    /**
-     * Validates that a graph traversal can be made by using a Search token prefix predicate on a text-search-indexed
-     * property.
-     * <p/>
-     * Finds all 'user' vertices having a 'description' containing the token prefix 'h'.
-     */
-    @Test(groups = "long")
-    public void search_by_token_prefix() {
-        // Description containing a token starting with h
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "description", Search.tokenPrefix("h")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
-    }
-
-    /**
-     * Validates that a graph traversal can be made by using a Search token regex predicate on a text-search-indexed
-     * property.
-     * <p/>
-     * Finds all 'user' vertices having a 'description' containing the token regex '(nice|hospital)'.
-     */
-    @Test(groups = "long")
-    public void search_by_token_regex() {
-        // Description containing nice or hospital
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "description", Search.tokenRegex("(nice|hospital)")).values("full_name");
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "Jill Alice");
-    }
-
-
-    /**
-     * Validates that a graph traversal can be made by using a Search fuzzy predicate on a text-search-indexed
-     * property.
-     * <p/>
-     * Finds all 'user' vertices having a 'description' property matching 'lives' with a fuzzy distance of 1.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "long")
-    @DseVersion("5.1.0")
-    public void search_by_token_fuzzy() {
-        // Description containing 'lives' fuzzy
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "description", Search.tokenFuzzy("lives", 1)).values("full_name");
-        // Should match 'Paul Thomas Joe' since description contains 'Lives'
-        // Should match 'James Paul Joe' since description contains 'Likes'
-        assertThat(traversal.toList()).containsOnly("Paul Thomas Joe", "James Paul Joe");
-    }
-
-    /**
-     * Validates that a graph traversal can be made by using a Search phrase predicate on a text-search-indexed
-     * property.
-     * <p/>
-     * Finds all 'user' vertices having a 'description' property matching 'a cold' with a distance of 2.
-     *
-     * @test_category dse:graph
-     */
-    @Test(groups = "long")
-    @DseVersion("5.1.0")
-    public void search_by_phrase() {
-        // Full name contains phrase "Paul Joe"
-        GraphTraversal<Vertex, String> traversal = g.V().has("user", "description", Search.phrase("a cold", 2)).values("full_name");
-        // Should match 'George Bill Steve' since 'A cold dude' is at distance of 0 for 'a cold'.
-        // Should match 'Jill Alice' since 'Enjoys a very nice cold coca cola' is at distance of 2 for 'a cold'.
-        assertThat(traversal.toList()).containsOnly("George Bill Steve", "Jill Alice");
-    }
-
 }

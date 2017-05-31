@@ -1,27 +1,92 @@
-## Apache TinkerPop client integration
+## Apache TinkerPop™ client integration
 
 As an alternative to its [native graph API](../graph/), the DataStax Enterprise Java driver provides an integration 
-layer to interact with DSE through the [Apache TinkerPop][tinkerpop] library.
+layer to interact with DSE through the [Apache TinkerPop™][tinkerpop] library.  This integration has also been referred
+to as the '[Fluent API][fluent-api]'.
 
 This component is published in Maven central as a separate artifact:
 
 ```xml
 <dependency>
   <groupId>com.datastax.dse</groupId>
-  <artifactId>java-dse-graph</artifactId>
-  <version>1.2.0</version>
+  <artifactId>dse-java-driver-graph</artifactId>
+  <version>1.2.4</version>
 </dependency>
 ```
 
-[tinkerpop]: http://tinkerpop.apache.org/
+
+Note: The TinkerPop integration layer has a direct dependency on `org.apache.tinkerpop:gremlin-groovy`, 
+which in turn as a dependency on `com.github.jeremyh:jBCrypt` – an artifact that is not available
+from Maven Central. 
+
+This is a [known problem](https://issues.apache.org/jira/browse/TINKERPOP-1633), and until it is solved, users need to either:
+
+1. Exclude the `com.github.jeremyh:jBCrypt` dependency and add a dependency to `org.mindrot:jbcrypt:0.4`, the official Maven artifact for the jBCrypt library:
+```xml
+<dependency>
+  <groupId>com.datastax.dse</groupId>
+  <artifactId>dse-java-driver-graph</artifactId>
+  <version>1.2.4</version>
+  <exclusions>
+    <exclusion>
+      <groupId>com.github.jeremyh</groupId>
+      <artifactId>jBCrypt</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+
+<dependency>
+  <groupId>org.mindrot</groupId>
+  <artifactId>jbcrypt</artifactId>
+  <version>0.4</version>
+</dependency>
+```
+With Gradle:
+```groovy
+dependencies {
+  compile('com.datastax.dse:dse-java-driver-graph:1.2.4') {
+     exclude group: 'com.github.jeremyh', module: 'jBCrypt' 
+  }
+  compile('corg.mindrot:jbcrypt:0.4')
+}
+```
+With sbt:
+```scala
+ "com.datastax.dse" % "dse-java-driver-graph" % "1.2.4" exclude("com.github.jeremyh","jBCrypt"),
+ "org.mindrot" % "jbcrypt" % "0.4"
+```
+2. Manually install `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4` in their local and/or corporate Maven repository. Simply [clone this project](https://github.com/jeremyh/jBCrypt) and `mvn install` it. 
+3. Use [Jitpack](https://jitpack.io/). Jitpack is a repository that serves artifacts whose source code is hosted on Github.
+With Maven:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+With Gradle:
+```groovy
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+With sbt:
+```scala
+resolvers += "jitpack" at "https://jitpack.io"
+```
 
 ### DataStax drivers execution compatibility
 
 This new package provides the necessary tools to get the most out the popular _Apache TinkerPop_
 Traversal API, while still getting the benefits of the DataStax drivers execution model.
-A Traversal is considered as a query, that can then be wrapped inside a _GraphStatement_.
+A Traversal is considered as a query, that can then be wrapped inside a [GraphStatement][GraphStatement].
 
-Here's how to create a _DSE Java driver_'s _GraphStatement_ out of a _Apache TinkerPop_ _Traversal_:
+Here's how to create a _DSE Java driver_'s _GraphStatement_ out of a _Apache TinkerPop_
+[Traversal][Traversal]:
 
 ```java
 // traversal() returns a simple GraphTraversalSource that is not meant to be iterated itself
@@ -36,19 +101,19 @@ for (GraphNode graphNode : grs) {
 }
 ```
 
-Statements created from Traversal instances will behave, with regards to the cluster,
+Statements created from _Traversal_ instances will behave, with regards to the cluster,
 the same way the _DSE Java driver_ behaves with DSE. All the advanced features of the _DSE Java driver_ come into play, 
 automatic retries, load balancing, DataCenter awareness, smart query logging, and so on.
 
 Information about the returned result types with the _DSE Java driver_ can be found on 
-[this page](http://docs.datastax.com/en/developer/java-driver-dse/1.1/manual/graph/#handling-results).
+[this page](http://docs.datastax.com/en/developer/java-driver-dse/1.2/manual/graph/#handling-results).
 
 ### TinkerPop direct compatibility
 This package also provides full compatibility with _Apache TinkerPop_'s query execution model
  and result types.
 
-Here's an example of how to get a _Apache TinkerPop_ _GraphTraversalSource_ that is remotely connected
-to a _DseGraph_ server, communicating internally via the _DSE Java driver_:
+Here's an example of how to get a _Apache TinkerPop_ [GraphTraversalSource][GraphTraversalSource] that is remotely
+connected to a _DseGraph_ server, communicating internally via the _DSE Java driver_:
 
 ```java
 DseCluster dseCluster = DseCluster.builder()
@@ -65,7 +130,7 @@ List<Vertex> vertices = g.V().hasLabel("person").toList();
 ```
 
 Traversal sources with different configurations can easily be created. By default the options
-specific to _DSE Graph_ are taken from the _DseCluster_ configuration, however
+specific to _DSE Graph_ are taken from the [DseCluster][DseCluster] configuration, however
 the API exposes a way to override each individual setting, per traversal source:
 
 ```java
@@ -75,6 +140,10 @@ GraphTraversalSource gOLAP = DseGraph.traversal(dseSession, new GraphOptions().s
 Vertex v = gOLTP.V().has("name", "marko").next();
 long count = gOLAP.V().count().next();
 ```
+
+Please note that there is no interactivity with DSE Graph until a [Terminal Step][TerminalStep] (such as `next`,
+`toList`, etc.) is performed.
+
 
 #### A word on Results
 
@@ -108,8 +177,18 @@ assert v3.size() == 1;
 assert v1 == v3.get(0);
 ```
 
-Please check out the Javadoc of the _Geo_ and _Search_ classes for more information. 
+Please check out the Javadoc of the [Geo][Geo] and [Search][Search] classes for more information. 
 
 ### Programmatic Schema API
 
 Available soon!...
+
+[tinkerpop]: http://tinkerpop.apache.org/
+[fluent-api]: https://datastax-oss.atlassian.net/browse/JAVA-1250
+[DseCluster]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.html
+[Geo]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/dse/graph/api/predicates/Geo.html
+[GraphStatement]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphStatement.html
+[GraphTraversalSource]: https://tinkerpop.apache.org/javadocs/3.2.4/full/org/apache/tinkerpop/gremlin/process/traversal/dsl/graph/GraphTraversalSource.html
+[Search]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/dse/graph/api/predicates/Search.html
+[TerminalStep]: http://tinkerpop.apache.org/docs/current/reference/#terminal-steps
+[Traversal]: https://tinkerpop.apache.org/javadocs/3.2.4/full/org/apache/tinkerpop/gremlin/process/traversal/Traversal.html

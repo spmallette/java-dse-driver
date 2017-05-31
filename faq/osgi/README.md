@@ -174,7 +174,7 @@ Unfortunately, some of the JNR artifacts available from Maven
 are not valid OSGi bundles and cannot be used in OSGi applications.
 
 [JAVA-1127] has been created to track this issue, and there
-is currently no simple workaround.
+is currently no simple workaround, other than ["osgi-fying" the library](http://stackoverflow.com/questions/3594024/how-to-create-osgi-bundle-from-jar-library) by yourself.
 
 Note that if you use Maven and include any JNR dependency
 in your pom, _these will be silently ignored by Pax Exam when
@@ -186,6 +186,17 @@ it is also normal to see the following log lines when starting the driver:
 
     INFO - Could not load JNR C Library, native system calls through this library will not be available
     INFO - Using java.lang.System clock to generate timestamps.
+
+### I cannot use DSE Graph Fluent API inside an OSGi container
+
+Although the `dse-java-driver-graph` module, containing the DSE Graph Fluent API,
+is available as an OSGi bundle, unfortunately the Tinkerpop library,
+which it depends upon, [is not](https://issues.apache.org/jira/browse/TINKERPOP-266).
+
+Using the Fluent API inside an OSGi container is therefore not supported at this time.
+As for similar cases, the only workaround is to 
+[wrap all non-OSGi libraries](http://stackoverflow.com/questions/3594024/how-to-create-osgi-bundle-from-jar-library)
+inside an OSGi bundle that you would have to create and maintain manually.
 
 
 [OSGi]:https://www.osgi.org

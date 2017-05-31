@@ -1,5 +1,60 @@
 ## Frequently Asked Questions
 
+### How do I use this driver as a drop-in replacement for `cassandra-driver-core` when it is a dependency of another project?
+
+It is not uncommon for users to use libraries that depend on
+[DataStax Java Driver for Apache Cassandra®](https://github.com/datastax/java-driver). Such
+libraries include [spring-data-cassandra](http://projects.spring.io/spring-data-cassandra/),
+[phantom](https://github.com/outworkers/phantom), and [quill](https://github.com/getquill/quill) among others.
+
+Since the Java driver for DataStax Enterprise is a drop-in replacement, you can declare it explicitly with
+your dependency management tool while excluding `cassandra-driver-core` as a dependency for the library
+you are using which currently depends on it.
+
+Ensure that the version of Java Driver for Apache Cassandra depended on by the third-party library is compatible
+with your target DataStax Enterprise Driver version.  Use the following table to identify the compatible versions:
+
+| Cassandra driver version | DSE driver version |
+| ------------------------ | ------------------ |
+| 3.1.x                    | 1.1.x              |
+| 3.2.x                    | 1.2.x              |
+
+To accomplish this with maven using spring-data-cassandra as an example, you may do the following:
+
+```xml
+<dependencies>
+   <dependency>
+       <groupId>org.springframework.data</groupId>
+       <artifactId>spring-data-cassandra</artifactId>
+       <exclusions>
+           <exclusion>
+               <groupId>com.datastax.cassandra</groupId>
+               <artifactId>cassandra-driver-core</artifactId>
+           </exclusion>
+       </exclusions>
+   </dependency>
+
+   <dependency>
+       <groupId>com.datastax.dse</groupId>
+       <artifactId>dse-java-driver-core</artifactId>
+   </dependency>
+</dependencies>
+```
+
+Alternatively, using gradle:
+
+```groovy
+dependencies {
+  compile ('org.springframework.data:spring-data-cassandra:$springDataVersion') {
+    exclude group: 'com.datastax.cassandra', module: 'cassandra-driver-core'
+  }
+  compile 'com.datastax.dse:dse-java-driver-core:$dseDriverVersion'
+}
+```
+
+Note that depending on how these libraries integrate with the driver, certain DSE specific features may not be directly
+available.
+
 ### How do I implement paging?
 
 When using [native protocol](../manual/native_protocol/) version 2 or
@@ -35,7 +90,7 @@ row.getBool(0);       // this is equivalent row.getBool("applied")
 
 Note that, unlike manual inspection, `wasApplied` does not consume the first row.
 
-[wasApplied]: http://docs.datastax.com/en/drivers/java/2.1/com/datastax/driver/core/ResultSet.html#wasApplied--
+[wasApplied]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/core/ResultSet.html#wasApplied--
 
 
 ### What is a parameterized statement and how can I use it?
@@ -216,7 +271,73 @@ fields set to `null`.  This also causes tombstones to be inserted unless
 setting `saveNullFields` option to false.  See [Mapper options] for more
 details.
 
-[Blobs.java]: https://github.com/datastax/java-driver/tree/3.0.x/driver-examples/src/main/java/com/datastax/driver/examples/datatypes/Blobs.java
+### Why am I encountering an 'illegal cyclic reference' error when using the driver with Scala?
+
+There is a known issue with the Scala compiler ([SI-3809]) that prevents
+Scala code from compiling when using `DseCluster`.
+
+An example of such a compiler error:
+
+```
+src/main/scala/app/App.scala:18: illegal cyclic reference involving class Cluster 
+```
+
+To work around this issue, it is recommended to add `-Ybreak-cycles` to
+`scalac`'s compiler arguments.  To accomplish this using sbt, add the
+following to your sbt project file:
+
+```scala
+scalacOptions += "-Ybreak-cycles"
+```
+
+[Blobs.java]: https://github.com/datastax/java-driver/tree/3.2.0/driver-examples/src/main/java/com/datastax/driver/examples/datatypes/Blobs.java
 [CASSANDRA-7304]: https://issues.apache.org/jira/browse/CASSANDRA-7304
 [Parameters and Binding]: ../manual/statements/prepared/#parameters-and-binding
 [Mapper options]: ../manual/object_mapper/using/#mapper-options
+[SI-3809]: https://issues.scala-lang.org/browse/SI-3809
+
+### I'm using the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) and cannot compile my application because of an unresolved dependency `com.github.jeremyh:jBCrypt:jar:jbcrypt-0.4`
+
+This is a known problem. See our documentation on the [Apache TinkerPop™ integration layer](../manual/tinkerpop/) for an explanation and possible workarounds.
+
+### I am getting a "No such property: g for class: ScriptXXXX" error message when using `executeGraph()`.
+
+Remember that executing a query with the String execution method for DSE Graph will have the DSE Graph server
+interpret this String as a Groovy script. On the server side, to ease the use of DSE Graph,
+some variables are predefined before the execution of each script.
+
+When no graph name is defined on the request, the DSE Graph server will predefine the Graph system
+management variable, named `system`. Hence if no graph name is defined on a request, only the `system`
+variable will be accessible. 
+
+On the other hand, if a graph name is defined for the request, the DSE Graph server will 
+automatically predefine a `GraphTraversalSource` variable named `g` bound to the graph 
+specified in the graph name, so that users can easily create and execute traversals with it. 
+If no graph name is specified for a query and you try to use the variable `g`, the error 
+message mentioned above will be thrown.
+
+A graph name can be specified as a global option (via the `DseCluster`'s `GraphOptions`) or
+per-statement (via the method [GraphStatement#setGraphName][setGraphName]), here's an example
+showing when the `system` variable is accessible, or when `g` is:
+
+```java
+DseCluster dseCluster = DseCluster.builder().addContactPoint("localhost").build();
+DseSession dseSession = dseCluster.connect();
+
+// upon successful completion, the graph is created
+dseSession.executeGraph("system.graph('demo').ifNotExists().create()");
+
+// Now I can either set the graph name on each GraphStatement
+dseSession.executeGraph(new SimpleGraphStatement("g.V()").setGraphName("demo"));
+
+// Or go modify the global GraphOptions which are applied to all queries, unless overridden on a GraphStatement
+dseCluster.getConfiguration().getGraphOptions().setGraphName("demo");
+// At this point, the "system" variable is not available anymore unless you reset the Cluster's Graph name to null
+dseSession.executeGraph("g.V()");
+```
+
+`DseCluster`'s builder also has a [withGraphOptions()][withGraphOptions] method to help 
+specifying a global graph name at the time of building the `DseCluster`.
+
+[setGraphName]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/graph/GraphStatement.html#setGraphName-java.lang.String-
+[withGraphOptions]: http://docs.datastax.com/en/drivers/java-dse/1.2/com/datastax/driver/dse/DseCluster.Builder.html#withGraphOptions-com.datastax.driver.dse.graph.GraphOptions-

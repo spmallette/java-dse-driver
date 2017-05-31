@@ -168,6 +168,16 @@ public class CCMTestsSupport {
         }
 
         @Override
+        public void pause(int n) {
+            throw new UnsupportedOperationException("This CCM cluster is read-only");
+        }
+
+        @Override
+        public void resume(int n) {
+            throw new UnsupportedOperationException("This CCM cluster is read-only");
+        }
+
+        @Override
         public void remove(int n) {
             throw new UnsupportedOperationException("This CCM cluster is read-only");
         }
@@ -230,6 +240,17 @@ public class CCMTestsSupport {
         @Override
         public void waitForDown(int node) {
             throw new UnsupportedOperationException("This CCM cluster is read-only");
+        }
+
+        @Override
+        public void dsetool(int node, String... args) {
+            throw new UnsupportedOperationException("This CCM cluster is read-only");
+        }
+
+        @Override
+        public void reloadCore(int node, String keyspace, String table, boolean reindex) {
+            // reloadCore is considered a non-dirty operation so we allow it.
+            delegate.reloadCore(node, keyspace, table, reindex);
         }
 
         @Override

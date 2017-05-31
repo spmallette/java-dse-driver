@@ -32,6 +32,7 @@ public class GraphSONUtils {
 
     public static final String BYTECODE_GRAPHSON_GRAPH_LANGUAGE = "bytecode-json";
 
+    @SuppressWarnings("deprecation")
     private static final GraphSONMapper GRAPHSON_MAPPER_2_0 = GraphSONMapper.build()
             .version(GraphSONVersion.V2_0)
             .typeInfo(TypeInfo.PARTIAL_TYPES)
@@ -50,10 +51,15 @@ public class GraphSONUtils {
             .create();
 
     public static final Function<Row, GraphNode> ROW_TO_GRAPHSON2_TINKERPOP_OBJECTGRAPHNODE = (input -> {
+        if (input == null) {
+            return null;
+        }
         Object deserializedObject = null;
         if (input.getColumnDefinitions().contains("gremlin")) {
             try {
-                deserializedObject = ((Map) readStringAs(input.getString("gremlin"), Object.class)).get("result");
+                @SuppressWarnings("rawtypes")
+                Map map = (Map) readStringAs(input.getString("gremlin"), Object.class);
+                deserializedObject = map.get("result");
             } catch (IOException e) {
                 throw Throwables.propagate(e);
             }

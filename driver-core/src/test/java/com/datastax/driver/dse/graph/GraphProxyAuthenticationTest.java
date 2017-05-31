@@ -8,7 +8,6 @@ package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.AuthProvider;
 import com.datastax.driver.core.CCMBridge;
-import com.datastax.driver.core.CreateCCM;
 import com.datastax.driver.core.TestUtils;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.DseCluster;
@@ -17,35 +16,20 @@ import com.datastax.driver.dse.auth.DseGSSAPIAuthProvider;
 import com.datastax.driver.dse.auth.DsePlainTextAuthProvider;
 import com.datastax.driver.dse.auth.EmbeddedADS;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.lang.reflect.Method;
 
-import static com.datastax.driver.core.CreateCCM.TestMode.PER_METHOD;
 import static com.datastax.driver.dse.auth.KerberosUtils.keytabClient;
 import static org.assertj.core.api.Assertions.assertThat;
 
-// TODO: Renable when DSP-11970 is fixed.
-@CreateCCM(PER_METHOD)
 @DseVersion("5.1.0")
 public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
 
     // Realm for the KDC.
     private static final String realm = "DATASTAX.COM";
-
     private static final String address = TestUtils.IP_PREFIX + "1";
-
-    // Principal for DSE service ( = kerberos_options.service_principal)
-    private static final String dsePrincipal = "dse/" + address + "@" + realm;
-
-    private static final String bobPrincipal = "bob@" + realm;
-    private static final String charliePrincipal = "charlie@" + realm;
-
-    // Keytabs to use for auth.
-    private File dseKeytab;
-    private File bobKeytab;
-    private File charlieKeytab;
 
     private final EmbeddedADS adsServer = EmbeddedADS.builder()
             .withKerberos()
@@ -53,8 +37,24 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
             .withAddress(address)
             .build();
 
-    @BeforeClass(groups = "long")
-    public void setupKDC() throws Exception {
+    // Principal for DSE service ( = kerberos_options.service_principal)
+    private final String dsePrincipal = "dse/" + adsServer.getHostname() + "@" + realm;
+
+    private final String bobPrincipal = "bob@" + realm;
+    private final String charliePrincipal = "charlie@" + realm;
+
+    // Keytabs to use for auth.
+    private File dseKeytab;
+    private File bobKeytab;
+    private File charlieKeytab;
+
+    @Override
+    protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
+        setupKDC();
+        super.initTestContext(testInstance, testMethod);
+    }
+
+    void setupKDC() throws Exception {
         if (adsServer.isStarted()) {
             return;
         }
@@ -100,13 +100,21 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
 
     @Override
     public CCMBridge.Builder configureCCM() {
+        // Specify authentication options together as a literal yaml string.  This is needed to express
+        // other_schemes as a list.
+        String authenticationOptions = "" +
+                "authentication_options:\n" +
+                "  enabled: true\n" +
+                "  default_scheme: kerberos\n" +
+                "  other_schemes:\n" +
+                "    - internal";
         return super.configureCCM()
                 .withCassandraConfiguration("authorizer", "com.datastax.bdp.cassandra.auth.DseAuthorizer")
                 .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
-                .withDSEConfiguration("authentication_options.enabled", true)
+                .withDSEConfiguration(authenticationOptions)
                 .withDSEConfiguration("authorization_options.enabled", true)
                 .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", dsePrincipal)
+                .withDSEConfiguration("kerberos_options.service_principal", "dse/_HOST@" + realm)
                 .withDSEConfiguration("kerberos_options.qop", "auth")
                 .withJvmArgs(
                         "-Dcassandra.superuser_setup_delay_ms=0",
@@ -123,7 +131,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long", enabled = false)
+    @Test(groups = "long")
     public void should_make_traversal_using_plain_text_with_proxy_authentication() {
         query(new DsePlainTextAuthProvider("ben", "ben", "guser"));
     }
@@ -133,7 +141,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long", enabled = false)
+    @Test(groups = "long")
     public void should_make_traversal_using_plain_text_with_proxy_execution() {
         queryWithExecuteAs(new DsePlainTextAuthProvider("steve", "steve"));
     }
@@ -143,7 +151,7 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long", enabled = false)
+    @Test(groups = "long")
     public void should_make_traversal_using_kerberos_with_proxy_authentication() {
         query(DseGSSAPIAuthProvider.builder()
                 .withLoginConfiguration(keytabClient(bobKeytab, bobPrincipal))
@@ -156,9 +164,11 @@ public class GraphProxyAuthenticationTest extends CCMGraphTestsSupport {
      *
      * @test_category dse:graph
      */
-    @Test(groups = "long", enabled = false)
+    @Test(groups = "long")
     public void should_make_traversal_using_kerberos_with_proxy_execution() {
-        queryWithExecuteAs(new DseGSSAPIAuthProvider(keytabClient(charlieKeytab, charliePrincipal)));
+        queryWithExecuteAs(DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(charlieKeytab, charliePrincipal))
+                .build());
     }
 
     private void query(AuthProvider authProvider) {

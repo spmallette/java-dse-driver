@@ -7,6 +7,7 @@
 package com.datastax.driver.mapping;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.querybuilder.BuiltStatement;
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -17,6 +18,7 @@ import com.datastax.driver.mapping.annotations.Computed;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +96,7 @@ public class Mapper<T> {
         return manager.getSession();
     }
 
-    ListenableFuture<PreparedStatement> getPreparedQueryAsync(QueryType type, Set<PropertyMapper> columns, EnumMap<Option.Type, Option> options) {
+    ListenableFuture<PreparedStatement> getPreparedQueryAsync(QueryType type, Set<AliasedMappedProperty> columns, EnumMap<Option.Type, Option> options) {
 
         final MapperQueryKey pqk = new MapperQueryKey(type, columns, options);
         ListenableFuture<PreparedStatement> existingFuture = preparedQueries.get(pqk);
@@ -131,7 +133,7 @@ public class Mapper<T> {
     }
 
     ListenableFuture<PreparedStatement> getPreparedQueryAsync(QueryType type, EnumMap<Option.Type, Option> options) {
-        return getPreparedQueryAsync(type, Collections.<PropertyMapper>emptySet(), options);
+        return getPreparedQueryAsync(type, Collections.<AliasedMappedProperty>emptySet(), options);
     }
 
     Class<T> getMappedClass() {
@@ -205,12 +207,12 @@ public class Mapper<T> {
     }
 
     private ListenableFuture<BoundStatement> saveQueryAsync(T entity, final EnumMap<Option.Type, Option> options) {
-        final Map<PropertyMapper, Object> values = new HashMap<PropertyMapper, Object>();
+        final Map<AliasedMappedProperty, Object> values = new HashMap<AliasedMappedProperty, Object>();
         boolean saveNullFields = shouldSaveNullFields(options);
 
-        for (PropertyMapper col : mapper.allColumns) {
-            Object value = col.getValue(entity);
-            if (!col.isComputed() && (saveNullFields || value != null)) {
+        for (AliasedMappedProperty col : mapper.allColumns) {
+            Object value = col.mappedProperty.getValue(entity);
+            if (!col.mappedProperty.isComputed() && (saveNullFields || value != null)) {
                 values.put(col, value);
             }
         }
@@ -220,8 +222,8 @@ public class Mapper<T> {
             public BoundStatement apply(PreparedStatement input) {
                 BoundStatement bs = input.bind();
                 int i = 0;
-                for (Map.Entry<PropertyMapper, Object> entry : values.entrySet()) {
-                    PropertyMapper mapper = entry.getKey();
+                for (Map.Entry<AliasedMappedProperty, Object> entry : values.entrySet()) {
+                    AliasedMappedProperty mapper = entry.getKey();
                     Object value = entry.getValue();
                     setObject(bs, i++, value, mapper);
                 }
@@ -229,9 +231,9 @@ public class Mapper<T> {
                 if (mapper.writeConsistency != null)
                     bs.setConsistencyLevel(mapper.writeConsistency);
 
-                for (Option opt : options.values()) {
-                    opt.checkValidFor(QueryType.SAVE, manager);
-                    opt.addToPreparedStatement(bs, i++);
+                for (Option option : options.values()) {
+                    option.validate(QueryType.SAVE, manager);
+                    i = option.apply(bs, i);
                 }
 
                 return bs;
@@ -244,12 +246,12 @@ public class Mapper<T> {
         return option == null || option.saveNullFields;
     }
 
-    private static void setObject(BoundStatement bs, int i, Object value, PropertyMapper mapper) {
-        TypeCodec<Object> customCodec = mapper.customCodec;
+    private static <T> void setObject(BoundStatement bs, int i, T value, AliasedMappedProperty<T> mapper) {
+        TypeCodec<T> customCodec = mapper.mappedProperty.getCustomCodec();
         if (customCodec != null)
             bs.set(i, value, customCodec);
         else
-            bs.set(i, value, mapper.javaType);
+            bs.set(i, value, mapper.mappedProperty.getPropertyType());
     }
 
     /**
@@ -382,9 +384,12 @@ public class Mapper<T> {
                 BoundStatement bs = new MapperBoundStatement(input);
                 int i = 0;
                 for (Object value : primaryKeys) {
-                    PropertyMapper column = mapper.getPrimaryKeyColumn(i);
+                    @SuppressWarnings("unchecked")
+                    AliasedMappedProperty<Object> column = (AliasedMappedProperty<Object>) mapper.getPrimaryKeyColumn(i);
                     if (value == null) {
-                        throw new IllegalArgumentException(String.format("Invalid null value for PRIMARY KEY column %s (argument %d)", column.columnName, i));
+                        throw new IllegalArgumentException(
+                                String.format("Invalid null value for PRIMARY KEY column %s (argument %d)",
+                                        column.mappedProperty.getMappedName(), i));
                     }
                     setObject(bs, i++, value, column);
                 }
@@ -392,11 +397,9 @@ public class Mapper<T> {
                 if (mapper.readConsistency != null)
                     bs.setConsistencyLevel(mapper.readConsistency);
 
-                for (Option opt : options.values()) {
-                    opt.checkValidFor(QueryType.GET, manager);
-                    opt.addToPreparedStatement(bs, i);
-                    if (opt.isIncludedInQuery())
-                        i++;
+                for (Option option : options.values()) {
+                    option.validate(QueryType.GET, manager);
+                    i = option.apply(bs, i);
                 }
                 return bs;
             }
@@ -550,7 +553,7 @@ public class Mapper<T> {
     private ListenableFuture<BoundStatement> deleteQueryAsync(T entity, EnumMap<Option.Type, Option> options) {
         List<Object> pks = new ArrayList<Object>();
         for (int i = 0; i < mapper.primaryKeySize(); i++) {
-            pks.add(mapper.getPrimaryKeyColumn(i).getValue(entity));
+            pks.add(mapper.getPrimaryKeyColumn(i).mappedProperty.getValue(entity));
         }
         return deleteQueryAsync(pks, options);
     }
@@ -582,18 +585,18 @@ public class Mapper<T> {
                     bs.setConsistencyLevel(mapper.writeConsistency);
 
                 int i = 0;
-                for (Option opt : options.values()) {
-                    opt.checkValidFor(QueryType.DEL, manager);
-                    opt.addToPreparedStatement(bs, i);
-                    if (opt.isIncludedInQuery())
-                        i++;
+                for (Option option : options.values()) {
+                    option.validate(QueryType.DEL, manager);
+                    i = option.apply(bs, i);
                 }
 
                 int columnNumber = 0;
                 for (Object value : primaryKey) {
-                    PropertyMapper column = mapper.getPrimaryKeyColumn(columnNumber);
+                    @SuppressWarnings("unchecked")
+                    AliasedMappedProperty<Object> column = (AliasedMappedProperty<Object>) mapper.getPrimaryKeyColumn(columnNumber);
                     if (value == null) {
-                        throw new IllegalArgumentException(String.format("Invalid null value for PRIMARY KEY column %s (argument %d)", column.columnName, i));
+                        throw new IllegalArgumentException(String.format("Invalid null value for PRIMARY KEY column %s (argument %d)",
+                                column.mappedProperty.getMappedName(), i));
                     }
                     setObject(bs, i++, value, column);
                     columnNumber++;
@@ -849,13 +852,7 @@ public class Mapper<T> {
      */
     public static abstract class Option {
 
-        enum Type {TTL, TIMESTAMP, CL, TRACING, SAVE_NULL_FIELDS}
-
-        final Type type;
-
-        protected Option(Type type) {
-            this.type = type;
-        }
+        enum Type {TTL, TIMESTAMP, CL, TRACING, SAVE_NULL_FIELDS, IF_NOT_EXISTS}
 
         /**
          * Creates a new Option object to add time-to-live to a mapper operation. This is
@@ -923,19 +920,72 @@ public class Mapper<T> {
             return new SaveNullFields(enabled);
         }
 
-        public Type getType() {
-            return this.type;
+        /**
+         * Creates a new Option object to specify whether an IF NOT EXISTS clause should be included in
+         * insert queries. This option is valid only for save operations.
+         * <p/>
+         * If this option is not specified, it defaults to {@code false} (IF NOT EXISTS statements are not used).
+         *
+         * @param enabled whether to include an IF NOT EXISTS clause in queries.
+         * @return the option.
+         */
+        public static Option ifNotExists(boolean enabled) {
+            return new IfNotExists(enabled);
         }
 
-        abstract void appendTo(Insert.Options usings);
+        final Type type;
 
-        abstract void appendTo(Delete.Options usings);
+        protected Option(Type type) {
+            this.type = type;
+        }
 
-        abstract void addToPreparedStatement(BoundStatement bs, int i);
+        /**
+         * @deprecated This method is public for backward compatibility only. It should not be accessible since it leaks
+         * a package-private type.
+         */
+        @Deprecated
+        public Type getType() {
+            return type;
+        }
 
-        abstract void checkValidFor(QueryType qt, MappingManager manager) throws IllegalArgumentException;
+        /**
+         * Checks that the option is allowed for a given query type, in a given manager.
+         *
+         * @throws IllegalArgumentException if the option is not valid
+         */
+        abstract void validate(QueryType qt, MappingManager manager);
 
-        abstract boolean isIncludedInQuery();
+        /**
+         * Whether the option has any impact on the prepared query string.
+         */
+        abstract boolean modifiesQueryString();
+
+        /**
+         * Appends the option to the prepared statement associated to the mapper operation
+         * (might be a no-op, not all options affect the query string).
+         */
+        abstract void modifyQueryString(BuiltStatement query);
+
+        /**
+         * Applies the option to the bound statement before the request gets executed (might be a
+         * no-op).
+         * <p/>
+         * If the option's value is set as a bound variable, then this must be done at the given
+         * index, and the method should return the new position.
+         * <p/>
+         * Options may also affect the statement itself, not a bound variable; in that case, the
+         * method must return the index unchanged.
+         */
+        abstract int apply(BoundStatement bs, int currentIndex);
+
+        /**
+         * A key to represent the option in the prepared statement cache.
+         * <p>
+         * If the same option with different values produces different query strings, this should
+         * be the option itself.
+         * Otherwise this should be the option type.
+         */
+        abstract Object asCacheKey();
 
         static class Ttl extends Option {
 
@@ -947,29 +997,43 @@ public class Mapper<T> {
             }
 
             @Override
-            void appendTo(Insert.Options usings) {
-                usings.and(QueryBuilder.ttl(QueryBuilder.bindMarker()));
-            }
-
-            @Override
-            void appendTo(Delete.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
-            }
-
-            @Override
-            void addToPreparedStatement(BoundStatement bs, int i) {
-                bs.setInt(i, this.ttlValue);
-            }
-
-            @Override
-            void checkValidFor(QueryType qt, MappingManager manager) {
+            void validate(QueryType qt, MappingManager manager) {
                 checkArgument(!manager.isCassandraV1, "TTL option requires native protocol v2 or above");
                 checkArgument(qt == QueryType.SAVE, "TTL option is only allowed in save queries");
             }
 
             @Override
-            boolean isIncludedInQuery() {
+            boolean modifiesQueryString() {
                 return true;
+            }
+
+            @Override
+            void modifyQueryString(BuiltStatement query) {
+                ((Insert) query).using().and(
+                        QueryBuilder.ttl(QueryBuilder.bindMarker()));
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                bs.setInt(currentIndex, this.ttlValue);
+                return currentIndex + 1;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // ttl is set as a bound variable "TTL(?)", so different values yield the same prepared query
+                return Type.TTL;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof Ttl && this.ttlValue == ((Ttl) other).ttlValue);
+            }
+
+            @Override
+            public int hashCode() {
+                return ttlValue;
             }
         }
 
@@ -983,29 +1047,49 @@ public class Mapper<T> {
             }
 
             @Override
-            void appendTo(Insert.Options usings) {
-                usings.and(QueryBuilder.timestamp(QueryBuilder.bindMarker()));
-            }
-
-            @Override
-            void appendTo(Delete.Options usings) {
-                usings.and(QueryBuilder.timestamp(QueryBuilder.bindMarker()));
-            }
-
-            @Override
-            void checkValidFor(QueryType qt, MappingManager manager) {
+            void validate(QueryType qt, MappingManager manager) {
                 checkArgument(!manager.isCassandraV1, "Timestamp option requires native protocol v2 or above");
                 checkArgument(qt == QueryType.SAVE || qt == QueryType.DEL, "Timestamp option is only allowed in save and delete queries");
             }
 
             @Override
-            void addToPreparedStatement(BoundStatement bs, int i) {
-                bs.setLong(i, this.tsValue);
+            boolean modifiesQueryString() {
+                return true;
             }
 
             @Override
-            boolean isIncludedInQuery() {
-                return true;
+            void modifyQueryString(BuiltStatement query) {
+                if (query instanceof Insert) {
+                    ((Insert) query).using().and(QueryBuilder.timestamp(QueryBuilder.bindMarker()));
+                } else if (query instanceof Delete) {
+                    ((Delete) query).using().and(QueryBuilder.timestamp(QueryBuilder.bindMarker()));
+                } else {
+                    throw new AssertionError("Unexpected query type: " + query.getClass());
+                }
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                bs.setLong(currentIndex, this.tsValue);
+                return currentIndex + 1;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // timestamp is set as a bound variable "USING TIMESTAMP ?", so different values
+                // yield the same prepared query
+                return Type.TIMESTAMP;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof Timestamp && this.tsValue == ((Timestamp) other).tsValue);
+            }
+
+            @Override
+            public int hashCode() {
+                return (int) (tsValue ^ (tsValue >>> 32));
             }
         }
 
@@ -1019,29 +1103,40 @@ public class Mapper<T> {
             }
 
             @Override
-            void appendTo(Insert.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
+            void validate(QueryType qt, MappingManager manager) {
             }
 
             @Override
-            void appendTo(Delete.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
-            }
-
-            @Override
-            void addToPreparedStatement(BoundStatement bs, int i) {
-                bs.setConsistencyLevel(cl);
-            }
-
-            @Override
-            void checkValidFor(QueryType qt, MappingManager manager) {
-                checkArgument(qt == QueryType.SAVE || qt == QueryType.DEL || qt == QueryType.GET,
-                        "Consistency level option is only allowed in save, delete and get queries");
-            }
-
-            @Override
-            boolean isIncludedInQuery() {
+            boolean modifiesQueryString() {
                 return false;
+            }
+
+            @Override
+            void modifyQueryString(BuiltStatement query) {
+                // nothing to do, CL is set on the bound statement
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                bs.setConsistencyLevel(cl);
+                return currentIndex;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // does not modify the query string
+                return Type.CL;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof ConsistencyLevelOption && this.cl == ((ConsistencyLevelOption) other).cl);
+            }
+
+            @Override
+            public int hashCode() {
+                return cl.hashCode();
             }
         }
 
@@ -1055,30 +1150,42 @@ public class Mapper<T> {
             }
 
             @Override
-            void appendTo(Insert.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
+            void validate(QueryType qt, MappingManager manager) {
             }
 
             @Override
-            void appendTo(Delete.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
-            }
-
-            @Override
-            void addToPreparedStatement(BoundStatement bs, int i) {
-                if (this.tracing)
-                    bs.enableTracing();
-            }
-
-            @Override
-            void checkValidFor(QueryType qt, MappingManager manager) {
-                checkArgument(qt == QueryType.SAVE || qt == QueryType.DEL || qt == QueryType.GET,
-                        "Tracing option is only allowed in save, delete and get queries");
-            }
-
-            @Override
-            boolean isIncludedInQuery() {
+            boolean modifiesQueryString() {
                 return false;
+            }
+
+            @Override
+            void modifyQueryString(BuiltStatement query) {
+                // nothing to do, tracing is enabled on the prepared statement
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                if (this.tracing) {
+                    bs.enableTracing();
+                }
+                return currentIndex;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // does not modify the query string
+                return Type.TRACING;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof Tracing && this.tracing == ((Tracing) other).tracing);
+            }
+
+            @Override
+            public int hashCode() {
+                return tracing ? 1231 : 1237;
             }
         }
 
@@ -1092,49 +1199,110 @@ public class Mapper<T> {
             }
 
             @Override
-            void appendTo(Insert.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
-            }
-
-            @Override
-            void appendTo(Delete.Options usings) {
-                throw new UnsupportedOperationException("shouldn't be called");
-            }
-
-            @Override
-            void addToPreparedStatement(BoundStatement bs, int i) {
-                // nothing to do
-            }
-
-            @Override
-            void checkValidFor(QueryType qt, MappingManager manager) {
+            void validate(QueryType qt, MappingManager manager) {
                 checkArgument(qt == QueryType.SAVE, "SaveNullFields option is only allowed in save queries");
             }
 
             @Override
-            boolean isIncludedInQuery() {
+            boolean modifiesQueryString() {
                 return false;
+            }
+
+            @Override
+            void modifyQueryString(BuiltStatement query) {
+                // nothing to do
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                return currentIndex;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // does not modify the query string
+                return Type.SAVE_NULL_FIELDS;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof SaveNullFields && this.saveNullFields == ((SaveNullFields) other).saveNullFields);
+            }
+
+            @Override
+            public int hashCode() {
+                return saveNullFields ? 1231 : 1237;
             }
         }
 
+        static class IfNotExists extends Option {
+            boolean ifNotExists;
+
+            IfNotExists(boolean ifNotExists) {
+                super(Type.IF_NOT_EXISTS);
+                this.ifNotExists = ifNotExists;
+            }
+
+            @Override
+            void validate(QueryType qt, MappingManager manager) {
+                checkArgument(qt == QueryType.SAVE, "IfNotExists option is only allowed in save queries");
+            }
+
+            @Override
+            boolean modifiesQueryString() {
+                return true;
+            }
+
+            @Override
+            void modifyQueryString(BuiltStatement query) {
+                if (ifNotExists) {
+                    ((Insert) query).ifNotExists();
+                }
+            }
+
+            @Override
+            int apply(BoundStatement bs, int currentIndex) {
+                return currentIndex;
+            }
+
+            @Override
+            Object asCacheKey() {
+                // Different values do change the query string ("IF NOT EXIST" clause present or not)
+                return this;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other == this ||
+                        (other instanceof IfNotExists && this.ifNotExists == ((IfNotExists) other).ifNotExists);
+            }
+
+            @Override
+            public int hashCode() {
+                return (ifNotExists) ? 1231 : 1237;
+            }
+        }
     }
 
     private static class MapperQueryKey {
         private final QueryType queryType;
-        private final EnumSet<Option.Type> optionTypes;
-        private final Set<PropertyMapper> columns;
+        private final Set<Object> optionKeys;
+        private final Set<AliasedMappedProperty> columns;
 
-        MapperQueryKey(QueryType queryType, Set<PropertyMapper> propertyMappers, EnumMap<Option.Type, Option> options) {
+        MapperQueryKey(QueryType queryType, Set<AliasedMappedProperty> aliasedMappedProperties, EnumMap<Option.Type, Option> allOptions) {
             Preconditions.checkNotNull(queryType);
-            Preconditions.checkNotNull(options);
-            Preconditions.checkNotNull(propertyMappers);
+            Preconditions.checkNotNull(allOptions);
+            Preconditions.checkNotNull(aliasedMappedProperties);
             this.queryType = queryType;
-            this.columns = propertyMappers;
-            this.optionTypes = EnumSet.noneOf(Option.Type.class);
-            for (Option opt : options.values()) {
-                if (opt.isIncludedInQuery())
-                    this.optionTypes.add(opt.type);
+            this.columns = aliasedMappedProperties;
+            ImmutableSet.Builder<Object> optionKeysBuilder = ImmutableSet.builder();
+            for (Option option : allOptions.values()) {
+                if (option.modifiesQueryString()) {
+                    optionKeysBuilder.add(option.asCacheKey());
+                }
             }
+            this.optionKeys = optionKeysBuilder.build();
         }
 
         @Override
@@ -1144,7 +1312,7 @@ public class Mapper<T> {
             if (other instanceof MapperQueryKey) {
                 MapperQueryKey that = (MapperQueryKey) other;
                 return this.queryType.equals(that.queryType)
-                        && this.optionTypes.equals(that.optionTypes)
+                        && this.optionKeys.equals(that.optionKeys)
                         && this.columns.equals(that.columns);
             }
             return false;
@@ -1152,7 +1320,7 @@ public class Mapper<T> {
 
         @Override
         public int hashCode() {
-            return MoreObjects.hashCode(queryType, optionTypes, columns);
+            return MoreObjects.hashCode(queryType, optionKeys, columns);
         }
     }
 }

@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.core;
 
+import com.datastax.driver.core.utils.DseVersion;
 import org.mockito.ArgumentCaptor;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
@@ -179,6 +180,7 @@ public class SchemaRefreshDebouncerTest extends CCMTestsSupport {
      * @since 2.0.11
      */
     @Test(groups = "short")
+    @DseVersion("5.0.0")
     public void should_debounce_and_coalesce_multiple_alter_events_on_same_table_into_refresh_table() throws Exception {
         if (ccm().getCassandraVersion().compareTo(VersionNumber.parse("2.2")) >= 0)
             throw new SkipException("Disabled in Cassandra 2.2+ because of CASSANDRA-9996");

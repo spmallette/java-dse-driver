@@ -82,6 +82,7 @@
     </dependencies>
 
     <build>
+
         <plugins>
 
             <plugin>
@@ -130,7 +131,7 @@
                 </executions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.datastax.driver.java-dse-graph</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>com.datastax.driver.graph</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <_include>-osgi.bnd</_include>
                         <Import-Package><![CDATA[com.google.common.*;version="[16.0.1,22)",*]]></Import-Package>
@@ -144,5 +145,29 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+
+        <profile>
+            <id>legacy-jdks</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- do not execute tests in this module
+                         if tests are ran with JDK6 or 7 as this module requires JDK 8. -->
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>

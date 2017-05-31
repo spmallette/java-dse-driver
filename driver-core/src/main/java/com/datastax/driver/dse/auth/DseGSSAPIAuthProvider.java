@@ -25,7 +25,6 @@ import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Map;
 
-
 /**
  * {@link AuthProvider} that provides GSSAPI authenticator instances for clients to connect
  * to DSE clusters secured with {@code DseAuthenticator}.
@@ -34,7 +33,7 @@ import java.util.Map;
  * <pre>{@code
  * Cluster cluster = Cluster.builder()
  *                          .addContactPoint(hostname)
- *                          .withAuthProvider(new DseGSSAPIAuthProvider())
+ *                          .withAuthProvider(DseGSSAPIAuthProvider.builder().build())
  *                          .build();
  * }</pre>
  * <h2>Kerberos Authentication</h2>
@@ -81,7 +80,7 @@ import java.util.Map;
  * <strong>Important</strong>: the SASL protocol name should match the username of the
  * Kerberos service principal used by the DSE server.
  * This information is specified in the dse.yaml file by the {@code service_principal} option under the
- * <a href="https://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/config/configDseYaml.html?scroll=configDseYaml__refKerbSupport">kerberos_options</a>
+ * <a href="https://docs.datastax.com/en/dse/5.1/dse-admin/datastax_enterprise/config/configDseYaml.html#configDseYaml__refKerbSupport">kerberos_options</a>
  * section, and <em>may vary from one DSE installation to another</em> – especially if you
  * installed DSE with an automated package installer.
  * <p/>
@@ -103,7 +102,7 @@ import java.util.Map;
  * If a non-null SASL protocol name is provided to the aforementioned constructors, that name takes precedence over
  * the contents of the {@code dse.sasl.protocol} system property.
  *
- * @see <a href="http://docs.datastax.com/en/latest-dse/datastax_enterprise/sec/kerberosConfigDSE.html">Authenticating a DSE cluster with Kerberos</a>
+ * @see <a href="http://docs.datastax.com/en/dse/5.1/dse-admin/datastax_enterprise/security/securityTOC.html">Authenticating a DSE cluster with Kerberos</a>
  */
 public class DseGSSAPIAuthProvider implements AuthProvider {
 
@@ -123,6 +122,8 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
 
     private final String authorizationId;
 
+    private final Subject subject;
+
     public static Builder builder() {
         return new Builder();
     }
@@ -135,11 +136,14 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
 
         private String authorizationId;
 
+        private Subject subject;
+
         private Builder() {
         }
 
         /**
-         * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
+         * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.  If
+         *                           {@link #withSubject} is also used, this input is not used.
          */
         public Builder withLoginConfiguration(Configuration loginConfiguration) {
             this.loginConfiguration = loginConfiguration;
@@ -163,17 +167,30 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
             return this;
         }
 
+        /**
+         * @param subject A previously authenticated subject to reuse.  If provided, any calls to
+         *                {@link #withLoginConfiguration} are ignored.
+         */
+        public Builder withSubject(Subject subject) {
+            this.subject = subject;
+            return this;
+        }
+
         public DseGSSAPIAuthProvider build() {
-            return new DseGSSAPIAuthProvider(loginConfiguration, saslProtocol, authorizationId);
+            return new DseGSSAPIAuthProvider(loginConfiguration, subject, saslProtocol, authorizationId);
         }
     }
 
     /**
      * Creates an instance of {@code DseGSSAPIAuthProvider} with default login configuration options and default
      * SASL protocol name ({@value #DEFAULT_SASL_PROTOCOL_NAME}).
+     *
+     * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     /**
@@ -181,9 +198,12 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      * SASL protocol name ({@value #DEFAULT_SASL_PROTOCOL_NAME}).
      *
      * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
+     * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(Configuration loginConfiguration) {
-        this(loginConfiguration, null, null);
+        this(loginConfiguration, null, null, null);
     }
 
     /**
@@ -192,9 +212,12 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      *
      * @param saslProtocol The SASL protocol name to use; should match the username of the
      *                     Kerberos service principal used by the DSE server.
+     * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(String saslProtocol) {
-        this(null, saslProtocol, null);
+        this(null, null, saslProtocol, null);
     }
 
     /**
@@ -204,20 +227,28 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
      * @param loginConfiguration The login configuration to use to create a {@link LoginContext}.
      * @param saslProtocol       The SASL protocol name to use; should match the username of the
      *                           Kerberos service principal used by the DSE server.
+     * @deprecated Use {@link Builder} to create {@link DseGSSAPIAuthProvider} instead.
      */
+    @Deprecated
+    @SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
     public DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol) {
-        this(loginConfiguration, saslProtocol, null);
+        this(loginConfiguration, null, saslProtocol, null);
     }
 
-    private DseGSSAPIAuthProvider(Configuration loginConfiguration, String saslProtocol, String authorizationId) {
+    private DseGSSAPIAuthProvider(Configuration loginConfiguration, Subject subject, String saslProtocol, String authorizationId) {
         this.loginConfiguration = loginConfiguration;
+        this.subject = subject;
         this.saslProtocol = saslProtocol;
         this.authorizationId = authorizationId;
     }
 
     @Override
     public Authenticator newAuthenticator(InetSocketAddress host, String authenticator) throws AuthenticationException {
-        return new GSSAPIAuthenticator(authenticator, authorizationId, host, loginConfiguration, saslProtocol);
+        if (subject != null) {
+            return new GSSAPIAuthenticator(authenticator, authorizationId, host, subject, saslProtocol);
+        } else {
+            return new GSSAPIAuthenticator(authenticator, authorizationId, host, loginConfiguration, saslProtocol);
+        }
     }
 
     private static class GSSAPIAuthenticator extends BaseDseAuthenticator {
@@ -252,6 +283,25 @@ public class DseGSSAPIAuthProvider implements AuthProvider {
                         null);
             } catch (LoginException e) {
                 throw new RuntimeException(e);
+            } catch (SaslException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private GSSAPIAuthenticator(String authenticator, String authorizationId, InetSocketAddress host, Subject subject, String saslProtocol) {
+            super(authenticator);
+            try {
+                String protocol = saslProtocol;
+                if (protocol == null) {
+                    protocol = System.getProperty(SASL_PROTOCOL_NAME_PROPERTY, DEFAULT_SASL_PROTOCOL_NAME);
+                }
+                this.subject = subject;
+                saslClient = Sasl.createSaslClient(SUPPORTED_MECHANISMS,
+                        authorizationId,
+                        protocol,
+                        host.getAddress().getCanonicalHostName(),
+                        DEFAULT_PROPERTIES,
+                        null);
             } catch (SaslException e) {
                 throw new RuntimeException(e);
             }

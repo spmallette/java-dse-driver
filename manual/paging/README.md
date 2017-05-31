@@ -217,8 +217,8 @@ There are two situations where you might want to use the unsafe API:
   implementing your own validation logic (for example, signing the raw
   state with a private key).
 
-[gpsu]: http://www.datastax.com/drivers/java/3.0/com/datastax/driver/core/ExecutionInfo.html#getPagingStateUnsafe--
-[spsu]: http://www.datastax.com/drivers/java/3.0/com/datastax/driver/core/Statement.html#setPagingStateUnsafe-byte:A-
+[gpsu]: http://www.datastax.com/drivers/java-dse/1.2/com/datastax/driver/core/ExecutionInfo.html#getPagingStateUnsafe--
+[spsu]: http://www.datastax.com/drivers/java-dse/1.2/com/datastax/driver/core/Statement.html#setPagingStateUnsafe-byte:A-
 
 ### Offset queries
 

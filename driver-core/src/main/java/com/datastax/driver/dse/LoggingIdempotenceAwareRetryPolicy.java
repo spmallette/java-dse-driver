@@ -8,7 +8,6 @@ package com.datastax.driver.dse;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.policies.IdempotenceAwareRetryPolicy;
 import com.datastax.driver.core.policies.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +21,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @deprecated As of release 1.1.0, dse driver now depends on driver-core 3.1.0, which doesn't retry non-idempotent
  * statements for write timeouts or unexpected errors anymore.
  */
+@SuppressWarnings("deprecation")
 @Deprecated
-public class LoggingIdempotenceAwareRetryPolicy extends IdempotenceAwareRetryPolicy {
+public class LoggingIdempotenceAwareRetryPolicy extends com.datastax.driver.core.policies.IdempotenceAwareRetryPolicy {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingIdempotenceAwareRetryPolicy.class);
 

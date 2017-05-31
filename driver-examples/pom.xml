@@ -40,9 +40,14 @@
 
         <dependency>
             <groupId>com.datastax.dse</groupId>
+            <artifactId>dse-java-driver-graph</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.dse</groupId>
             <artifactId>dse-java-driver-extras</artifactId>
             <version>${project.parent.version}</version>
-            <optional>true</optional>
         </dependency>
 
         <!--Jackson-->

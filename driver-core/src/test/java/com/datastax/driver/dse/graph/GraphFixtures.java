@@ -7,9 +7,12 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.VersionNumber;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import org.testng.annotations.DataProvider;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -56,6 +59,14 @@ public class GraphFixtures {
         return (dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0)
                 ? baseName
                 : baseName + ".withGeoBounds()";
+    }
+
+    private static String geoTypeWithBounds(String baseName, VersionNumber dseVersion, double lowerLimitX, double lowerLimitY, double higherLimitX, double higherLimitY) {
+        Preconditions.checkNotNull(dseVersion);
+
+        return (dseVersion.getMajor() == 5 && dseVersion.getMinor() == 0)
+                ? baseName
+                : baseName + String.format(".withBounds(%f, %f, %f, %f)", lowerLimitX, lowerLimitY, higherLimitX, higherLimitY);
     }
 
     /**
@@ -172,7 +183,7 @@ public class GraphFixtures {
                         "schema.propertyKey('state').Text().create()\n" +
                         "schema.propertyKey('description').Text().create()\n" +
                         "schema.propertyKey('alias').Text().create()\n" +
-                        "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description').create()\n" +
+                        "schema.vertexLabel('user').properties('full_name', 'coordinates', 'city', 'state', 'description', 'alias').create()\n" +
                         "schema.vertexLabel('user').index('search').search().by('full_name').asString().by('coordinates').by('description').asText().by('alias').asString().add()\n" +
                         "schema.vertexLabel('user').index('searchLinestring').secondary().by('linestringProp').add()\n" +
                         "schema.vertexLabel('user').index('searchPolygon').secondary().by('polygonProp').add()\n",
@@ -180,6 +191,132 @@ public class GraphFixtures {
                 "g.addV('user').property('full_name', 'George Bill Steve').property('city', 'Minneapolis').property('state', 'MN').property('coordinates', Geo.point(-93.266667, 44.9778)).property('description', 'A cold dude').property('alias', 'wario').property('linestringProp', 'LINESTRING (30 10, 10 30, 40 40)')",
                 "g.addV('user').property('full_name', 'James Paul Joe').property('city', 'Chicago').property('state', 'IL').property('coordinates', Geo.point(-87.684722, 41.836944)).property('description', 'Likes to hang out').property('alias', 'bowser').property('polygonProp', 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))')",
                 "g.addV('user').property('full_name', 'Jill Alice').property('city', 'Atlanta').property('state', 'GA').property('coordinates', Geo.point(-84.39, 33.755)).property('description', 'Enjoys a very nice cold coca cola').property('alias', 'peach')"
+        );
+    }
+
+    @DataProvider
+    public static Object[][] indexTypes() {
+        return new Object[][]{
+                {"search"},
+                {"materialized"},
+                {"secondary"}
+        };
+    }
+
+    /**
+     * A schema representing an address book with 3 properties (full_name_*, description_*, alias_*) created for
+     * each type of index (search, secondary, materialized).
+     */
+    public static Collection<String> textIndices() {
+        Object[][] providerIndexTypes = indexTypes();
+        String[] indexTypes = new String[providerIndexTypes.length];
+        for (int i = 0; i < providerIndexTypes.length; i++) {
+            indexTypes[i] = (String)providerIndexTypes[i][0];
+        }
+
+        StringBuilder schema = new StringBuilder("");
+        StringBuilder propertyKeys = new StringBuilder("");
+        StringBuilder vertexLabel = new StringBuilder("schema.vertexLabel('user').properties(");
+        StringBuilder indices = new StringBuilder("");
+        StringBuilder vertex0 = new StringBuilder("g.addV('user')");
+        StringBuilder vertex1 = new StringBuilder("g.addV('user')");
+        StringBuilder vertex2 = new StringBuilder("g.addV('user')");
+        StringBuilder vertex3 = new StringBuilder("g.addV('user')");
+
+        ArrayList<String> propertyNames = new ArrayList<String>();
+        for (String indexType : indexTypes) {
+            propertyKeys.append(String.format("schema.propertyKey('full_name_%s').Text().create()\n" +
+                    "schema.propertyKey('description_%s').Text().create()\n" +
+                    "schema.propertyKey('alias_%s').Text().create()\n", indexType, indexType, indexType));
+
+            propertyNames.add("'full_name_" + indexType + "'");
+            propertyNames.add("'description_" + indexType + "'");
+            propertyNames.add("'alias_" + indexType + "'");
+
+            if (indexType.equals("search")) {
+                indices.append("schema.vertexLabel('user').index('search').search().by('full_name_search').asString().by('description_search').asText().by('alias_search').asString().add()\n");
+            } else {
+                indices.append(String.format("schema.vertexLabel('user').index('by_full_name_%s').%s().by('full_name_%s').add()\n", indexType, indexType, indexType));
+                indices.append(String.format("schema.vertexLabel('user').index('by_description_%s').%s().by('description_%s').add()\n", indexType, indexType, indexType));
+                indices.append(String.format("schema.vertexLabel('user').index('by_alias_name_%s').%s().by('alias_%s').add()\n", indexType, indexType, indexType));
+            }
+
+            vertex0.append(String.format(".property('full_name_%s', 'Paul Thomas Joe').property('description_%s', 'Lives by the hospital').property('alias_%s', 'mario')", indexType, indexType, indexType));
+            vertex1.append(String.format(".property('full_name_%s', 'George Bill Steve').property('description_%s', 'A cold dude').property('alias_%s', 'wario')", indexType, indexType, indexType));
+            vertex2.append(String.format(".property('full_name_%s', 'James Paul Joe').property('description_%s', 'Likes to hang out').property('alias_%s', 'bowser')", indexType, indexType, indexType));
+            vertex3.append(String.format(".property('full_name_%s', 'Jill Alice').property('description_%s', 'Enjoys a very nice cold coca cola').property('alias_%s', 'peach')", indexType, indexType, indexType));
+        }
+
+        vertexLabel.append(Joiner.on(", ").join(propertyNames));
+        vertexLabel.append(").create()\n");
+
+        schema.append(propertyKeys).append(vertexLabel).append(indices);
+
+        return Lists.newArrayList(
+                makeStrict,
+                allowScans,
+                schema.toString(),
+                vertex0.toString(),
+                vertex1.toString(),
+                vertex2.toString(),
+                vertex3.toString()
+        );
+    }
+
+    /**
+     * A schema representing an address book with search enabled on name, description, and coordinates.
+     */
+    public static Collection<String> geoIndices(VersionNumber dseVersion) {
+        Object[][] providerIndexTypes = indexTypes();
+        String[] indexTypes = new String[providerIndexTypes.length];
+        for (int i = 0; i < providerIndexTypes.length; i++) {
+            indexTypes[i] = (String)providerIndexTypes[i][0];
+        }
+
+        StringBuilder schema = new StringBuilder("schema.propertyKey('full_name').Text().create()\n");
+        StringBuilder propertyKeys = new StringBuilder("");
+        StringBuilder vertexLabel = new StringBuilder("schema.vertexLabel('user').properties(");
+        StringBuilder indices = new StringBuilder("");
+        StringBuilder vertex0 = new StringBuilder("g.addV('user').property('full_name', 'Paul Thomas Joe')");
+        StringBuilder vertex1 = new StringBuilder("g.addV('user').property('full_name', 'George Bill Steve')");
+        String vertex2 = "g.addV('user').property('full_name', 'James Paul Joe')";
+        StringBuilder vertex3 = new StringBuilder("g.addV('user').property('full_name', 'Jill Alice')");
+
+        ArrayList<String> propertyNames = new ArrayList<String>();
+        propertyNames.add("'full_name'");
+
+        for (String indexType : indexTypes) {
+            propertyKeys.append(String.format("schema.propertyKey('pointPropWithBounds_%s').%s.create()\n", indexType, geoTypeWithBounds("Point()", dseVersion, 0, 0, 100, 100)));
+            propertyKeys.append(String.format("schema.propertyKey('pointPropWithGeoBounds_%s').%s.create()\n", indexType, geoType("Point()", dseVersion)));
+
+            propertyNames.add("'pointPropWithBounds_" + indexType + "'");
+            propertyNames.add("'pointPropWithGeoBounds_" + indexType + "'");
+
+            if (indexType.equals("search")) {
+                indices.append(String.format("schema.vertexLabel('user').index('search').search().by('pointPropWithBounds_%s').withError(0.00001, 0.0).by('pointPropWithGeoBounds_%s').withError(0.00001, 0.0).add()\n", indexType, indexType));
+            } else {
+                indices.append(String.format("schema.vertexLabel('user').index('by_pointPropWithBounds_%s').%s().by('pointPropWithBounds_%s').add()\n", indexType, indexType, indexType));
+                indices.append(String.format("schema.vertexLabel('user').index('by_pointPropWithGeoBounds_%s').%s().by('pointPropWithGeoBounds_%s').add()\n", indexType, indexType, indexType));
+            }
+
+            vertex0.append(String.format(".property('pointPropWithBounds_%s', 'POINT(40.0001 40)').property('pointPropWithGeoBounds_%s', 'POINT(40.0001 40)')", indexType, indexType));
+            vertex1.append(String.format(".property('pointPropWithBounds_%s', 'POINT(40 40)').property('pointPropWithGeoBounds_%s', 'POINT(40 40)')", indexType, indexType));
+            vertex3.append(String.format(".property('pointPropWithBounds_%s', 'POINT(30 30)').property('pointPropWithGeoBounds_%s', 'POINT(30 30)')", indexType, indexType));
+        }
+
+        vertexLabel.append(Joiner.on(", ").join(propertyNames));
+        vertexLabel.append(").create()\n");
+
+        schema.append(propertyKeys).append(vertexLabel).append(indices);
+
+        return Lists.newArrayList(
+                makeStrict,
+                allowScans,
+                schema.toString(),
+                vertex0.toString(),
+                vertex1.toString(),
+                vertex2,
+                vertex3.toString()
         );
     }
 }

@@ -157,6 +157,16 @@ public class CCMCache {
         }
 
         @Override
+        public void pause(int n) {
+            ccm.pause(n);
+        }
+
+        @Override
+        public void resume(int n) {
+            ccm.resume(n);
+        }
+
+        @Override
         public void remove(int n) {
             ccm.remove(n);
         }
@@ -209,6 +219,16 @@ public class CCMCache {
         @Override
         public void waitForDown(int node) {
             ccm.waitForDown(node);
+        }
+
+        @Override
+        public void dsetool(int node, String... args) {
+            ccm.dsetool(node, args);
+        }
+
+        @Override
+        public void reloadCore(int node, String keyspace, String table, boolean reindex) {
+            ccm.reloadCore(node, keyspace, table, reindex);
         }
 
         @Override

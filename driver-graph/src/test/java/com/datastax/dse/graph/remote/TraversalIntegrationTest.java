@@ -156,7 +156,7 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
      * The subgraph is all members in a knows relationship, thus is all people who marko knows and the
      * edges that connect them.
      */
-    @Test(groups = "short", description = "Subgraphs currently do not work", enabled = false)
+    @Test(groups = "short")
     public void should_handle_subgraph() {
         // retrieve a subgraph on the knows relationship, this omits the created edges.
         Graph graph = (Graph) g.E().hasLabel("knows").subgraph("subGraph").cap("subGraph").next();

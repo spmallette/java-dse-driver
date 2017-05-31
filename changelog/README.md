@@ -1,5 +1,40 @@
 ## Changelog
 
+### 1.2.4
+
+- [bug] JAVA-1447: Avoid NPE when checking GraphNode type.
+- [documentation] JAVA-1451: Apache TinkerPop client integration doc updates.
+- [improvement] JAVA-1452: Provide external links to Apache TinkerPop in javadoc.
+- [improvement] JAVA-1453: Change call to TinkerIoRegistry#instance() to the backward compatible one.
+- [improvement] JAVA-1427: DseGSSAPIAuthProvider should provide method for existing Subject.
+- [documentation] JAVA-1331: "g not defined" graph error topic in FAQ.
+- [bug] JAVA-1432: Check null results in Row-to-TinkerPop/GraphSON2 function.
+
+
+### 1.2.3
+
+- [bug] JAVA-1433: Remove infinite recursion in Graph elements toString().
+
+Merged from OSS 3.x:
+
+- [new feature] JAVA-1174: Add ifNotExists option to mapper.
+- [improvement] JAVA-1414: Optimize Metadata.escapeId and Metadata.handleId.
+- [improvement] JAVA-1310: Make mapper's ignored properties configurable.
+- [improvement] JAVA-1316: Add strategy for resolving properties into CQL names.
+- [bug] JAVA-1429: Prevent heartbeats until connection is fully initialized.
+
+
+### 1.2.2
+
+- [improvement] Add integration tests for graph predicates.
+- [improvement] Add code examples for proxy auth and graph.
+
+
+### 1.2.1
+
+- [bug] JAVA-1424: Handle new WRITE_FAILURE and READ_FAILURE format in DSE v1 protocol.
+
+
 ### 1.2.0
 
 - [bug] JAVA-1421: Use Optimal string alignment distance algorithm for fuzzy predicates.

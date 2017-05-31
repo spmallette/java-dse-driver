@@ -13,11 +13,11 @@ import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.policies.ChainableLoadBalancingPolicy;
 import com.datastax.driver.core.policies.LoadBalancingPolicy;
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +33,7 @@ public class DseLoadBalancingPolicy implements ChainableLoadBalancingPolicy {
     private static final Logger logger = LoggerFactory.getLogger(DseLoadBalancingPolicy.class);
 
     private final LoadBalancingPolicy childPolicy;
-    private Set<Host> upHosts = Sets.newSetFromMap(new ConcurrentHashMap<Host, Boolean>());
+    private Set<Host> upHosts = Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>());
 
     /**
      * Build a new instance.

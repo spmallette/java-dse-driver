@@ -73,13 +73,13 @@
         <main.basedir>${project.basedir}</main.basedir>
         <ipprefix>127.0.1.</ipprefix>
         <test.groups>unit</test.groups>
-        <oss-driver.version>3.1.2</oss-driver.version>
         <!-- Set default javadoc.opts, overriden by profiles -->
         <javadoc.opts />
-        <github_repo>java-driver-dse</github_repo>
+        <github_org>datastax</github_org>
     </properties>
 
     <profiles>
+
         <profile>
             <id>default</id>
             <properties>
@@ -89,35 +89,6 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-        </profile>
-
-        <!--
-        This profile excludes all JDK 8 dependent classes from
-        tests in the core module,
-        thus allowing tests to be run with legacy JDKs (6 or 7).
-        It is automatically activated when a legacy JDK is in use.
-        Note that running tests with a legacy JDK require
-        that you provide a non-legacy JDK for CCM through the
-        system property ccm.java.home.
-        -->
-        <profile>
-            <id>legacy-jdks</id>
-            <activation>
-                <jdk>[,1.8)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.16</version>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/Jdk8*.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -137,6 +108,7 @@
                 <test.groups>unit,short</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>long</id>
             <properties>
@@ -144,6 +116,7 @@
                 <test.groups>unit,short,long</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>duration</id>
             <properties>
@@ -151,6 +124,7 @@
                 <test.groups>unit,short,long,duration</test.groups>
             </properties>
         </profile>
+
         <profile>
             <id>doc</id>
             <properties>
@@ -158,6 +132,7 @@
                 <test.groups>unit,doc</test.groups>
             </properties>
         </profile>
+
         <profile>
             <!-- default profile settings for 'isolated' test group, will skip tests unless overridden in child module. -->
             <id>isolated</id>
@@ -172,11 +147,13 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>2.16</version>
                         <configuration>
-                            <property>
-                                <name>usedefaultlisteners</name>
-                                <value>false
-                                </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
-                            </property>
+                            <properties>
+                                <property>
+                                    <name>usedefaultlisteners</name>
+                                    <value>false
+                                    </value> <!-- disable default listeners as some of the html reports do a lot of File I/O -->
+                                </property>
+                            </properties>
                             <skip>true</skip>
                             <forkCount>1</forkCount>
                             <reuseForks>false</reuseForks>
@@ -191,6 +168,7 @@
             </build>
         </profile>
 
+        <!-- Used during releases to enforce compilation with JDK 8 -->
         <profile>
             <id>enforce-java8</id>
             <build>
@@ -214,6 +192,38 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+        This profile excludes all JDK 8 dependent tests from being
+        run with legacy JDKs (6 or 7).
+        It is automatically activated when a legacy JDK is in use.
+        Note that running tests with a legacy JDK require
+        that you provide a non-legacy JDK for CCM through the
+        system property ccm.java.home.
+        -->
+        <profile>
+            <id>legacy-jdks</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- exclude Jdk* test classes from being run
+                        This is needed in event that code was built with JDK8
+                        and tests are ran with JDK6 or 7. -->
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.16</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/Jdk8*.java</exclude>
+                                <exclude>**/jdk8/*.java</exclude>
+                            </excludes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -274,6 +284,7 @@
                         <link>http://fasterxml.github.io/jackson-core/javadoc/2.6/</link>
                         <link>http://fasterxml.github.io/jackson-databind/javadoc/2.6/</link>
                         <link>https://javaee-spec.java.net/nonav/javadocs/</link>
+                        <link>https://tinkerpop.apache.org/javadocs/${tinkerpop.version}/full/</link>
                     </links>
                     <!-- optional dependencies from other modules (must be explicitly declared here in order to be correctly resolved) -->
                     <additionalDependencies>
@@ -343,6 +354,41 @@
                     <!-- do NOT specify arguments tag here as it would override the arguments tag in this plugin's definition in the parent POM -->
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>clirr-maven-plugin</artifactId>
+                <!-- last version that supports JDK6 -->
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <comparisonVersion>1.2.3</comparisonVersion>
+                    <includes>
+                        <include>com/datastax/driver/**</include>
+                        <include>com/datastax/dse/graph/api/**</include>
+                    </includes>
+                    <ignoredDifferencesFile>../clirr-ignores.xml</ignoredDifferencesFile>
+                </configuration>
+                <!--
+                Workaround to make clirr plugin work with Java 8.
+                The bug is actually in the BCEL library,
+                see https://issues.apache.org/jira/browse/BCEL-173.
+                See also https://github.com/RichardWarburton/lambda-behave/issues/31#issuecomment-86052095
+                -->
+                <dependencies>
+                    <dependency>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>bcel-findbugs</artifactId>
+                        <version>6.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
             <!--
             To update license headers run:
             mvn license:format
@@ -382,20 +428,42 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>animal-sniffer-maven-plugin</artifactId>
                 <version>1.15</version>
-                <configuration>
-                    <signature>
-                        <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java16</artifactId>
-                        <version>1.0</version>
-                    </signature>
-                </configuration>
                 <executions>
+                    <!-- First check: all classes must comply with JDK 6,
+                    except those annotated with @IgnoreJDK6Requirement -->
                     <execution>
                         <id>check</id>
-                        <phase>compile</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java16</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                            <!-- each module must declare its own annotation -->
+                            <annotations>
+                                <annotation>com.datastax.driver.dse.IgnoreJDK6Requirement</annotation>
+                                <annotation>com.datastax.driver.extras.codecs.jdk8.IgnoreJDK6Requirement</annotation>
+                            </annotations>
+                        </configuration>
+                    </execution>
+                    <!-- Second check: all classes must comply with JDK 8 -->
+                    <execution>
+                        <id>check-jdk8</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>org.codehaus.mojo.signature</groupId>
+                                <artifactId>java18</artifactId>
+                                <version>1.0</version>
+                            </signature>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -467,9 +535,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:datastax/${github_repo}.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/${github_repo}.git</developerConnection>
-        <url>https://github.com/datastax/${github_repo}</url>
+        <connection>scm:git:git@github.com:${github_org}/java-dse-driver.git</connection>
+        <developerConnection>scm:git:git@github.com:${github_org}/java-dse-driver.git</developerConnection>
+        <url>https://github.com/${github_org}/java-dse-driver</url>
         <tag>HEAD</tag>
     </scm>
 

@@ -8,6 +8,7 @@ package com.datastax.driver.core.querybuilder;
 
 import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.ColumnMetadata;
+import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.TableMetadata;
 
 import java.util.ArrayList;
@@ -31,8 +32,8 @@ public class Delete extends BuiltStatement {
     }
 
     Delete(TableMetadata table, List<Selector> columns) {
-        this(escapeId(table.getKeyspace().getName()),
-                escapeId(table.getName()),
+        this(Metadata.quoteIfNecessary(table.getKeyspace().getName()),
+                Metadata.quoteIfNecessary(table.getName()),
                 Arrays.asList(new Object[table.getPartitionKey().size()]),
                 table.getPartitionKey(),
                 columns);

@@ -158,6 +158,20 @@ public interface CCMAccess extends Closeable {
     void forceStop(int n);
 
     /**
+     * Pauses the {@code nth} host in the CCM cluster.
+     *
+     * @param n the node number (starting from 1).
+     */
+    void pause(int n);
+
+    /**
+     * Resumes the {@code nth} host in the CCM cluster.
+     *
+     * @param n the node number (starting from 1).
+     */
+    void resume(int n);
+
+    /**
      * Removes the {@code nth} host in the CCM cluster.
      *
      * @param n the node number (starting from 1).
@@ -232,6 +246,16 @@ public interface CCMAccess extends Closeable {
      * Waits for a host to be down by pinging the TCP socket directly, without using the Java driver's API.
      */
     void waitForDown(int node);
+
+    /**
+     * Executes dsetool with the given arguments.
+     */
+    void dsetool(int node, String... args);
+
+    /**
+     * Executes dsetool reload_core keyspace.table reindex=reindex.  This is considered a non-dirty change.
+     */
+    void reloadCore(int node, String keyspace, String table, boolean reindex);
 
     /**
      * @return The target protocolVersion to use when connecting to this CCM cluster.

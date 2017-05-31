@@ -18,6 +18,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.security.auth.login.Configuration;
+import javax.security.auth.login.LoginContext;
 import java.io.File;
 
 import static com.datastax.driver.core.CreateCCM.TestMode.PER_METHOD;
@@ -34,28 +35,28 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
     private static final String realm = "DATASTAX.COM";
     private static final String address = TestUtils.IP_PREFIX + "1";
 
+    private final EmbeddedADS adsServer = EmbeddedADS.builder()
+            .withKerberos()
+            .withRealm(realm)
+            .withAddress(address).build();
+
     // Principal for DSE service ( = kerberos_options.service_principal)
-    private static final String servicePrincipal = "dse/" + address + "@" + realm;
+    private final String servicePrincipal = "dse/" + adsServer.getHostname() + "@" + realm;
 
     // A non-standard principal for DSE service, to test SASL protocol names
-    private static final String alternateServicePrincipal = "alternate/" + address + "@" + realm;
+    private final String alternateServicePrincipal = "alternate/" + adsServer.getHostname() + "@" + realm;
 
     // Principal for the default cassandra user.
-    private static final String userPrincipal = "cassandra@" + realm;
+    private final String userPrincipal = "cassandra@" + realm;
 
     // Principal for a user that doesn't exist.
-    private static final String unknownPrincipal = "unknown@" + realm;
+    private final String unknownPrincipal = "unknown@" + realm;
 
     // Keytabs to use for auth.
     private File userKeytab;
     private File unknownKeytab;
     private File dseKeytab;
     private File alternateKeytab;
-
-    private EmbeddedADS adsServer = EmbeddedADS.builder()
-            .withKerberos()
-            .withRealm(realm)
-            .withAddress(address).build();
 
     @BeforeClass(groups = "long")
     public void setupKDC() throws Exception {
@@ -77,19 +78,42 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
         adsServer.stop();
     }
 
-    public CCMBridge.Builder configureCCM() {
+    CCMBridge.Builder baseAuthenticationConfiguration() {
         return CCMBridge.builder()
-                .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.KerberosAuthenticator")
-                .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", servicePrincipal)
+                .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
                 .withDSEConfiguration("kerberos_options.qop", "auth")
+                .withDSEConfiguration("authentication_options.enabled", "true")
+                .withDSEConfiguration("authentication_options.default_scheme", "kerberos")
                 .withJvmArgs("-Dcassandra.superuser_setup_delay_ms=0", "-Djava.security.krb5.conf=" + adsServer.getKrb5Conf().getAbsolutePath());
     }
 
+    public CCMBridge.Builder configureCCM() {
+        return baseAuthenticationConfiguration()
+                .withDSEConfiguration("kerberos_options.keytab", dseKeytab.getAbsolutePath())
+                .withDSEConfiguration("kerberos_options.service_principal", "dse/_HOST@" + realm);
+    }
+
     public CCMBridge.Builder configureAlternateCCM() {
-        return configureCCM()
+        return baseAuthenticationConfiguration()
                 .withDSEConfiguration("kerberos_options.keytab", alternateKeytab.getAbsolutePath())
-                .withDSEConfiguration("kerberos_options.service_principal", alternateServicePrincipal);
+                .withDSEConfiguration("kerberos_options.service_principal", "alternate/_HOST@" + realm);
+    }
+
+
+    /**
+     * Ensures that a Cluster can be established to a DSE server secured with Kerberos and that simple queries can
+     * be made using a Subject from a previously established LoginContext.
+     *
+     * @test_category dse:authentication
+     */
+    @Test(groups = "long")
+    public void should_authenticate_using_subject() throws Exception {
+        String protocol = "dse";
+        Configuration configuration = keytabClient(userKeytab, userPrincipal);
+        LoginContext login = new LoginContext("DseClient", null, null, configuration);
+        login.login();
+        AuthProvider auth = DseGSSAPIAuthProvider.builder().withSubject(login.getSubject()).build();
+        connectAndQuery(auth);
     }
 
     /**
@@ -129,7 +153,10 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
     @CCMConfig(ccmProvider = "configureAlternateCCM")
     @Test(groups = "long")
     public void should_authenticate_using_kerberos_with_keytab_and_alternate_service_principal() throws Exception {
-        AuthProvider auth = new DseGSSAPIAuthProvider(keytabClient(userKeytab, userPrincipal), "alternate");
+        AuthProvider auth = DseGSSAPIAuthProvider.builder()
+                .withLoginConfiguration(keytabClient(userKeytab, userPrincipal))
+                .withSaslProtocol("alternate")
+                .build();
         connectAndQuery(auth);
     }
 
@@ -183,7 +210,7 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
      * Connects using {@link DseGSSAPIAuthProvider} and the given config file for jaas.
      */
     private void connectAndQuery(Configuration configuration) {
-        connectAndQuery(new DseGSSAPIAuthProvider(configuration));
+        connectAndQuery(DseGSSAPIAuthProvider.builder().withLoginConfiguration(configuration).build());
     }
 
     private void connectAndQuery(AuthProvider authProvider) {
