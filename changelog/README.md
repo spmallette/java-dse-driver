@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.3.0 (in progress)
+
+Merged from OSS 3.x:
+
+- [bug] JAVA-1469: Update LoggingRetryPolicy to deal with SLF4J-353.
+- [improvement] JAVA-1203: Upgrade Metrics to allow usage in OSGi.
+- [bug] JAVA-1407: KeyspaceMetadata exportAsString should export user types in topological sort order.
+- [bug] JAVA-1455: Mapper support using unset for null values.
+- [bug] JAVA-1464: Allow custom codecs with non public constructors in @Param.
+- [bug] JAVA-1470: Querying multiple pages overrides WrappedStatement.
+
+
 ### 1.2.4
 
 - [bug] JAVA-1447: Avoid NPE when checking GraphNode type.

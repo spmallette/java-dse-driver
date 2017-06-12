@@ -253,7 +253,7 @@ have an undesired side effect of creating a tombstone for `lastname` and thus
 to the user giving the impression that `lastname` was deleted.
 
 In cassandra 2.2 and later with protocol v4, bind parameters (`?`) can
-optionally be left unset
+optionally be left unset.
 ([CASSANDRA-7304]):
 
  ```java
@@ -268,8 +268,8 @@ See [Parameters and Binding] for more details about unset parameters.
 
 Another possible root cause for this is using the object mapper and leaving
 fields set to `null`.  This also causes tombstones to be inserted unless
-setting `saveNullFields` option to false.  See [Mapper options] for more
-details.
+setting `saveNullFields` option to false.
+See [Mapper options] for more details.
 
 ### Why am I encountering an 'illegal cyclic reference' error when using the driver with Scala?
 
