@@ -20,10 +20,10 @@ import java.util.Map;
 class MappedUDTCodec<T> extends TypeCodec.AbstractUDTCodec<T> {
     private final UserType cqlUserType;
     private final Class<T> udtClass;
-    private final Map<String, AliasedMappedProperty<?>> columnMappers;
+    private final Map<String, AliasedMappedProperty> columnMappers;
     private final CodecRegistry codecRegistry;
 
-    MappedUDTCodec(UserType cqlUserType, Class<T> udtClass, Map<String, AliasedMappedProperty<?>> columnMappers, MappingManager mappingManager) {
+    MappedUDTCodec(UserType cqlUserType, Class<T> udtClass, Map<String, AliasedMappedProperty> columnMappers, MappingManager mappingManager) {
         super(cqlUserType, udtClass);
         this.cqlUserType = cqlUserType;
         this.udtClass = udtClass;
@@ -43,7 +43,7 @@ class MappedUDTCodec<T> extends TypeCodec.AbstractUDTCodec<T> {
     @Override
     protected ByteBuffer serializeField(T source, String fieldName, ProtocolVersion protocolVersion) {
         @SuppressWarnings("unchecked")
-        AliasedMappedProperty<Object> aliasedMappedProperty = (AliasedMappedProperty<Object>) columnMappers.get(fieldName);
+        AliasedMappedProperty aliasedMappedProperty = columnMappers.get(fieldName);
 
         if (aliasedMappedProperty == null)
             return null;
@@ -62,7 +62,7 @@ class MappedUDTCodec<T> extends TypeCodec.AbstractUDTCodec<T> {
     @Override
     protected T deserializeAndSetField(ByteBuffer input, T target, String fieldName, ProtocolVersion protocolVersion) {
         @SuppressWarnings("unchecked")
-        AliasedMappedProperty<Object> aliasedMappedProperty = (AliasedMappedProperty<Object>) columnMappers.get(fieldName);
+        AliasedMappedProperty aliasedMappedProperty = columnMappers.get(fieldName);
         if (aliasedMappedProperty != null) {
             TypeCodec<Object> codec = aliasedMappedProperty.mappedProperty.getCustomCodec();
             if (codec == null)
@@ -77,7 +77,7 @@ class MappedUDTCodec<T> extends TypeCodec.AbstractUDTCodec<T> {
     @Override
     protected String formatField(T source, String fieldName) {
         @SuppressWarnings("unchecked")
-        AliasedMappedProperty<Object> aliasedMappedProperty = (AliasedMappedProperty<Object>) columnMappers.get(fieldName);
+        AliasedMappedProperty aliasedMappedProperty = columnMappers.get(fieldName);
         if (aliasedMappedProperty == null)
             return null;
         Object value = aliasedMappedProperty.mappedProperty.getValue(source);
@@ -92,7 +92,7 @@ class MappedUDTCodec<T> extends TypeCodec.AbstractUDTCodec<T> {
     @Override
     protected T parseAndSetField(String input, T target, String fieldName) {
         @SuppressWarnings("unchecked")
-        AliasedMappedProperty<Object> aliasedMappedProperty = (AliasedMappedProperty<Object>) columnMappers.get(fieldName);
+        AliasedMappedProperty aliasedMappedProperty = columnMappers.get(fieldName);
         if (aliasedMappedProperty != null) {
             TypeCodec<Object> codec = aliasedMappedProperty.mappedProperty.getCustomCodec();
             if (codec == null)
