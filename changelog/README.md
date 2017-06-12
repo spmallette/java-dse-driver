@@ -10,7 +10,6 @@ Merged from OSS 3.x:
 - [bug] JAVA-1455: Mapper support using unset for null values.
 - [bug] JAVA-1464: Allow custom codecs with non public constructors in @Param.
 - [bug] JAVA-1470: Querying multiple pages overrides WrappedStatement.
-- [improvement] JAVA-1428: Upgrade logback and jackson dependencies.
 - [documentation] JAVA-1463: Revisit speculative execution docs.
 - [documentation] JAVA-1466: Revisit timestamp docs.
 - [documentation] JAVA-1445: Clarify how nodes are penalized in LatencyAwarePolicy docs.
@@ -18,7 +17,6 @@ Merged from OSS 3.x:
 - [improvement] JAVA-1443: Add groupBy method to Select statement.
 - [improvement] JAVA-1458: Check thread in mapper sync methods.
 - [improvement] JAVA-1488: Upgrade Netty to 4.0.47.Final.
-- [improvement] JAVA-1460: Add speculative execution number to ExecutionInfo
 - [improvement] JAVA-1431: Improve error handling during pool initialization.
 
 
