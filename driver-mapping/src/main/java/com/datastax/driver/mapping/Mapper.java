@@ -162,15 +162,18 @@ public class Mapper<T> {
      * Creates a query that can be used to save the provided entity.
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
+     * consistency level, ...) of the returned statement before executing it manually
      * or need access to the {@code ResultSet} object after execution (to get the
      * trace, the execution info, ...), but in other cases, calling {@link #save}
      * or {@link #saveAsync} is shorter.
+     * <p/>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param entity the entity to save.
-     * @return a query that saves {@code entity} (based on it's defined mapping).
+     * @return a query that saves {@code entity} (based on its defined mapping).
      */
     public Statement saveQuery(T entity) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(saveQueryAsync(entity, this.defaultSaveOptions));
         } catch (ExecutionException e) {
@@ -182,7 +185,7 @@ public class Mapper<T> {
      * Creates a query that can be used to save the provided entity.
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
+     * consistency level, ...) of the returned statement before executing it manually
      * or need access to the {@code ResultSet} object after execution (to get the
      * trace, the execution info, ...), but in other cases, calling {@link #save}
      * or {@link #saveAsync} is shorter.
@@ -194,11 +197,13 @@ public class Mapper<T> {
      * <li>Consistency level</li>
      * <li>Tracing</li>
      * </ul>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param entity the entity to save.
-     * @return a query that saves {@code entity} (based on it's defined mapping).
+     * @return a query that saves {@code entity} (based on its defined mapping).
      */
     public Statement saveQuery(T entity, Option... options) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(saveQueryAsync(entity, toMapWithDefaults(options, this.defaultSaveOptions)));
         } catch (ExecutionException e) {
@@ -262,10 +267,13 @@ public class Mapper<T> {
      * Saves an entity mapped by this mapper.
      * <p/>
      * This method is basically equivalent to: {@code getManager().getSession().execute(saveQuery(entity))}.
+     * <p/>
+     * Note: this method will block until the entity is fully saved.
      *
      * @param entity the entity to save.
      */
     public void save(T entity) {
+        checkNotInEventLoop();
         try {
             Uninterruptibles.getUninterruptibly(saveAsync(entity));
         } catch (ExecutionException e) {
@@ -283,11 +291,13 @@ public class Mapper<T> {
      * <li>Consistency level</li>
      * <li>Tracing</li>
      * </ul>
+     * Note: this method will block until the entity is fully saved.
      *
      * @param entity  the entity to save.
      * @param options the options object specified defining special options when saving.
      */
     public void save(T entity, Option... options) {
+        checkNotInEventLoop();
         try {
             Uninterruptibles.getUninterruptibly(saveAsync(entity, options));
         } catch (ExecutionException e) {
@@ -337,7 +347,7 @@ public class Mapper<T> {
      * KEY (in the order of said primary key).
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually,
+     * consistency level, ...) of the returned statement before executing it manually,
      * but in other cases, calling {@link #get} or {@link #getAsync} is shorter.
      * <p/>
      * This method allows you to provide a suite of {@link Option} to include in
@@ -346,6 +356,7 @@ public class Mapper<T> {
      * <li>Consistency level</li>
      * <li>Tracing</li>
      * </ul>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param objects the primary key of the entity to fetch, or more precisely
      *                the values for the columns of said primary key in the order of the primary key.
@@ -356,6 +367,7 @@ public class Mapper<T> {
      *                                  at least one of those values is {@code null}.
      */
     public Statement getQuery(Object... objects) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(getQueryAsync(objects));
         } catch (ExecutionException e) {
@@ -413,6 +425,8 @@ public class Mapper<T> {
      * Fetch an entity based on its primary key.
      * <p/>
      * This method is basically equivalent to: {@code map(getManager().getSession().execute(getQuery(objects))).one()}.
+     * <p/>
+     * Note: this method will block until the entity is fully fetched.
      *
      * @param objects the primary key of the entity to fetch, or more precisely
      *                the values for the columns of said primary key in the order of the primary key.
@@ -423,6 +437,7 @@ public class Mapper<T> {
      *                                  at least one of those values is {@code null}.
      */
     public T get(Object... objects) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(getAsync(objects));
         } catch (ExecutionException e) {
@@ -465,7 +480,7 @@ public class Mapper<T> {
      * is supported for DELETE queries.
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
+     * consistency level, ...) of the returned statement before executing it manually
      * or need access to the {@code ResultSet} object after execution (to get the
      * trace, the execution info, ...), but in other cases, calling {@link #delete}
      * or {@link #deleteAsync} is shorter.
@@ -477,13 +492,15 @@ public class Mapper<T> {
      * <li>Consistency level</li>
      * <li>Tracing</li>
      * </ul>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param entity  the entity to delete.
      * @param options the options to add to the DELETE query.
-     * @return a query that delete {@code entity} (based on it's defined mapping) with
+     * @return a query that delete {@code entity} (based on its defined mapping) with
      * provided USING options.
      */
     public Statement deleteQuery(T entity, Option... options) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(deleteQueryAsync(entity, toMapWithDefaults(options, defaultDeleteOptions)));
         } catch (ExecutionException e) {
@@ -498,15 +515,18 @@ public class Mapper<T> {
      * provided entity and call {@link #deleteQuery(Object...)} with it.
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
+     * consistency level, ...) of the returned statement before executing it manually
      * or need access to the {@code ResultSet} object after execution (to get the
      * trace, the execution info, ...), but in other cases, calling {@link #delete}
      * or {@link #deleteAsync} is shorter.
+     * <p/>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param entity the entity to delete.
-     * @return a query that delete {@code entity} (based on it's defined mapping).
+     * @return a query that delete {@code entity} (based on its defined mapping).
      */
     public Statement deleteQuery(T entity) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(deleteQueryAsync(entity, defaultDeleteOptions));
         } catch (ExecutionException e) {
@@ -524,7 +544,7 @@ public class Mapper<T> {
      * is supported for DELETE queries.
      * <p/>
      * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
+     * consistency level, ...) of the returned statement before executing it manually
      * or need access to the {@code ResultSet} object after execution (to get the
      * trace, the execution info, ...), but in other cases, calling {@link #delete}
      * or {@link #deleteAsync} is shorter.
@@ -535,6 +555,7 @@ public class Mapper<T> {
      * <li>Consistency level</li>
      * <li>Tracing</li>
      * </ul>
+     * Note: this method might block if the query is not prepared yet.
      *
      * @param objects the primary key of the entity to delete, or more precisely
      *                the values for the columns of said primary key in the order of the primary key.
@@ -546,6 +567,7 @@ public class Mapper<T> {
      *                                  at least one of those values is {@code null}.
      */
     public Statement deleteQuery(Object... objects) {
+        checkNotInEventLoop();
         try {
             return Uninterruptibles.getUninterruptibly(deleteQueryAsync(objects));
         } catch (ExecutionException e) {
@@ -613,10 +635,13 @@ public class Mapper<T> {
      * Deletes an entity mapped by this mapper.
      * <p/>
      * This method is basically equivalent to: {@code getManager().getSession().execute(deleteQuery(entity))}.
+     * <p/>
+     * Note: this method will block until the entity is fully deleted.
      *
      * @param entity the entity to delete.
      */
     public void delete(T entity) {
+        checkNotInEventLoop();
         try {
             Uninterruptibles.getUninterruptibly(deleteAsync(entity));
         } catch (ExecutionException e) {
@@ -628,11 +653,14 @@ public class Mapper<T> {
      * Deletes an entity mapped by this mapper using provided options.
      * <p/>
      * This method is basically equivalent to: {@code getManager().getSession().execute(deleteQuery(entity, options))}.
+     * <p/>
+     * Note: this method will block until the entity is fully deleted.
      *
      * @param entity  the entity to delete.
      * @param options the options to add to the DELETE query.
      */
     public void delete(T entity, Option... options) {
+        checkNotInEventLoop();
         try {
             Uninterruptibles.getUninterruptibly(deleteAsync(entity, options));
         } catch (ExecutionException e) {
@@ -669,6 +697,8 @@ public class Mapper<T> {
      * Deletes an entity based on its primary key.
      * <p/>
      * This method is basically equivalent to: {@code getManager().getSession().execute(deleteQuery(objects))}.
+     * <p/>
+     * Note: this method will block until the entity is fully deleted.
      *
      * @param objects the primary key of the entity to delete, or more precisely
      *                the values for the columns of said primary key in the order
@@ -679,6 +709,7 @@ public class Mapper<T> {
      *                                  at least one of those values is {@code null}.
      */
     public void delete(Object... objects) {
+        checkNotInEventLoop();
         try {
             Uninterruptibles.getUninterruptibly(deleteAsync(objects));
         } catch (ExecutionException e) {
@@ -833,6 +864,13 @@ public class Mapper<T> {
             result.put(option.type, option);
         }
         return result;
+    }
+
+    private void checkNotInEventLoop() {
+        Session session = manager.getSession();
+        if (session instanceof AbstractSession) {
+            ((AbstractSession) session).checkNotInEventLoop();
+        }
     }
 
     /**

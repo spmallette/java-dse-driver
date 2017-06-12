@@ -13,6 +13,11 @@ Merged from OSS 3.x:
 - [improvement] JAVA-1428: Upgrade logback and jackson dependencies.
 - [documentation] JAVA-1463: Revisit speculative execution docs.
 - [documentation] JAVA-1466: Revisit timestamp docs.
+- [documentation] JAVA-1445: Clarify how nodes are penalized in LatencyAwarePolicy docs.
+- [improvement] JAVA-1446: Support 'DEFAULT UNSET' in Query Builder JSON Insert.
+- [improvement] JAVA-1443: Add groupBy method to Select statement.
+- [improvement] JAVA-1458: Check thread in mapper sync methods.
+- [improvement] JAVA-1488: Upgrade Netty to 4.0.47.Final.
 
 
 ### 1.2.4

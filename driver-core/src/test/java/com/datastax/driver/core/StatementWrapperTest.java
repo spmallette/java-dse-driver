@@ -55,6 +55,7 @@ public class StatementWrapperTest extends CCMTestsSupport {
     }
 
     @Test(groups = "short")
+    @CassandraVersion(value = "2.0.0")
     public void should_reuse_wrapped_simple_statement_for_multipage_query() {
         loadBalancingPolicy.customStatementsHandled.set(0);
 
@@ -84,6 +85,7 @@ public class StatementWrapperTest extends CCMTestsSupport {
     }
 
     @Test(groups = "short")
+    @CassandraVersion(value = "2.0.0")
     public void should_reuse_wrapped_bound_statement_for_multipage_query() {
         loadBalancingPolicy.customStatementsHandled.set(0);
 

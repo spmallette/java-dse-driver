@@ -6,17 +6,17 @@
  */
 package com.datastax.driver.core;
 
-import com.beust.jcommander.internal.Lists;
-import com.datastax.driver.core.utils.CassandraVersion;
-import com.google.common.base.Joiner;
-import org.testng.annotations.Test;
-
 import java.nio.ByteBuffer;
 import java.util.*;
+
+import com.google.common.base.Joiner;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
+
+import com.datastax.driver.core.utils.CassandraVersion;
 
 @CassandraVersion("2.1.0")
 public class TupleTest extends CCMTestsSupport {
@@ -79,8 +79,6 @@ public class TupleTest extends CCMTestsSupport {
     /**
      * Basic test of tuple functionality.
      * Original code found in python-driver:integration.standard.test_types.py:test_tuple_type
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void tupleTypeTest() throws Exception {
@@ -145,8 +143,6 @@ public class TupleTest extends CCMTestsSupport {
      * Test tuple types of lengths of 1, 2, 3, and 384 to ensure edge cases work
      * as expected.
      * Original code found in python-driver:integration.standard.test_types.py:test_tuple_type_varying_lengths
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void tupleTestTypeVaryingLengths() throws Exception {
@@ -191,12 +187,10 @@ public class TupleTest extends CCMTestsSupport {
     /**
      * Ensure tuple subtypes are appropriately handled.
      * Original code found in python-driver:integration.standard.test_types.py:test_tuple_subtypes
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void tupleSubtypesTest() throws Exception {
-        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(samples.keySet());
+        List<DataType> DATA_TYPE_PRIMITIVES = new ArrayList<DataType>(samples.keySet());
         session().execute("CREATE KEYSPACE test_tuple_subtypes " +
                 "WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor': '1'}");
         session().execute("USE test_tuple_subtypes");
@@ -249,12 +243,10 @@ public class TupleTest extends CCMTestsSupport {
     /**
      * Ensure tuple subtypes are appropriately handled for maps, sets, and lists.
      * Original code found in python-driver:integration.standard.test_types.py:test_tuple_non_primitive_subtypes
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void tupleNonPrimitiveSubTypesTest() throws Exception {
-        List<DataType> DATA_TYPE_PRIMITIVES = Lists.newArrayList(samples.keySet());
+        List<DataType> DATA_TYPE_PRIMITIVES = new ArrayList<DataType>(samples.keySet());
         session().execute("CREATE KEYSPACE test_tuple_non_primitive_subtypes " +
                 "WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor': '1'}");
         session().execute("USE test_tuple_non_primitive_subtypes");
@@ -408,8 +400,6 @@ public class TupleTest extends CCMTestsSupport {
     /**
      * Ensure nested are appropriately handled.
      * Original code found in python-driver:integration.standard.test_types.py:test_nested_tuples
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void nestedTuplesTest() throws Exception {
@@ -446,8 +436,6 @@ public class TupleTest extends CCMTestsSupport {
     /**
      * Test for inserting null Tuple values into UDT's
      * Original code found in python-driver:integration.standard.test_types.py:test_tuples_with_nulls
-     *
-     * @throws Exception
      */
     @Test(groups = "short")
     public void testTuplesWithNulls() throws Exception {

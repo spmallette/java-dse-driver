@@ -7,6 +7,7 @@
 package com.datastax.driver.core.querybuilder;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.CassandraVersion;
 import org.assertj.core.api.iterable.Extractor;
 import org.testng.annotations.Test;
@@ -25,8 +26,8 @@ import static org.testng.Assert.*;
 
 public class QueryBuilderExecutionTest extends CCMTestsSupport {
 
-    private static final String TABLE1 = "test1";
-    private static final String TABLE2 = "test2";
+    private static final String TABLE1 = TestUtils.generateIdentifier("test1");
+    private static final String TABLE2 = TestUtils.generateIdentifier("test2");
 
     @Override
     public void onTestContextInitialized() {
@@ -374,6 +375,245 @@ public class QueryBuilderExecutionTest extends CCMTestsSupport {
                 .containsExactly(
                         row(2, 4, 4),
                         row(2, 3, 3));
+    }
+
+    /**
+     * Validates that {@link QueryBuilder} can construct an INSERT INTO ... JSON query using the 'DEFAULT UNSET/NULL' clause.
+     *
+     * @test_category queries:builder
+     * @jira_ticket JAVA-1446
+     * @since 3.3.0
+     */
+    @CassandraVersion(value = "3.10", description = "Support for DEFAULT UNSET/NULL was added to C* 3.10 (CASSANDRA-11424)")
+    @Test(groups = "short")
+    public void should_support_insert_json_with_default_unset_and_default_null() throws Throwable {
+
+        String table = TestUtils.generateIdentifier("table");
+        execute(
+                String.format("CREATE TABLE %s (k int primary key, v1 int, v2 int)", table),
+                String.format("INSERT INTO %s JSON '{\"k\": 0, \"v1\": 0, \"v2\": 0}'", table)
+        );
+
+        // leave v1 unset
+        session().execute(session().prepare(insertInto(table).json(bindMarker()).defaultUnset()).bind("{\"k\": 0, \"v2\": 2}"));
+        assertThat(session().execute(select().from(table))).containsExactly(
+                row(0, 0, 2)
+        );
+
+        // explicit specification DEFAULT NULL
+        session().execute(session().prepare(insertInto(table).json(bindMarker()).defaultNull()).bind("{\"k\": 0, \"v2\": 2}"));
+        assertThat(session().execute(select().from(table))).containsExactly(
+                row(0, null, 2)
+        );
+
+        // implicitly setting v2 to null
+        session().execute(session().prepare(insertInto(table).json(bindMarker()).defaultNull()).bind("{\"k\": 0}"));
+        assertThat(session().execute(select().from(table))).containsExactly(
+                row(0, null, null)
+        );
+
+        // mix setting null explicitly with default unset:
+        // set values for all fields
+        session().execute(session().prepare(insertInto(table).json(bindMarker())).bind("{\"k\": 1, \"v1\": 1, \"v2\": 1}"));
+        // explicitly set v1 to null while leaving v2 unset which retains its value
+        session().execute(session().prepare(insertInto(table).json(bindMarker()).defaultUnset()).bind("{\"k\": 1, \"v1\": null}"));
+        assertThat(session().execute(select().from(table).where(eq("k", 1)))).containsExactly(
+                row(1, null, 1)
+        );
+
+        // test string literal instead of bind marker
+        session().execute(insertInto(table).json("{\"k\": 2, \"v1\": 2, \"v2\": 2}"));
+        // explicitly set v1 to null while leaving v2 unset which retains its value
+        session().execute(insertInto(table).json("{\"k\": 2, \"v1\": null}").defaultUnset());
+        assertThat(session().execute(select().from(table).where(eq("k", 2)))).containsExactly(
+                row(2, null, 2)
+        );
+        session().execute(insertInto(table).json("{\"k\": 2}").defaultNull());
+        assertThat(session().execute(select().from(table).where(eq("k", 2)))).containsExactly(
+                row(2, null, null)
+        );
+    }
+
+    /**
+     * Validates that {@link QueryBuilder} can construct a query using the 'GROUP BY' clause.
+     *
+     * @test_category queries:builder
+     * @jira_ticket JAVA-1443
+     * @since 3.3.0
+     */
+    @CassandraVersion(value = "3.10", description = "Support for GROUP BY was added to C* 3.10 (CASSANDRA-10707)")
+    @Test(groups = "short")
+    public void should_support_group_by() throws Exception {
+        String table = TestUtils.generateIdentifier("table");
+        execute(String.format("CREATE TABLE %s (a int, b int, c int, d int, e int, primary key (a, b, c, d))", table));
+
+        execute(
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 2, 1, 3, 6)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 2, 2, 6, 12)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 3, 2, 12, 24)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 4, 2, 12, 24)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 4, 2, 6, 12)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (2, 2, 3, 3, 6)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (2, 4, 3, 6, 12)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (3, 3, 2, 12, 24)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (4, 8, 2, 12, 24)", table)
+        );
+
+        // Make sure that we have some tombstones
+        execute(
+                String.format("DELETE FROM %s WHERE a = 1 AND b = 3 AND c = 2 AND d = 12", table),
+                String.format("DELETE FROM %s WHERE a = 3", table));
+
+        // Range queries
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("b", 2)).groupBy("a", "b").allowFiltering())).containsExactly(
+                row(1, 2, 6, 2L, 12),
+                row(2, 2, 6, 1L, 6));
+
+        // Range query with LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).groupBy("a", "b").limit(2))).containsExactly(
+                row(1, 2, 6, 2L, 12),
+                row(1, 4, 12, 2L, 24));
+
+        // Range queries with PER PARTITION LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).groupBy("a", "b").perPartitionLimit(1))).containsExactly(
+                row(1, 2, 6, 2L, 12),
+                row(2, 2, 6, 1L, 6),
+                row(4, 8, 24, 1L, 24));
+
+        // Range query with PER PARTITION LIMIT and LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).groupBy("a", "b").perPartitionLimit(1).limit(2))).containsExactly(
+                row(1, 2, 6, 2L, 12),
+                row(2, 2, 6, 1L, 6));
+
+        // Range query with DISTINCT
+        assertThat(session().execute(select("a", count("a")).distinct().from(table).groupBy("a"))).containsExactly(
+                row(1, 1L),
+                row(2, 1L),
+                row(4, 1L));
+
+        // Range query with DISTINCT and LIMIT
+        assertThat(session().execute(select("a", count("a")).distinct().from(table).groupBy("a").limit(2))).containsExactly(
+                row(1, 1L),
+                row(2, 1L));
+
+        // Single partition queries
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c"))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(1, 2, 12, 1L, 12),
+                row(1, 4, 12, 2L, 24));
+
+        // Single partition queries with DISTINCT
+        assertThat(session().execute(select("a", count("a")).distinct().from(table).where(eq("a", 1)).groupBy("a"))).containsExactly(
+                row(1, 1L));
+
+        // Single partition queries with LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c").limit(2))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(1, 2, 12, 1L, 12));
+
+        // Single partition queries with PER PARTITION LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c").perPartitionLimit(2))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(1, 2, 12, 1L, 12));
+
+        // Single partition queries with ORDER BY
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c").orderBy(desc("b"), desc("c")))).containsExactly(
+                row(1, 4, 24, 2L, 24),
+                row(1, 2, 12, 1L, 12),
+                row(1, 2, 6, 1L, 6));
+
+        // Single partition queries with ORDER BY and PER PARTITION LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c").orderBy(desc("b"), desc("c")).perPartitionLimit(1))).containsExactly(
+                row(1, 4, 24, 2L, 24));
+
+        // Single partition queries with ORDER BY and LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(eq("a", 1)).groupBy("a", "b", "c").orderBy(desc("b"), desc("c")).limit(2))).containsExactly(
+                row(1, 4, 24, 2L, 24),
+                row(1, 2, 12, 1L, 12));
+
+        // Multi-partitions queries
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(in("a", 1, 2, 4)).and(eq("b", 2)).groupBy("a", "b", "c"))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(1, 2, 12, 1L, 12),
+                row(2, 2, 6, 1L, 6));
+
+        // Multi-partitions query with DISTINCT
+        assertThat(session().execute(select("a", count("a")).distinct().from(table).where(in("a", 1, 2, 4)).groupBy("a"))).containsExactly(
+                row(1, 1L),
+                row(2, 1L),
+                row(4, 1L));
+
+        // Multi-partitions query with DISTINCT and LIMIT
+        assertThat(session().execute(select("a", count("a")).distinct().from(table).where(in("a", 1, 2, 4)).groupBy("a").limit(2))).containsExactly(
+                row(1, 1L),
+                row(2, 1L));
+
+        // Multi-partitions queries with PER PARTITION LIMIT
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(in("a", 1, 2, 4)).groupBy("a", "b", "c").perPartitionLimit(1))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(2, 2, 6, 1L, 6),
+                row(4, 8, 24, 1L, 24));
+
+        assertThat(session().execute(select("a", "b", "e", count("b"), max("e")).from(table).where(in("a", 1, 2, 4)).groupBy("a", "b", "c").perPartitionLimit(2))).containsExactly(
+                row(1, 2, 6, 1L, 6),
+                row(1, 2, 12, 1L, 12),
+                row(2, 2, 6, 1L, 6),
+                row(2, 4, 12, 1L, 12),
+                row(4, 8, 24, 1L, 24));
+
+        // Multi-partitions queries with ORDER BY
+        assertThat(session().execute(select("a", "b", "c", count("b"), max("e")).from(table).where(in("a", 1, 2, 4)).groupBy("a", "b").orderBy(desc("b"), desc("c")).setFetchSize(Integer.MAX_VALUE))).containsExactly(
+                row(4, 8, 2, 1L, 24),
+                row(2, 4, 3, 1L, 12),
+                row(1, 4, 2, 2L, 24),
+                row(2, 2, 3, 1L, 6),
+                row(1, 2, 2, 2L, 12));
+
+        // Multi-partitions queries with ORDER BY and LIMIT
+        assertThat(session().execute(select("a", "b", "c", "d").from(table).where(in("a", 1, 2, 4)).groupBy("a", "b").orderBy(desc("b"), desc("c")).limit(3).setFetchSize(Integer.MAX_VALUE))).containsExactly(
+                row(4, 8, 2, 12),
+                row(2, 4, 3, 6),
+                row(1, 4, 2, 12));
+
+        try {
+            session().execute(select().column("a").column("b").as("clustering1").max("c").from(table).where(eq("a", 1)).groupBy("a", "clustering1"));
+            fail("Expecting IQE");
+        } catch (InvalidQueryException e) {
+            assertThat(e.getMessage()).isEqualTo("Undefined column name clustering1");
+        }
+
+        try {
+            session().execute(select().column("a").column("b").max("c").from(table).where(eq("a", 1)).groupBy("a", "b", "z"));
+            fail("Expecting IQE");
+        } catch (InvalidQueryException e) {
+            assertThat(e.getMessage()).isEqualTo("Undefined column name z");
+        }
+
+        // Test with composite partition key
+        table = TestUtils.generateIdentifier("table");
+        execute(String.format("CREATE TABLE %s (a int, b int, c int, d int, e int, primary key ((a, b), c, d))", table));
+
+        execute(
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 1, 1, 3, 6)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 1, 2, 6, 12)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 1, 3, 12, 24)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 2, 1, 12, 24)", table),
+                String.format("INSERT INTO %s (a, b, c, d, e) VALUES (1, 2, 2, 6, 12)", table)
+        );
+
+        try {
+            session().execute(select().column("a").column("b").max("d").from(table).groupBy("a"));
+            fail("Expecting IQE");
+        } catch (InvalidQueryException e) {
+            assertThat(e.getMessage()).isEqualTo("Group by is not supported on only a part of the partition key");
+        }
+
+        assertThat(session().execute(select("a", "b", max("d")).from(table).groupBy("a", "b"))).containsExactly(
+                row(1, 2, 12),
+                row(1, 1, 12));
+
+        assertThat(session().execute(select("a", "b", max("d")).from(table).where(eq("a", 1)).and(eq("b", 1)).groupBy("b"))).containsExactly(
+                row(1, 1, 12));
     }
 
 }
