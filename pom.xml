@@ -68,7 +68,7 @@
         <!-- more recent versions of pax-exam require JDK7+ -->
         <pax-exam.version>3.6.0</pax-exam.version>
         <url.version>2.4.0</url.version>
-        <tinkerpop.version>3.2.4</tinkerpop.version>
+        <tinkerpop.version>3.2.5</tinkerpop.version>
         <apacheds.version>2.0.0-M19</apacheds.version>
         <groovy.version>2.4.7</groovy.version>
         <testng.version>6.8.8</testng.version>

@@ -11,6 +11,9 @@ import com.datastax.driver.dse.graph.GraphOptions;
 import com.datastax.driver.dse.graph.GraphResultSet;
 import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.dse.graph.internal.utils.GraphSONUtils;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnectionException;
 import org.apache.tinkerpop.gremlin.process.remote.traversal.RemoteTraversal;
@@ -19,6 +22,8 @@ import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
 
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class DseRemoteConnection implements RemoteConnection {
     private final DseSession dseSession;
@@ -50,15 +55,52 @@ public class DseRemoteConnection implements RemoteConnection {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "unchecked"})
+    // Tinkerpop (3.2.2 -> 3.2.3) will use this method
     public <E> RemoteTraversal<?, E> submit(Bytecode bytecode) throws RemoteConnectionException {
+        try {
+            return (RemoteTraversal<?, E>) submitAsync(bytecode).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RemoteConnectionException(e);
+        }
+    }
+
+    // TinkerPop 3.2.4+ will use this method
+    public <E> CompletableFuture<RemoteTraversal<?, E>> submitAsync(Bytecode bytecode) throws RemoteConnectionException {
         GraphStatement graphStatement = GraphSONUtils.getStatementFromBytecode(bytecode);
         // override the transformFunction manually as we want to deserialize into TP types.
         graphStatement.setTransformResultFunction(GraphSONUtils.ROW_TO_GRAPHSON2_TINKERPOP_OBJECTGRAPHNODE);
         applyGraphOptionsOnStatement(graphStatement, this.graphOptions);
+        ListenableFuture<GraphResultSet> listenableFutureResults = dseSession.executeGraphAsync(graphStatement);
 
-        GraphResultSet grs = dseSession.executeGraph(graphStatement);
-        return new DseRemoteTraversal<>(grs);
+        return buildCompletableFutureResultSet(listenableFutureResults).thenApply(DseRemoteTraversal::new);
+    }
+
+    private static CompletableFuture<GraphResultSet> buildCompletableFutureResultSet(final ListenableFuture<GraphResultSet> listenableFuture) {
+        //create an instance of CompletableFuture
+        CompletableFuture<GraphResultSet> completable = new CompletableFuture<GraphResultSet>() {
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                // propagate cancel to the listenable future
+                boolean result = listenableFuture.cancel(mayInterruptIfRunning);
+                super.cancel(mayInterruptIfRunning);
+                return result;
+            }
+        };
+
+        // add callback
+        Futures.addCallback(listenableFuture, new FutureCallback<GraphResultSet>() {
+            @Override
+            public void onSuccess(GraphResultSet result) {
+                completable.complete(result);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                completable.completeExceptionally(t);
+            }
+        });
+        return completable;
     }
 
     @Override
