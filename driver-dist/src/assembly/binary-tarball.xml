@@ -63,6 +63,9 @@
                             <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
                             <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
                             <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                            <!-- already included in lib/core -->
+                            <exclude>com.google.guava:guava</exclude>
+                            <exclude>org.slf4j:slf4j-api</exclude>
                         </excludes>
                         <useTransitiveFiltering>true</useTransitiveFiltering>
                     </dependencySet>
@@ -89,6 +92,7 @@
                             <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
                             <!-- already included in lib/core -->
                             <exclude>com.google.guava:guava</exclude>
+                            <exclude>org.slf4j:slf4j-api</exclude>
                         </excludes>
                         <useTransitiveFiltering>true</useTransitiveFiltering>
                     </dependencySet>
@@ -113,6 +117,9 @@
                             <exclude>com.datastax.dse:dse-java-driver-mapping</exclude>
                             <exclude>com.datastax.dse:dse-java-driver-extras</exclude>
                             <exclude>com.datastax.dse:dse-java-driver-graph</exclude>
+                            <!-- already included in lib/core -->
+                            <exclude>com.google.guava:guava</exclude>
+                            <exclude>org.slf4j:slf4j-api</exclude>
                         </excludes>
                         <useTransitiveFiltering>true</useTransitiveFiltering>
                     </dependencySet>

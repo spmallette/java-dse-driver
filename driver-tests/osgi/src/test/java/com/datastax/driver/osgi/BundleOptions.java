@@ -21,6 +21,18 @@ import java.util.List;
 
 import static org.ops4j.pax.exam.CoreOptions.*;
 
+/**
+ * To check that all driver bundles are correctly provisioned, or to debug provisioning problems,
+ * run the Maven Pax Runner plugin:
+ * <pre>
+ * mvn pax:run
+ * </pre>
+ * The plugin will start a Felix Gogo interactive shell and attempt to provision the driver bundles.
+ * <p/>
+ * Note: you MUST run 'mvn install' on the entire project before!
+ *
+ * @see <a href="http://felix.apache.org/documentation/subprojects/apache-felix-gogo.html">Apache Felix Gogo Documentation</a>
+ */
 public class BundleOptions {
 
     public static UrlProvisionOption driverBundle() {
