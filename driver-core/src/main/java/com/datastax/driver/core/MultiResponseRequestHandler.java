@@ -6,14 +6,15 @@
  */
 package com.datastax.driver.core;
 
-import com.codahale.metrics.Timer;
 import com.datastax.driver.core.Message.Request;
 import com.datastax.driver.core.RequestHandler.QueryPlan;
 import com.datastax.driver.core.RequestHandler.QueryState;
 import com.datastax.driver.core.exceptions.*;
 import com.datastax.driver.core.policies.RetryPolicy;
 import com.datastax.driver.core.utils.MoreFutures;
+import com.codahale.metrics.Timer;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -665,15 +666,20 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
             // Execution info describes the initial request, we will return the same object for all responses so cache
             // it
             if (info == null) {
-                info = current.defaultExecutionInfo;
-                if (triedHosts != null) {
-                    triedHosts.add(current);
-                    info = new ExecutionInfo(triedHosts);
+                // Avoid creating a new instance if we can reuse the host's default one
+                if (triedHosts == null && retryConsistencyLevel == null && response.getCustomPayload() == null) {
+                    info = current.defaultExecutionInfo;
+                } else {
+                    List<Host> hosts;
+                    if (triedHosts == null) {
+                        hosts = ImmutableList.of(current);
+                    } else {
+                        hosts = triedHosts;
+                        hosts.add(current);
+                    }
+                    info = new ExecutionInfo(0, 0, hosts, retryConsistencyLevel, response.getCustomPayload());
                 }
-                if (retryConsistencyLevel != null)
-                    info = info.withAchievedConsistency(retryConsistencyLevel);
-                if (response.getCustomPayload() != null)
-                    info = info.withIncomingPayload(response.getCustomPayload());
+
             }
             callback.onResponse(connection, response, info, statement);
         } catch (Exception e) {

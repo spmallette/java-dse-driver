@@ -2,6 +2,8 @@
 
 ### 1.3.0 (in progress)
 
+- [improvement] JAVA-1460: Add speculative execution number to ExecutionInfo.
+
 Merged from OSS 3.x:
 
 - [bug] JAVA-1469: Update LoggingRetryPolicy to deal with SLF4J-353.

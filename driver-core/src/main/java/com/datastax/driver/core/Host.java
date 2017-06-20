@@ -7,7 +7,6 @@
 package com.datastax.driver.core;
 
 import com.datastax.driver.core.policies.AddressTranslator;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class Host {
         this.address = address;
         this.convictionPolicy = convictionPolicyFactory.create(this, manager.reconnectionPolicy());
         this.manager = manager;
-        this.defaultExecutionInfo = new ExecutionInfo(ImmutableList.of(this));
+        this.defaultExecutionInfo = new ExecutionInfo(this);
         this.state = State.ADDED;
     }
 
