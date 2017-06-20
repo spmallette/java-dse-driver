@@ -287,7 +287,7 @@ class ContinuousPagingQueue implements MultiResponseRequestHandler.Callback {
         }
 
         Token.Factory tokenFactory = handler.manager.cluster.getMetadata().tokenFactory();
-        ProtocolVersion protocolVersion = handler.manager.cluster.manager.protocolVersion();
+        ProtocolVersion protocolVersion = handler.manager.cluster.getManager().protocolVersion();
         CodecRegistry codecRegistry = handler.manager.configuration().getCodecRegistry();
 
         info = info.with(null, // Don't handle query trace, it's unlikely to be used with continuous paging

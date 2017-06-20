@@ -94,7 +94,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
     }
 
     private Metrics metrics() {
-        return manager.cluster.manager.metrics;
+        return manager.cluster.getManager().metrics;
     }
 
     void sendRequest() {
@@ -402,7 +402,7 @@ class MultiResponseRequestHandler implements Connection.ResponseCallback {
                                 // Do not release connection yet, because we might reuse it to send the PREPARE message (see write() call below)
                                 assert err.infos instanceof MD5Digest;
                                 MD5Digest id = (MD5Digest) err.infos;
-                                PreparedStatement toPrepare = manager.cluster.manager.preparedQueries.get(id);
+                                PreparedStatement toPrepare = manager.cluster.getManager().preparedQueries.get(id);
                                 if (toPrepare == null) {
                                     // This shouldn't happen
                                     release(connection);

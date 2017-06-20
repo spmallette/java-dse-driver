@@ -6,6 +6,7 @@
 - [bug] JAVA-1428: Update non-required dependencies that have security vulnerabilities.
 - [bug] JAVA-1425: Upgrade to Jackson 2.8.8.
 - [improvement] JAVA-1454: Handle async Tinkerpop traversal natively with the Driver.
+- [bug] JAVA-1511: Cluster should not expose its internal fields.
 
 Merged from OSS 3.x:
 

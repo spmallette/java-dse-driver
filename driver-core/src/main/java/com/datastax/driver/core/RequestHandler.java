@@ -69,7 +69,7 @@ class RequestHandler {
             logger.trace("[{}] {}", id, statement);
         this.manager = manager;
         this.callback = callback;
-        this.scheduler = manager.cluster.manager.connectionFactory.timer;
+        this.scheduler = manager.cluster.getManager().connectionFactory.timer;
 
         callback.register(this);
 
@@ -216,7 +216,7 @@ class RequestHandler {
     }
 
     private Metrics metrics() {
-        return manager.cluster.manager.metrics;
+        return manager.cluster.getManager().metrics;
     }
 
     private RetryPolicy retryPolicy() {
@@ -602,7 +602,7 @@ class RequestHandler {
                                 // Do not release connection yet, because we might reuse it to send the PREPARE message (see write() call below)
                                 assert err.infos instanceof MD5Digest;
                                 MD5Digest id = (MD5Digest) err.infos;
-                                PreparedStatement toPrepare = manager.cluster.manager.preparedQueries.get(id);
+                                PreparedStatement toPrepare = manager.cluster.getManager().preparedQueries.get(id);
                                 if (toPrepare == null) {
                                     // This shouldn't happen
                                     connection.release();
@@ -654,7 +654,7 @@ class RequestHandler {
                 setFinalException(connection, e);
             } finally {
                 if (queriedHost != null && statement != Statement.DEFAULT) {
-                    manager.cluster.manager.reportQuery(queriedHost, statement, exceptionToReport, latency);
+                    manager.cluster.getManager().reportQuery(queriedHost, statement, exceptionToReport, latency);
                 }
             }
         }
@@ -762,7 +762,7 @@ class RequestHandler {
                 setFinalException(null, new DriverInternalError("An unexpected error happened while handling exception " + exception, e));
             } finally {
                 if (queriedHost != null && statement != Statement.DEFAULT)
-                    manager.cluster.manager.reportQuery(queriedHost, statement, exception, latency);
+                    manager.cluster.getManager().reportQuery(queriedHost, statement, exception, latency);
             }
         }
 
@@ -790,7 +790,7 @@ class RequestHandler {
                 setFinalException(null, new DriverInternalError("An unexpected error happened while handling timeout", e));
             } finally {
                 if (queriedHost != null && statement != Statement.DEFAULT)
-                    manager.cluster.manager.reportQuery(queriedHost, statement, timeoutException, latency);
+                    manager.cluster.getManager().reportQuery(queriedHost, statement, timeoutException, latency);
             }
             return true;
         }

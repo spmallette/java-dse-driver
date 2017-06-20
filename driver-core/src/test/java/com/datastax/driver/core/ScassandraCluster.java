@@ -10,7 +10,6 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.collect.*;
 import org.scassandra.Scassandra;
 import org.scassandra.ScassandraFactory;
-import org.scassandra.cql.MapType;
 import org.scassandra.http.client.PrimingClient;
 import org.scassandra.http.client.PrimingRequest;
 import org.scassandra.http.client.types.ColumnMetadata;
@@ -19,11 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.datastax.driver.core.Assertions.assertThat;
@@ -204,7 +199,7 @@ public class ScassandraCluster {
         for (int i = 1; i <= nodes(dc).size(); i++) {
             int id = ipSuffix(dc, i);
             Host host = TestUtils.findHost(cluster, id);
-            if (cluster.manager.controlConnection.connectedHost() == host) {
+            if (cluster.getManager().controlConnection.connectedHost() == host) {
                 logger.debug("Node {} identified as control host.  Stopping last.", id);
                 controlHost = id;
                 continue;
