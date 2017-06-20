@@ -21,7 +21,9 @@ import java.io.IOException;
  * This class is used for better performance in GraphSON when trying to detect types.
  */
 class JsonParserConcat extends JsonParserSequence {
-    protected JsonParserConcat(final JsonParser[] parsers) {
+
+    @SuppressWarnings("deprecation")
+    JsonParserConcat(final JsonParser[] parsers) {
         super(parsers);
     }
 

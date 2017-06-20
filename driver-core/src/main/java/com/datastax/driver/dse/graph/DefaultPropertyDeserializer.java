@@ -24,14 +24,14 @@ class DefaultPropertyDeserializer extends StdDeserializer<DefaultProperty> {
     @Override
     public DefaultProperty deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
         if (!(parser instanceof PropertyGraphNodeParser))
-            throw new JsonParseException("Cannot deserialize property if parser is not instance of PropertyGraphNodeParser", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property if parser is not instance of PropertyGraphNodeParser");
         PropertyGraphNodeParser propertyParser = (PropertyGraphNodeParser) parser;
         String name = propertyParser.propertyName;
         if (name == null)
-            throw new JsonParseException("Cannot deserialize property without its name", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property without its name");
         Element parent = propertyParser.parent;
         if (parent == null)
-            throw new JsonParseException("Cannot deserialize property with null parent", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property with null parent");
         JsonNode jacksonNode = parser.readValueAsTree();
         DefaultProperty property = new DefaultProperty();
         property.name = name;

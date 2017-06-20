@@ -32,16 +32,16 @@ class DefaultVertexPropertyDeserializer extends StdDeserializer<DefaultVertexPro
     @Override
     public DefaultVertexProperty deserialize(JsonParser parser, DeserializationContext ctx) throws IOException {
         if (!(parser instanceof PropertyGraphNodeParser))
-            throw new JsonParseException("Cannot deserialize property if parser is not instance of PropertyGraphNodeParser", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property if parser is not instance of PropertyGraphNodeParser");
         PropertyGraphNodeParser propertyGraphNodeParser = (PropertyGraphNodeParser) parser;
         String name = propertyGraphNodeParser.propertyName;
         if (name == null)
-            throw new JsonParseException("Cannot deserialize property with null name", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property with null name");
         Element parent = propertyGraphNodeParser.parent;
         if (parent == null)
-            throw new JsonParseException("Cannot deserialize property with null parent", parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Cannot deserialize property with null parent");
         if (!(parent instanceof Vertex))
-            throw new JsonParseException("Vertex property parent is not a Vertex: " + parent, parser.getCurrentLocation());
+            throw new JsonParseException(parser, "Vertex property parent is not a Vertex: " + parent);
         JsonNode jacksonNode = parser.readValueAsTree();
         ObjectMapper objectMapper = (ObjectMapper) parser.getCodec();
         DefaultGraphNode propertyNode = new DefaultGraphNode(jacksonNode, objectMapper);
