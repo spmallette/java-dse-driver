@@ -11,10 +11,16 @@ import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphFixtures;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
 import com.datastax.dse.graph.TinkerGraphExtractors;
+import com.datastax.dse.graph.api.DseGraph;
+import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
+import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.DefaultGraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
+import org.apache.tinkerpop.gremlin.process.traversal.step.map.GraphStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.Tree;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -448,6 +454,17 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
     }
 
     /**
+     * A simple smoke test to ensure that a user can supply a custom {@link GraphTraversalSource} for use with DSLs.
+     *
+     * @test_category dse:graph
+     */
+    @Test(groups = "short")
+    public void should_allow_use_of_dsl() throws Exception {
+        SillyTraversalSource silly = DseGraph.traversal(session(), SillyTraversalSource.class);
+        assertThat(silly.persons().count().next()).isEqualTo(4);
+    }
+
+    /**
      * Ensures that the given Path matches one of the exact traversals we'd expect for a person whom Marko
      * knows that has created software and what software that is.
      * <p/>
@@ -508,6 +525,33 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
                     .hasLabel("software")
                     .hasProperty("name", "ripple")
                     .hasProperty("lang", "java");
+        }
+    }
+
+    /**
+     * A super bare-bones DSL for testing purposes.
+     */
+    public static class SillyTraversalSource extends GraphTraversalSource {
+        public SillyTraversalSource(Graph graph) {
+            super(graph);
+        }
+
+        public SillyTraversalSource(Graph graph, TraversalStrategies strategies) {
+            super(graph, strategies);
+        }
+
+        @Override
+        public SillyTraversalSource withRemote(RemoteConnection connection) {
+            return (SillyTraversalSource) super.withRemote(connection);
+        }
+
+        public GraphTraversal<Vertex, Vertex> persons() {
+            return this.clone().V().hasLabel("person");
+        }
+
+        @Override
+        public SillyTraversalSource clone() {
+            return (SillyTraversalSource) super.clone();
         }
     }
 }
