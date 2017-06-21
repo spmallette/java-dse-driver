@@ -90,7 +90,7 @@ class DefaultDseSession implements DseSession, ContinuousPagingSession {
 
     @Override
     public ListenableFuture<GraphResultSet> executeGraphAsync(final GraphStatement graphStatement) {
-        final Statement statement = generateCoreStatement(dseCluster.getConfiguration().getGraphOptions(), graphStatement);
+        final Statement statement = generateCoreStatement(dseCluster.getConfiguration().getGraphOptions(), graphStatement, getCluster());
 
         if (ANALYTICS_GRAPH_SOURCE.equals(graphStatement.getGraphSource())) {
             // Try to send the statement directly to the graph analytics server (we have to look it up first)
@@ -174,9 +174,13 @@ class DefaultDseSession implements DseSession, ContinuousPagingSession {
      * @return the statement with the correct options applied to.
      */
     @VisibleForTesting
-    static Statement generateCoreStatement(GraphOptions graphOptions, GraphStatement graphStatement) {
-        Statement statement = graphStatement.unwrap();
-        statement.setOutgoingPayload(graphOptions.buildPayloadWithDefaults(graphStatement));
+    static Statement generateCoreStatement(GraphOptions graphOptions, GraphStatement graphStatement, DseCluster dseCluster) {
+        ProtocolVersion protocolVersion = dseCluster == null
+                ? ProtocolVersion.NEWEST_SUPPORTED
+                : dseCluster.getConfiguration().getProtocolOptions().getProtocolVersion();
+        Statement statement = graphStatement.unwrap(protocolVersion);
+        statement.setOutgoingPayload(graphOptions.buildPayloadWithDefaults(graphStatement, protocolVersion));
+
 
         // Apply graph-options timeout only if not set on statement.
         // Has to be done here since it applies to the core statement and not the custom payload...

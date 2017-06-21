@@ -12,6 +12,6 @@ import com.datastax.driver.dse.graph.GraphStatement;
 
 public class DseSessionHook {
     public static Statement callGenerateCoreStatement(GraphOptions graphOptions, GraphStatement graphStatement) {
-        return DefaultDseSession.generateCoreStatement(graphOptions, graphStatement);
+        return DefaultDseSession.generateCoreStatement(graphOptions, graphStatement, null);
     }
 }

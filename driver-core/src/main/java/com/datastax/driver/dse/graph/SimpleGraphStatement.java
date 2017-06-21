@@ -7,6 +7,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.SimpleStatement;
 import com.google.common.base.Preconditions;
 
@@ -110,7 +111,16 @@ public class SimpleGraphStatement extends RegularGraphStatement {
 
     @Override
     public SimpleStatement unwrap() {
-        maybeRebuildCache();
+        return unwrap(ProtocolVersion.NEWEST_SUPPORTED);
+    }
+
+    @Override
+    public SimpleStatement unwrap(ProtocolVersion protocolVersion) {
+        maybeRebuildCache(protocolVersion);
+        if (protocolVersion.toInt() >= ProtocolVersion.DSE_V1.toInt()) {
+            // Deserialize correctly GraphSON2 results
+            setTransformResultFunction(GraphJsonUtils.ROW_TO_GRAPHSON2_OBJECTGRAPHNODE);
+        }
         return statement;
     }
 
@@ -121,12 +131,15 @@ public class SimpleGraphStatement extends RegularGraphStatement {
         return this;
     }
 
-    private void maybeRebuildCache() {
+    private void maybeRebuildCache(ProtocolVersion protocolVersion) {
         if (needsRebuild) {
             if (valuesMap.isEmpty()) {
                 statement = new SimpleStatement(query);
             } else {
-                String values = GraphJsonUtils.writeValueAsString(valuesMap);
+                String values = protocolVersion.toInt() < ProtocolVersion.DSE_V1.toInt()
+                        ? GraphJsonUtils.writeValueAsString(valuesMap)
+                        : GraphJsonUtils.writeValueAsStringGraphson20(valuesMap);
+
                 statement = new SimpleStatement(query, values);
             }
             if (getConsistencyLevel() != null)

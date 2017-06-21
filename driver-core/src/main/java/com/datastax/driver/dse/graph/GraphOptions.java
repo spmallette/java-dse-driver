@@ -7,6 +7,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.google.common.collect.ImmutableMap;
 
 import java.nio.ByteBuffer;
@@ -34,6 +35,7 @@ public class GraphOptions {
     static final String GRAPH_READ_CONSISTENCY_KEY = "graph-read-consistency";
     static final String GRAPH_WRITE_CONSISTENCY_KEY = "graph-write-consistency";
     static final String REQUEST_TIMEOUT_KEY = "request-timeout";
+    static final String GRAPH_RESULTS_KEY = "graph-results";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -213,68 +215,88 @@ public class GraphOptions {
     }
 
     /**
-     * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
+     * This method is deprecated because a {@link ProtocolVersion} is required to construct
+     * a valid payload. Use {@link #buildPayloadWithDefaults(GraphStatement, ProtocolVersion)} instead.
      * <p/>
-     * This method is intended for internal use only.
+     * This method will call {@code GraphOptions#buildPayloadWithDefault(statement, ProtocolVersion.NEWEST_SUPPORTED)}.
      *
      * @param statement the statement.
      * @return the payload.
      */
+    @Deprecated
     public Map<String, ByteBuffer> buildPayloadWithDefaults(GraphStatement statement) {
+        return buildPayloadWithDefaults(statement, ProtocolVersion.NEWEST_SUPPORTED);
+    }
+
+    /**
+     * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
+     * <p/>
+     * This method is intended for internal use only.
+
+     * @param statement the statement.
+     *        protocolVersion the protocol version to use.
+     * @return the payload.
+     */
+ public Map<String, ByteBuffer> buildPayloadWithDefaults(GraphStatement statement, ProtocolVersion protocolVersion) {
         if (statement.getGraphLanguage() == null
                 && statement.getGraphSource() == null
                 && statement.getGraphReadConsistencyLevel() == null
                 && statement.getGraphWriteConsistencyLevel() == null
                 && statement.getGraphName() == null
                 && statement.getGraphInternalOptions().size() == 0
-                && !statement.isSystemQuery()) {
+                && !statement.isSystemQuery()
+                && protocolVersion.toInt() >= ProtocolVersion.DSE_V1.toInt()) {
             return defaultPayload;
         } else {
             ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
 
-            setOrDefaultText(builder, GRAPH_LANGUAGE_KEY, statement.getGraphLanguage());
-            setOrDefaultText(builder, GRAPH_SOURCE_KEY, statement.getGraphSource());
+            setOrDefaultText(builder, GRAPH_LANGUAGE_KEY, statement.getGraphLanguage(), protocolVersion);
+            setOrDefaultText(builder, GRAPH_SOURCE_KEY, statement.getGraphSource(), protocolVersion);
 
             // ----- Optional DSEGraph settings -----
-            setOrDefaultCl(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel());
-            setOrDefaultCl(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel());
-            if (!statement.isSystemQuery())
-                setOrDefaultText(builder, GRAPH_NAME_KEY, statement.getGraphName());
+            setOrDefaultCl(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel(), protocolVersion);
+            setOrDefaultCl(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel(), protocolVersion);
+            if (!statement.isSystemQuery()) {
+                setOrDefaultText(builder, GRAPH_NAME_KEY, statement.getGraphName(), protocolVersion);
+            }
             if (statement.getReadTimeoutMillis() > 0) {
                 // If > 0 it means it's not the default and has to be in the payload.
-                setOrDefaultBigInt(builder, REQUEST_TIMEOUT_KEY, (long) statement.getReadTimeoutMillis());
+                setOrDefaultBigInt(builder, REQUEST_TIMEOUT_KEY, (long) statement.getReadTimeoutMillis(), protocolVersion);
+            }
+            if (protocolVersion.toInt() >= ProtocolVersion.DSE_V1.toInt()) {
+                setOrDefaultText(builder, GRAPH_RESULTS_KEY, "graphson-2.0", protocolVersion);
             }
 
             for (Map.Entry<String, String> optionEntry : statement.getGraphInternalOptions().entrySet()) {
-                setOrDefaultText(builder, optionEntry.getKey(), optionEntry.getValue());
+                setOrDefaultText(builder, optionEntry.getKey(), optionEntry.getValue(), protocolVersion);
             }
 
             return builder.build();
         }
     }
 
-    private void setOrDefaultText(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
+    void setOrDefaultText(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value, ProtocolVersion protocolVersion) {
         ByteBuffer bytes = (value == null)
                 ? defaultPayload.get(key)
-                : PayloadHelper.asBytes(value);
+                : PayloadHelper.asBytes(value, protocolVersion);
 
         if (bytes != null)
             builder.put(key, bytes);
     }
 
-    private void setOrDefaultCl(ImmutableMap.Builder<String, ByteBuffer> builder, String key, ConsistencyLevel value) {
+    private void setOrDefaultCl(ImmutableMap.Builder<String, ByteBuffer> builder, String key, ConsistencyLevel value, ProtocolVersion protocolVersion) {
         ByteBuffer bytes = (value == null)
                 ? defaultPayload.get(key)
-                : PayloadHelper.asBytes(value.name());
+                : PayloadHelper.asBytes(value.name(), protocolVersion);
 
         if (bytes != null)
             builder.put(key, bytes);
     }
 
-    private void setOrDefaultBigInt(ImmutableMap.Builder<String, ByteBuffer> builder, String key, Long value) {
+    private void setOrDefaultBigInt(ImmutableMap.Builder<String, ByteBuffer> builder, String key, Long value, ProtocolVersion protocolVersion) {
         ByteBuffer bytes = (value == null)
                 ? defaultPayload.get(key)
-                : PayloadHelper.asBytes(value);
+                : PayloadHelper.asBytes(value, protocolVersion);
 
         if (bytes != null)
             builder.put(key, bytes);
@@ -294,6 +316,7 @@ public class GraphOptions {
         if (this.graphWriteConsistency != null) {
             builder.put(GRAPH_WRITE_CONSISTENCY_KEY, PayloadHelper.asBytes(this.graphWriteConsistency.name()));
         }
+        builder.put(GRAPH_RESULTS_KEY, PayloadHelper.asBytes("graphson-2.0"));
 
         this.defaultPayload = builder.build();
     }

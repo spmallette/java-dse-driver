@@ -6,6 +6,7 @@
  */
 package com.datastax.driver.dse.graph;
 
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.RegularStatement;
 
 /**
@@ -26,6 +27,9 @@ public abstract class RegularGraphStatement extends GraphStatement {
 
     @Override
     public abstract RegularStatement unwrap();
+
+    @Override
+    public abstract RegularStatement unwrap(ProtocolVersion protocolVersion);
 
 }
 
