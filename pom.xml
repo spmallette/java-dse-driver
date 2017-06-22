@@ -1,9 +1,9 @@
 <!--
 
-         Copyright (C) 2012-2017 DataStax Inc.
+    Copyright (C) 2012-2017 DataStax Inc.
 
-         This software can be used solely with DataStax Enterprise. Please consult the license at
-         http://www.datastax.com/terms/datastax-dse-driver-license-terms
+    This software can be used solely with DataStax Enterprise. Please consult the license at
+    http://www.datastax.com/terms/datastax-dse-driver-license-terms
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
