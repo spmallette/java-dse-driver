@@ -28,7 +28,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphOLAPQueryTest.class);
 
     // Number of nodes to run with.
-    private static final Integer NUM_NODES = 2;
+    private static final Integer NUM_NODES = 3;
 
     @Override
     protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
@@ -39,15 +39,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
         InetSocketAddress masterHttpPort = new InetSocketAddress(TestUtils.ipOfNode(1), 7080);
         LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
         TestUtils.waitUntilPortIsUp(masterHttpPort);
-        // Set the dse_leases keyspace to RF of NUM_NODES, this will prevent election of new job tracker until all nodes
-        // are available, preventing weird cases where 1 node thinks the wrong node is a master.
-        Cluster tempCluster = createClusterBuilder().addContactPointsWithPorts(getContactPointsWithPorts()).build();
-        try {
-            Session session = tempCluster.connect();
-            session.execute("ALTER KEYSPACE dse_leases WITH REPLICATION = {'class': 'NetworkTopologyStrategy', 'GraphAnalytics': '" + NUM_NODES + "'}");
-        } finally {
-            tempCluster.close();
-        }
+
         // Bootstrap additional nodes, waiting for binary interface and for it to come up as a spark worker.
         for (int i = 1; i <= NUM_NODES; i++) {
             if (i != 1) {
@@ -60,7 +52,11 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
             LOGGER.debug("Waiting for binary interface: {}.", binaryIntf);
             TestUtils.waitUntilPortIsUp(binaryIntf);
 
-            waitForWorkers(i);
+            // at least 3 replicas are required for successful LOCAL_QUORUM queries on dse_leases to allow master to come
+            // up.
+            if (i >= 3) {
+                waitForWorkers(i);
+            }
         }
     }
 
