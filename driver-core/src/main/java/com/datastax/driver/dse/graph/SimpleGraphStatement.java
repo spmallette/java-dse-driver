@@ -7,11 +7,15 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.SimpleStatement;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -19,6 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A simple graph statement implementation.
  */
 public class SimpleGraphStatement extends RegularGraphStatement {
+
+    private static final Logger logger = LoggerFactory.getLogger(SimpleGraphStatement.class);
+
+    private static final AtomicBoolean WARNED_GRAPHSON1 = new AtomicBoolean(false);
 
     private final String query;
 
@@ -110,7 +118,24 @@ public class SimpleGraphStatement extends RegularGraphStatement {
 
     @Override
     public SimpleStatement unwrap() {
-        maybeRebuildCache();
+        return unwrap(GraphProtocol.GRAPHSON_1_0);
+    }
+
+    @Override
+    public SimpleStatement unwrap(GraphProtocol graphProtocol) {
+        maybeRebuildCache(graphProtocol);
+        if (graphProtocol != GraphProtocol.GRAPHSON_1_0) {
+            // Deserialize correctly GraphSON2 results
+            setTransformResultFunction(GraphJsonUtils.ROW_TO_GRAPHSON2_OBJECTGRAPHNODE);
+        } else {
+            if (WARNED_GRAPHSON1.compareAndSet(false, true)) {
+                logger.warn("GraphSON1 is being used for a graph query, however it is recommended " +
+                        "to switch to GraphSON2 when executing a graph query to maintain " +
+                        "type information in requests and responses to the DSE Graph server. " +
+                        "Enabling GraphSON2 can be done via the DseCluster's GraphOptions, " +
+                        "see https://goo.gl/EAUBUv for more information.");
+            }
+        }
         return statement;
     }
 
@@ -121,12 +146,15 @@ public class SimpleGraphStatement extends RegularGraphStatement {
         return this;
     }
 
-    private void maybeRebuildCache() {
+    private void maybeRebuildCache(GraphProtocol graphProtocol) {
         if (needsRebuild) {
             if (valuesMap.isEmpty()) {
                 statement = new SimpleStatement(query);
             } else {
-                String values = GraphJsonUtils.writeValueAsString(valuesMap);
+                String values = graphProtocol == GraphProtocol.GRAPHSON_1_0
+                        ? GraphJsonUtils.writeValueAsString(valuesMap)
+                        : GraphJsonUtils.writeValueAsStringGraphson20(valuesMap);
+
                 statement = new SimpleStatement(query, values);
             }
             if (getConsistencyLevel() != null)

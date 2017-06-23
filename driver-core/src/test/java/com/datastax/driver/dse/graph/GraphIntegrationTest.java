@@ -16,6 +16,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -29,11 +30,23 @@ import static com.datastax.driver.dse.graph.GraphExtractors.vertexPropertyValueA
 
 @SuppressWarnings("Since15")
 @DseVersion("5.0.0")
-public class GraphIntegrationTest extends CCMGraphTestsSupport {
+public abstract class GraphIntegrationTest extends CCMGraphTestsSupport {
+
+    private final GraphProtocol graphProtocol;
+
+    // used for checking special exceptions exclusively for graphson 1.0.
+    private final boolean isGraphSON1;
+
+    @Factory(dataProvider = "graphProtocolProvider")
+    public GraphIntegrationTest(GraphProtocol graphProtocol) {
+        this.graphProtocol = graphProtocol;
+        this.isGraphSON1 = graphProtocol == GraphProtocol.GRAPHSON_1_0;
+    }
 
     @Override
     public void onTestContextInitialized() {
         super.onTestContextInitialized();
+        cluster().getConfiguration().getGraphOptions().setGraphSubProtocol(graphProtocol);
         executeGraph(GraphFixtures.modern);
     }
 
@@ -111,11 +124,11 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
     @Test(groups = "short")
     public void should_use_edge_id_as_parameter() {
         GraphResultSet resultSet = session().executeGraph(
-                new SimpleGraphStatement("g.E().has('weight', weight)").set("weight", 0.2));
+                new SimpleGraphStatement("g.E().has('weight', weight)").set("weight", 0.2f));
 
         assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
         Edge created = resultSet.one().asEdge();
-        assertThat(created).hasProperty("weight", 0.2).hasInVLabel("software").hasOutVLabel("person");
+        assertThat(created).hasProperty("weight", 0.2f).hasInVLabel("software").hasOutVLabel("person");
 
         resultSet = session().executeGraph(new SimpleGraphStatement("g.E(myE).inV()").set("myE", created.getId()));
         assertThat(resultSet.getAvailableWithoutFetching()).isEqualTo(1);
@@ -170,7 +183,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
     @Test(groups = "short")
     public void should_use_map_as_a_parameter() {
         GraphStatement schemaStmt = new SimpleGraphStatement("" +
-                "schema.propertyKey('year_born').Text().create()\n" +
+                "schema.propertyKey('year_born').Int().create()\n" +
                 "schema.propertyKey('field').Text().create()\n" +
                 "schema.vertexLabel('scientist').properties('name', 'year_born', 'field').create()\n" +
                 "schema.vertexLabel('country').properties('name').create()\n" +
@@ -239,7 +252,6 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
                 "by('name')." +
                 "by('lang')." +
                 "by(__.in('created').fold())");
-
 
         assertThat(rs.getAvailableWithoutFetching()).isEqualTo(2);
         List<GraphNode> results = rs.all();
@@ -415,7 +427,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short", expectedExceptions = {OperationTimedOutException.class})
     public void should_not_retry_non_idempotent_graph_statement_by_default() {
-        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1000L);")
+        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1001L);")
                 .setReadTimeoutMillis(1).setIdempotent(false);
         assertThat(stmt.isIdempotent()).isFalse();
 
@@ -432,7 +444,7 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short", expectedExceptions = {NoHostAvailableException.class})
     public void should_retry_idempotent_graph_statement_by_default() {
-        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1000L);")
+        GraphStatement stmt = new SimpleGraphStatement("java.util.concurrent.TimeUnit.MILLISECONDS.sleep(1002L);")
                 .setReadTimeoutMillis(1).setIdempotent(true);
         assertThat(stmt.isIdempotent()).isTrue();
 
@@ -485,20 +497,23 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
 
         // vertex node
         assertThat(vertex).isNotNull();
-        assertThat(vertex.isObject()).isTrue();
+        // vertex is only considered an object in graphson 1 since it is returned without type information
+        // so as far as we know it's an object with properties.
+        assertThat(vertex.isObject()).isEqualTo(isGraphSON1);
         assertThat(vertex.isVertex()).isTrue();
         assertThat(vertex.isEdge()).isFalse();
         assertThat(vertex.isArray()).isFalse();
-        assertThat(vertex.isValue()).isFalse();
+        // vertex is not a value in graphson 1 since it's considered an object.
+        assertThat(vertex.isValue()).isEqualTo(!isGraphSON1);
         assertThat(vertex.isNull()).isFalse();
 
         // edge node
         assertThat(edge).isNotNull();
-        assertThat(edge.isObject()).isTrue();
+        assertThat(edge.isObject()).isEqualTo(isGraphSON1);
         assertThat(edge.isVertex()).isFalse();
         assertThat(edge.isEdge()).isTrue();
         assertThat(edge.isArray()).isFalse();
-        assertThat(edge.isValue()).isFalse();
+        assertThat(edge.isValue()).isEqualTo(!isGraphSON1);
         assertThat(edge.isNull()).isFalse();
 
         // value node
@@ -519,5 +534,4 @@ public class GraphIntegrationTest extends CCMGraphTestsSupport {
         assertThat(nil.isValue()).isTrue(); // null node is a value node
         assertThat(nil.isNull()).isTrue();
     }
-
 }

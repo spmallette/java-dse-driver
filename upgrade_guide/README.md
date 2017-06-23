@@ -1,5 +1,37 @@
 ## Upgrade guide
 
+### 1.3.0
+
+The driver will now offer the possibility to use the GraphSON2 sub protocol for the 
+Graph driver with string Gremlin queries ([JAVA-1329](https://datastax-oss.atlassian.net/browse/JAVA-1329)).
+ 
+The sub protocol used by default stays GraphSON1. However GraphSON1 may cause problems of type
+conversion happening during the serialization of the query to the DSE Graph server, or the deserialization
+of the responses back from a string Gremlin query. GraphSON2 offers better support for
+the complex data types handled by DSE Graph (for an exhaustive list of the data types supported
+by the driver and DSE Graph see [this documentation](../manual/graph#data-types-compatibility-matrix).
+
+Activating GraphSON2 can be done via [GraphOptions#setGraphSubprotocol(GraphProtocol)](http://docs.datastax.com/en/drivers/java-dse/1.3/com/datastax/driver/dse/graph/GraphOptions.html#setGraphSubProtocol-com.datastax.driver.dse.graph.GraphProtocol-)
+however it may bring significant behavioral change at runtime. Some `GraphNode` methods allow
+to extract nested fields from a result in an agnostic manner such as the `GraphNode#isValue()`,
+`GraphNode#isObject()`, `GraphNode#isArray()`, ... methods. The behaviour of these methods 
+may change as a side effect of using GraphSON2, since it is a more strictly typed sub protocol:
+
+- The `isObject()` method will return `false` whenever the property to retrieve is not a `Map`.
+ With GraphSON1 this method would return `true` for any Graph object such as mainly `Vertex`, `Edge`, `VertexProperty`,`Property` and `Path`.
+ 
+- The `isValue()` method will return `true` for any Graph data type contained in the `GraphNode`
+ that is not a `Map` or a `List`, including Graph types such as mainly `Vertex`, `Edge`, `VertexProperty`,`Property` and `Path`.
+ With GraphSON1 this method would return `false` for the Graph types cited previously.
+ 
+Using GraphSON2 shouldn't have an impact at runtime with regards to the `GraphNode#asXXXX()` methods if
+the user is already following the [data type compatibilities guide](../manual/graph#data-types-compatibility-matrix) 
+in association with their DSE Graph schema.
+ 
+It is generally recommended to switch to GraphSON2 as it brings more consistent support for complex data types
+in the Graph driver and will be activated by default in the next major version (i.e. DSE Java driver 2.0).
+
+
 ### 1.2.0
 
 The coordinates of the driver artifacts have changed:

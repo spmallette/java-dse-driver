@@ -175,7 +175,7 @@ class DefaultDseSession implements DseSession, ContinuousPagingSession {
      */
     @VisibleForTesting
     static Statement generateCoreStatement(GraphOptions graphOptions, GraphStatement graphStatement) {
-        Statement statement = graphStatement.unwrap();
+        Statement statement = graphStatement.unwrap(graphOptions.getGraphSubProtocol());
         statement.setOutgoingPayload(graphOptions.buildPayloadWithDefaults(graphStatement));
 
         // Apply graph-options timeout only if not set on statement.

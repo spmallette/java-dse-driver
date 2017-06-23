@@ -34,6 +34,7 @@ public class GraphOptions {
     static final String GRAPH_READ_CONSISTENCY_KEY = "graph-read-consistency";
     static final String GRAPH_WRITE_CONSISTENCY_KEY = "graph-write-consistency";
     static final String REQUEST_TIMEOUT_KEY = "request-timeout";
+    static final String GRAPH_RESULTS_KEY = "graph-results";
 
     /**
      * The default value for {@link #getGraphLanguage()} ({@value}).
@@ -54,6 +55,8 @@ public class GraphOptions {
     private volatile Map<String, ByteBuffer> defaultPayload;
 
     private volatile int readTimeoutMillis = 0;
+
+    private volatile GraphProtocol graphSubProtocol = GraphProtocol.GRAPHSON_1_0;
 
     public GraphOptions() {
         rebuildDefaultPayload();
@@ -213,10 +216,30 @@ public class GraphOptions {
     }
 
     /**
+     * Set the sub protocol to use with DSE Graph. See {@link GraphProtocol} for more information.
+     *
+     * @param graphSubProtocol the sub protocol to choose
+     * @return this {@link GraphOptions} instance (for method chaining).
+     */
+    public GraphOptions setGraphSubProtocol(GraphProtocol graphSubProtocol) {
+        this.graphSubProtocol = graphSubProtocol;
+        return this;
+    }
+
+    /**
+     * Return the graph sub protocol set for all queries.
+     *
+     * @return the sub protocol currently used.
+     */
+    public GraphProtocol getGraphSubProtocol() {
+        return this.graphSubProtocol;
+    }
+
+    /**
      * Builds the custom payload for the given statement, providing defaults from these graph options if necessary.
      * <p/>
      * This method is intended for internal use only.
-     *
+
      * @param statement the statement.
      * @return the payload.
      */
@@ -227,7 +250,8 @@ public class GraphOptions {
                 && statement.getGraphWriteConsistencyLevel() == null
                 && statement.getGraphName() == null
                 && statement.getGraphInternalOptions().size() == 0
-                && !statement.isSystemQuery()) {
+                && !statement.isSystemQuery()
+                && graphSubProtocol == GraphProtocol.GRAPHSON_1_0) {
             return defaultPayload;
         } else {
             ImmutableMap.Builder<String, ByteBuffer> builder = ImmutableMap.builder();
@@ -238,11 +262,15 @@ public class GraphOptions {
             // ----- Optional DSEGraph settings -----
             setOrDefaultCl(builder, GRAPH_READ_CONSISTENCY_KEY, statement.getGraphReadConsistencyLevel());
             setOrDefaultCl(builder, GRAPH_WRITE_CONSISTENCY_KEY, statement.getGraphWriteConsistencyLevel());
-            if (!statement.isSystemQuery())
+            if (!statement.isSystemQuery()) {
                 setOrDefaultText(builder, GRAPH_NAME_KEY, statement.getGraphName());
+            }
             if (statement.getReadTimeoutMillis() > 0) {
                 // If > 0 it means it's not the default and has to be in the payload.
                 setOrDefaultBigInt(builder, REQUEST_TIMEOUT_KEY, (long) statement.getReadTimeoutMillis());
+            }
+            if (graphSubProtocol != GraphProtocol.GRAPHSON_1_0) {
+                setOrDefaultText(builder, GRAPH_RESULTS_KEY, graphSubProtocol.getProtocolReference());
             }
 
             for (Map.Entry<String, String> optionEntry : statement.getGraphInternalOptions().entrySet()) {
@@ -253,7 +281,7 @@ public class GraphOptions {
         }
     }
 
-    private void setOrDefaultText(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
+    void setOrDefaultText(ImmutableMap.Builder<String, ByteBuffer> builder, String key, String value) {
         ByteBuffer bytes = (value == null)
                 ? defaultPayload.get(key)
                 : PayloadHelper.asBytes(value);

@@ -26,6 +26,5 @@ public abstract class RegularGraphStatement extends GraphStatement {
 
     @Override
     public abstract RegularStatement unwrap();
-
 }
 

@@ -17,4 +17,10 @@
         <className>com/datastax/driver/dse/graph/ToStringGraphSONSerializer</className>
         <justification>This class was never used. It shouldn't have been published at all.</justification>
     </difference>
+    <difference>
+        <differenceType>7013</differenceType>
+        <className>com/datastax/driver/dse/graph/GraphStatement</className>
+        <method>com.datastax.driver.core.Statement unwrap(com.datastax.driver.dse.graph.GraphProtocol)</method>
+        <justification>Added method needed to differentiate between result types, internal use only</justification>
+    </difference>
 </differences>

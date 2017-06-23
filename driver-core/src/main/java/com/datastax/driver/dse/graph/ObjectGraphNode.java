@@ -94,12 +94,10 @@ public class ObjectGraphNode implements GraphNode {
 
     @Override
     public GraphNode get(String fieldName) {
-        Object fieldValue = ((Map) delegate).get(fieldName);
-        if (fieldValue == null) {
-            return null;
-        } else {
-            return new ObjectGraphNode(fieldValue);
+        if (((Map) delegate).containsKey(fieldName)) {
+            return new ObjectGraphNode(((Map) delegate).get(fieldName));
         }
+        return null;
     }
 
     @Override

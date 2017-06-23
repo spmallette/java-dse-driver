@@ -128,4 +128,16 @@ public class GraphJsonUtils {
             throw Throwables.propagate(e);
         }
     }
+
+    /**
+     * If JDK 8 is available, then the following temporal types can be serialized:
+     * ({@code java.time.Instant}, {@code java.time.ZonedDateTime}, and {@code java.time.Duration}).
+     */
+    static String writeValueAsStringGraphson20(Object value) {
+        try {
+            return GRAPHSON2_OBJECT_MAPPER.writeValueAsString(value);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
 }

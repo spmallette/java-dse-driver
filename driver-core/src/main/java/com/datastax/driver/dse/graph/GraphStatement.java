@@ -7,6 +7,7 @@
 package com.datastax.driver.dse.graph;
 
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Statement;
@@ -347,6 +348,17 @@ public abstract class GraphStatement {
     }
 
     /**
+     * This method is deprecated because a {@link GraphProtocol} is required to produce
+     * a valid {@link Statement}. Use {@link #unwrap(GraphProtocol)} instead.
+     * <p/>
+     * This method will call {@code GraphStatement#unwrap(GraphProtocol.GRAPHSON_1_0)}.
+     *
+     * @return an executable {@link Statement}.
+     */
+    @Deprecated
+    public abstract Statement unwrap();
+
+    /**
      * "Unwraps" the current graph statement, that is,
      * returns an executable {@link Statement} object corresponding to this graph statement.
      * <p/>
@@ -358,9 +370,11 @@ public abstract class GraphStatement {
      * <p/>
      * Implementations are free to cache the returned {@link Statement} if appropriate.
      *
+     * @param graphProtocol the protocol version required to encode the statement's
+     *                        parameters into the correct sub-protocol format.
      * @return an executable {@link Statement}.
      */
-    public abstract Statement unwrap();
+    public abstract Statement unwrap(GraphProtocol graphProtocol);
 
     /**
      * Sets the function to transform a {@link com.datastax.driver.core.Row} to a {@link com.datastax.driver.dse.graph.GraphNode}.

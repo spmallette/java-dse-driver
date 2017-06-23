@@ -39,6 +39,17 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
 
     AtomicInteger schemaCounter = new AtomicInteger(0);
 
+    /**
+     * Whether or not to skip testing a given type.  May be done for various reasons (graph protocol used,
+     * type being broken for certain versions, etc.)
+     *
+     * @param type Type to evaluate.
+     * @return Whether or not to skip test for type.
+     */
+    boolean filterType(String type) {
+        return false;
+    }
+
     @DataProvider
     public static Object[][] dataTypeSamples() {
         return new Object[][]{
@@ -118,6 +129,9 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
      */
     @Test(groups = "short", dataProvider = "dataTypeSamples")
     public void should_create_and_retrieve_vertex_property(String type, Object input) {
+        if (filterType(type)) {
+            throw new SkipException("Type " + type + " marked as filtered for this test.");
+        }
         int id = schemaCounter.incrementAndGet();
         // If we're working with a geotype and our version is 5.0, make a special exception and truncate the
         // withBounds/withGeoBounds qualifiers.
@@ -158,12 +172,8 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
     @Test(groups = "short", dataProvider = "dataTypeSamples51")
     @DseVersion("5.1.0")
     public void should_create_and_retrieve_vertex_property_51(String type, Object input) {
-        if (type.equals("Time()")) {
-            throw new SkipException("Skipping Time() tests until DSP-12318 is resolved");
-        }
         should_create_and_retrieve_vertex_property(type, input);
     }
-
 
     @SuppressWarnings("unchecked")
     private void validateVertexResult(GraphResultSet resultSet, String vertexLabel, String propertyName, Object
@@ -189,5 +199,4 @@ public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
         // Validate using the as(Clazz) method depending on the expectedClass.
         a.hasProperty(propertyName, expectedResult, (Class<Object>) expectedResult.getClass());
     }
-
 }
