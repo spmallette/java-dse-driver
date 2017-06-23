@@ -2,6 +2,7 @@
 
 ### 1.3.0 (in progress)
 
+- [new feature] JAVA-1329: Use "graph-results" payload option for the GraphSON format.
 - [improvement] JAVA-1460: Add speculative execution number to ExecutionInfo.
 - [bug] JAVA-1428: Update non-required dependencies that have security vulnerabilities.
 - [bug] JAVA-1425: Upgrade to Jackson 2.8.8.
