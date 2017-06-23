@@ -77,6 +77,8 @@ public class CCMBridge implements CCMAccess {
      * If C* version cannot be derived, the method makes a 'best guess'.
      */
     private static final Map<String, String> dseToCassandraVersions = ImmutableMap.<String, String>builder()
+            .put("6.0.0", "4.0")
+            .put("6.0", "4.0")
             .put("5.1.0", "3.10")
             .put("5.0.4", "3.0.10")
             .put("5.0.3", "3.0.9")
@@ -234,6 +236,8 @@ public class CCMBridge implements CCMAccess {
             } else {
                 return VersionNumber.parse("2.0");
             }
+        } else if (dseVersion.getMajor() == 6) {
+            return VersionNumber.parse("4.0");
         } else {
             // Fallback on 3.0 by default.
             return VersionNumber.parse("3.0");
