@@ -12,7 +12,7 @@
 
     <groupId>com.datastax.dse</groupId>
     <artifactId>dse-java-driver-parent</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
     <packaging>pom</packaging>
     <name>DataStax Enterprise Java Driver</name>
     <description>
@@ -920,7 +920,7 @@ http://www.datastax.com/terms/datastax-dse-driver-license-terms
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore/>
+                                        <ignore />
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
@@ -1004,7 +1004,7 @@ http://www.datastax.com/terms/datastax-dse-driver-license-terms
                             <!-- This requires includes to be explicitly specified by implementing classes.
                                  This is needed to prevent creating a JVM fork for each test, even those that don't
                                  have the isolated group. -->
-                            <includes/>
+                            <includes />
                         </configuration>
                     </plugin>
                 </plugins>
@@ -1146,7 +1146,7 @@ http://www.datastax.com/terms/datastax-dse-driver-license-terms
         <connection>scm:git:git@github.com:${github_org}/java-dse-driver.git</connection>
         <developerConnection>scm:git:git@github.com:${github_org}/java-dse-driver.git</developerConnection>
         <url>https://github.com/${github_org}/java-dse-driver</url>
-        <tag>HEAD</tag>
+        <tag>1.3.0</tag>
     </scm>
 
     <developers>
