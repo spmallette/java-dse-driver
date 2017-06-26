@@ -1,6 +1,6 @@
 ## Changelog
 
-### 1.3.0 (in progress)
+### 1.3.0
 
 - [new feature] JAVA-1329: Use "graph-results" payload option for the GraphSON format.
 - [improvement] JAVA-1460: Add speculative execution number to ExecutionInfo.
