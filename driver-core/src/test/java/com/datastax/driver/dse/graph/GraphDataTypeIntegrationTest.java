@@ -32,8 +32,7 @@ import java.util.regex.Pattern;
 import static com.datastax.driver.dse.geometry.Utils.p;
 import static com.datastax.driver.dse.graph.GraphAssertions.assertThat;
 
-@DseVersion("5.0.0")
-public class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
+public abstract class GraphDataTypeIntegrationTest extends CCMGraphTestsSupport {
 
     Logger logger = LoggerFactory.getLogger(GraphDataTypeIntegrationTest.class);
 
