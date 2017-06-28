@@ -23,12 +23,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @DseVersion("5.0.0")
-@CCMConfig(dirtiesContext = true)
+@CCMConfig(dirtiesContext = true, numberOfNodes = 3)
 public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphOLAPQueryTest.class);
-
-    // Number of nodes to run with.
-    private static final Integer NUM_NODES = 3;
 
     @Override
     protected void initTestContext(Object testInstance, Method testMethod) throws Exception {
@@ -40,24 +37,14 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
         LOGGER.debug("Waiting for spark master HTTP interface: {}.", masterHttpPort);
         TestUtils.waitUntilPortIsUp(masterHttpPort);
 
-        // Bootstrap additional nodes, waiting for binary interface and for it to come up as a spark worker.
-        for (int i = 1; i <= NUM_NODES; i++) {
-            if (i != 1) {
-                this.ccm().add(i);
-                this.ccm().setWorkload(i, "graph", "spark");
-                this.ccm().start(i);
-            }
-
+        // Wait for binary interface on each node.
+        for (int i = 1; i <= 3; i++) {
             InetSocketAddress binaryIntf = new InetSocketAddress(TestUtils.ipOfNode(i), this.ccm().getBinaryPort());
             LOGGER.debug("Waiting for binary interface: {}.", binaryIntf);
             TestUtils.waitUntilPortIsUp(binaryIntf);
-
-            // at least 3 replicas are required for successful LOCAL_QUORUM queries on dse_leases to allow master to come
-            // up.
-            if (i >= 3) {
-                waitForWorkers(i);
-            }
         }
+        // Wait for spark master to be responsive and show 3 active workers.
+        waitForWorkers(3);
     }
 
     /**
@@ -106,7 +93,7 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
 
     @Override
     public void onTestContextInitialized() {
-        createAndSetGraphConfig(NUM_NODES);
+        createAndSetGraphConfig(3);
         executeGraph(GraphFixtures.modern);
     }
 
@@ -114,8 +101,10 @@ public class CCMGraphTestsOLAPSupport extends CCMGraphTestsSupport {
     public CCMBridge.Builder configureCCM() {
         // Start with 1 node initially, 2 other nodes will be bootstrapped one at a time.
         return super.configureCCM()
-                .withNodes(1)
-                .withWorkload(1, "graph", "spark");
+                .withNodes(3)
+                .withWorkload(1, "graph", "spark")
+                .withWorkload(2, "graph", "spark")
+                .withWorkload(3, "graph", "spark");
     }
 
     /**
