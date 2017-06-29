@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("unused")
 @CreateCCM(PER_METHOD)
 @CCMConfig(createCluster = false, dirtiesContext = true, ccmProvider = "configureCCM")
-@DseVersion("5.0.0")
+@DseVersion("4.8")
 public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
 
     // Realm for the KDC.
@@ -79,12 +79,21 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
     }
 
     CCMBridge.Builder baseAuthenticationConfiguration() {
-        return CCMBridge.builder()
-                .withCassandraConfiguration("authenticator", "com.datastax.bdp.cassandra.auth.DseAuthenticator")
+        boolean is5OrGreater = CCMBridge.getGlobalDSEVersion().getMajor() >= 5;
+        String authenticator = is5OrGreater ?
+                "com.datastax.bdp.cassandra.auth.DseAuthenticator" :
+                "com.datastax.bdp.cassandra.auth.KerberosAuthenticator";
+
+        CCMBridge.Builder builder = CCMBridge.builder().withCassandraConfiguration("authenticator", authenticator)
                 .withDSEConfiguration("kerberos_options.qop", "auth")
-                .withDSEConfiguration("authentication_options.enabled", "true")
-                .withDSEConfiguration("authentication_options.default_scheme", "kerberos")
                 .withJvmArgs("-Dcassandra.superuser_setup_delay_ms=0", "-Djava.security.krb5.conf=" + adsServer.getKrb5Conf().getAbsolutePath());
+
+        if (is5OrGreater) {
+            builder = builder
+                    .withDSEConfiguration("authentication_options.enabled", "true")
+                    .withDSEConfiguration("authentication_options.default_scheme", "kerberos");
+        }
+        return builder;
     }
 
     public CCMBridge.Builder configureCCM() {
@@ -98,7 +107,6 @@ public class DseGSSAPIAuthProviderTest extends CCMDseTestsSupport {
                 .withDSEConfiguration("kerberos_options.keytab", alternateKeytab.getAbsolutePath())
                 .withDSEConfiguration("kerberos_options.service_principal", "alternate/_HOST@" + realm);
     }
-
 
     /**
      * Ensures that a Cluster can be established to a DSE server secured with Kerberos and that simple queries can
