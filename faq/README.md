@@ -18,6 +18,7 @@ with your target DataStax Enterprise Driver version.  Use the following table to
 | ------------------------ | ------------------ |
 | 3.1.x                    | 1.1.x              |
 | 3.2.x                    | 1.2.x              |
+| 3.3.x                    | 1.3.x              |
 
 To accomplish this with maven using spring-data-cassandra as an example, you may do the following:
 
