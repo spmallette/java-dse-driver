@@ -9,18 +9,17 @@ package com.datastax.dse.graph.remote;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphFixtures;
+import com.datastax.driver.dse.graph.GraphNode;
+import com.datastax.driver.dse.graph.GraphResultSet;
+import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
 import com.datastax.dse.graph.TinkerGraphExtractors;
 import com.datastax.dse.graph.api.DseGraph;
-import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
-import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.DefaultGraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
-import org.apache.tinkerpop.gremlin.process.traversal.step.map.GraphStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.Tree;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -460,8 +459,13 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
      */
     @Test(groups = "short")
     public void should_allow_use_of_dsl() throws Exception {
-        SillyTraversalSource silly = DseGraph.traversal(session(), SillyTraversalSource.class);
-        assertThat(silly.persons().count().next()).isEqualTo(4);
+        com.datastax.dse.graph.remote.SocialTraversalSource gSocial = DseGraph.traversal(com.datastax.dse.graph.remote.SocialTraversalSource.class);
+        List<Vertex> vertices = gSocial.persons("marko").knows("vadas").toList();
+        assertThat(vertices.size()).isEqualTo(1);
+        assertThat(vertices.get(0))
+                .hasProperty("name", "marko")
+                .hasProperty("age", 29)
+                .hasLabel("person");
     }
 
     /**
@@ -525,33 +529,6 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
                     .hasLabel("software")
                     .hasProperty("name", "ripple")
                     .hasProperty("lang", "java");
-        }
-    }
-
-    /**
-     * A super bare-bones DSL for testing purposes.
-     */
-    public static class SillyTraversalSource extends GraphTraversalSource {
-        public SillyTraversalSource(Graph graph) {
-            super(graph);
-        }
-
-        public SillyTraversalSource(Graph graph, TraversalStrategies strategies) {
-            super(graph, strategies);
-        }
-
-        @Override
-        public SillyTraversalSource withRemote(RemoteConnection connection) {
-            return (SillyTraversalSource) super.withRemote(connection);
-        }
-
-        public GraphTraversal<Vertex, Vertex> persons() {
-            return this.clone().V().hasLabel("person");
-        }
-
-        @Override
-        public SillyTraversalSource clone() {
-            return (SillyTraversalSource) super.clone();
         }
     }
 }
