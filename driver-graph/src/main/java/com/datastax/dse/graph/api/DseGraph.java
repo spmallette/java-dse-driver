@@ -47,7 +47,7 @@ public final class DseGraph {
      * @param traversalSourceClass the DSL class to instantiate to work remotely with a DSE Graph server.
      * @return a simple and non-iterable traversal source, associated to a {@link org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph}.
      */
-    public static <C extends GraphTraversalSource> C traversal(final Class<C> traversalSourceClass) {
+    public static <C extends GraphTraversalSource> C traversal(Class<C> traversalSourceClass) {
         return EmptyGraph.instance().traversal(traversalSourceClass);
     }
 
@@ -87,7 +87,7 @@ public final class DseGraph {
      * @param traversalSourceClass the DSL class to instantiate to work remotely with a DSE Graph server.
      * @return a remotely connected and initialized traversal source that can be used right away.
      */
-    public static <C extends GraphTraversalSource> C traversal(DseSession dseSession, GraphOptions graphOptions, final Class<C> traversalSourceClass) {
+    public static <C extends GraphTraversalSource> C traversal(DseSession dseSession, GraphOptions graphOptions, Class<C> traversalSourceClass) {
         return (C) traversal(traversalSourceClass).withRemote(DseRemoteConnection.builder(dseSession)
                 .withGraphOptions(graphOptions).build());
     }
@@ -119,7 +119,7 @@ public final class DseGraph {
      * @param traversalSourceClass the DSL class to instantiate to work remotely with a DSE Graph server.
      * @return a remotely connected and initialized traversal source that can be used right away.
      */
-    public static <C extends GraphTraversalSource> C traversal(DseSession dseSession, final Class<C> traversalSourceClass) {
+    public static <C extends GraphTraversalSource> C traversal(DseSession dseSession, Class<C> traversalSourceClass) {
         return (C) traversal(traversalSourceClass).withRemote(DseRemoteConnection.builder(dseSession).build());
     }
 
