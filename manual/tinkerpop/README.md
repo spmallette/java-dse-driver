@@ -123,13 +123,13 @@ Users may require a `GraphTraversal` class that exposes their domain-specific gr
 and need this new grammar via the Fluent API.
 
 As of DSE Java driver 1.4.0, the [DseGraph][DseGraph] class exposes new additional utilities 
-to create a traversal source equipped with a user's custom-defined traversal methods easily.
+to create a traversal source equipped with custom user-defined traversal methods easily.
 
 After generating a custom `GraphTraversalSource` as explained in the [TinkerPop documentation][DSL-tp-docs], 
-users may use it directly to create `GraphStatement` out of a traversal, or iterate a 
+users may use it directly to create a `GraphStatement` out of a traversal, or iterate a 
 connected traversal.
 
-Here's an example using `GraphStatements` and explicit execution through the `DseSession`:
+Here's an example using `GraphStatement`s and explicit execution through the `DseSession`:
 
 ```java
 // see TinkerPop documentation link for the generation of SocialTraversalSource
