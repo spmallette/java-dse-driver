@@ -9,9 +9,6 @@ package com.datastax.dse.graph.remote;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.utils.DseVersion;
 import com.datastax.driver.dse.graph.GraphFixtures;
-import com.datastax.driver.dse.graph.GraphNode;
-import com.datastax.driver.dse.graph.GraphResultSet;
-import com.datastax.driver.dse.graph.GraphStatement;
 import com.datastax.dse.graph.CCMTinkerPopTestsSupport;
 import com.datastax.dse.graph.TinkerGraphExtractors;
 import com.datastax.dse.graph.api.DseGraph;
@@ -459,7 +456,7 @@ public class TraversalIntegrationTest extends CCMTinkerPopTestsSupport {
      */
     @Test(groups = "short")
     public void should_allow_use_of_dsl() throws Exception {
-        com.datastax.dse.graph.remote.SocialTraversalSource gSocial = DseGraph.traversal(com.datastax.dse.graph.remote.SocialTraversalSource.class);
+        SocialTraversalSource gSocial = DseGraph.traversal(SocialTraversalSource.class);
         List<Vertex> vertices = gSocial.persons("marko").knows("vadas").toList();
         assertThat(vertices.size()).isEqualTo(1);
         assertThat(vertices.get(0))
